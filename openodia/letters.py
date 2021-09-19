@@ -5,7 +5,7 @@
 """
 
 
-class letters:
+class Letters:
     """Letters in Odia language"""
 
     all_letters = {
