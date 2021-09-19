@@ -35,5 +35,5 @@ setup(
     py_modules=["openodia"],
     include_package_data=True,
     install_requires=[],
-    entry_points={"console_scripts": ["realpython=openodia.__main__:main"]},
+    entry_points={"console_scripts": ["openodia=openodia.__main__:main"]},
 )

@@ -1,8 +1,11 @@
+import sys
+
+from letters import letters
 
 
-def main():
-    ...
+def main(args=None):
+    print(f"This is the main program.")
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
