@@ -1,5 +1,6 @@
 """Setup script for openodia
-Referred: https://github.com/realpython/reader/blob/master/setup.py
+Referred:   https://github.com/realpython/reader/blob/master/setup.py
+            https://realpython.com/pypi-publish-python-package/
 """
 
 import os.path
