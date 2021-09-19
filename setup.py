@@ -1,4 +1,4 @@
-"""Setup script for open_odia
+"""Setup script for openodia
 Referred: https://github.com/realpython/reader/blob/master/setup.py
 """
 
@@ -14,12 +14,12 @@ with open(os.path.join(HERE, "README.md")) as fid:
 
 # This call to setup() does all the work
 setup(
-    name="open_odia",
+    name="openodia",
     version="0.0.0",
     description="Open source Odia language tools",
     long_description=README,
     long_description_content_type="text/markdown",
-    url="https://github.com/soumendrak/open_odia",
+    url="https://github.com/soumendrak/openodia",
     author="Soumendra Kumar Sahoo",
     author_email="proud_odia@outlook.com",
     license="MIT",
@@ -31,8 +31,8 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3 :: Only',
     ],
-    py_modules=["open_odia"],
+    py_modules=["openodia"],
     include_package_data=True,
     install_requires=[],
-    entry_points={"console_scripts": ["realpython=open_odia.__main__:main"]},
+    entry_points={"console_scripts": ["realpython=openodia.__main__:main"]},
 )

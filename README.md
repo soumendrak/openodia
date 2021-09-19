@@ -1,3 +1,3 @@
-# open_odia
+# openodia
 
-`open_odia` is a Python package which contains various tools on Odia language.
+`openodia` is a Python package which contains various tools on Odia language.
