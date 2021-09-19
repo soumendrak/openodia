@@ -2,7 +2,7 @@ import sys
 
 
 def main(args=None):
-    print("This is the main program.")
+    print("CLI building is in-progress.")
 
 
 if __name__ == "__main__":
