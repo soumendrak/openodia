@@ -3,5 +3,3 @@
 __version__ = "0.0.5"
 
 from .letters import Letters
-
-__all__ = ["Letters"]
