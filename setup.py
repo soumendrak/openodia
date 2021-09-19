@@ -4,7 +4,7 @@ Referred:   https://github.com/realpython/reader/blob/master/setup.py
 """
 
 import os.path
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # The directory containing this file
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -32,7 +32,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3 :: Only',
     ],
-    py_modules=["openodia"],
+    packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     include_package_data=True,
     install_requires=[],
     entry_points={"console_scripts": ["openodia=openodia.__main__:main"]},
