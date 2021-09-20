@@ -1,4 +1,4 @@
-# openodia
+<h1 align="center">Open Odia</h1>
 
 - `openodia` is a Python package which contains various tools on Odia language.
 
@@ -66,12 +66,27 @@ pip install openodia
 - To tokenize odia text into multiple words or tokens `word_tokenizer` module can be used.
 
 ``` python
->>> from openodia import tokenizer
->>> tokenizer.word_tokenizer("କ୍ୱାଣ୍ଟମ କମ୍ପ୍ୟୁଟିଙ୍ଗ, ହେଉଛି ଏକ ଉଦୀୟମାନ ହାର୍ଡ଼ୱେର ଏବଂ ସଫ୍ଟୱେରର ପ୍ରଯୁକ୍ତିବିଦ୍ୟା, ଯାହା କଠିନ ଗାଣିତିକ ସମସ୍ୟାଗୁଡ଼ିକର ସମାଧାନ ପାଇଁ ଉପ-ପାରମାଣବିକ ଘଟଣାଗୁଡ଼ିକର ଉପଯୋଗ କରିଥାଏ ।[୧]")
+>>> from openodia import UD
+>>> UD.word_tokenizer("କ୍ୱାଣ୍ଟମ କମ୍ପ୍ୟୁଟିଙ୍ଗ, ହେଉଛି ଏକ ଉଦୀୟମାନ ହାର୍ଡ଼ୱେର ଏବଂ ସଫ୍ଟୱେରର ପ୍ରଯୁକ୍ତିବିଦ୍ୟା, ଯାହା କଠିନ ଗାଣିତିକ ସମସ୍ୟାଗୁଡ଼ିକର ସମାଧାନ ପାଇଁ ଉପ-ପାରମାଣବିକ ଘଟଣାଗୁଡ଼ିକର ଉପଯୋଗ କରିଥାଏ ।[୧]")
 
 ['କ୍ୱାଣ୍ଟମ', 'କମ୍ପ୍ୟୁଟିଙ୍ଗ', 'ହେଉଛି', 'ଏକ', 'ଉଦୀୟମାନ', 'ହାର୍ଡ଼ୱେର', 'ଏବଂ', 'ସଫ୍ଟୱେରର', 'ପ୍ରଯୁକ୍ତିବିଦ୍ୟା', 'ଯାହା', 'କଠିନ', 'ଗାଣିତିକ', 'ସମସ୍ୟାଗୁଡ଼ିକର', 'ସମାଧାନ', 'ପାଇଁ', 'ଉପ', 'ପାରମାଣବିକ', 'ଘଟଣାଗୁଡ଼ିକର', 'ଉପଯୋଗ', 'କରିଥାଏ', '।', '୧']
 ```
 
+### Remove stopwords
+
+- Frequently occurring words in a language are called as _stopwords_. Using the below function you can remove the stopwords.
+- Internally this method calls the `word_tokenize` method to get tokens from the text.
+- As most of the time processing happens in list by default a list of strings will be returned.
+
+```python
+>>> from openodia import UD
+>>> UD.remove_stopwords("ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି")
+['ରାମ', 'ସୀତା', 'ଆମକୁ', 'ଆଶୀର୍ବାଦ']
+>>> UD.remove_stopwords("ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି ", get_str=True)
+'ରାମ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ'
+```
+Here the stopwords `ଓ` and `ଦେଇଛନ୍ତି` are removed from the text.
 ## Caution
 
-The library is in development phase and not for production use.
+Thanks for being an early visitor.  
+The library is in active development phase and not for production use.
