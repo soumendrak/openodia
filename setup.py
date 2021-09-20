@@ -13,6 +13,10 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(HERE, "README.md")) as fid:
     README = fid.read()
 
+# The text of the requirements file
+with open(os.path.join(HERE, "requirements.txt")) as rt:
+    REQUIREMENTS = rt.readlines()
+
 # This call to setup() does all the work
 setup(
     name="openodia",
@@ -34,6 +38,6 @@ setup(
     ],
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     include_package_data=True,
-    install_requires=[],
+    install_requires=REQUIREMENTS,
     entry_points={"console_scripts": ["openodia=openodia.__main__:main"]},
 )

@@ -3,12 +3,13 @@
 @author: Soumendra Kumar Sahoo
 @date: 19-Sep-2021
 """
+from string import punctuation
 
 
 class Letters:
     """Letters in Odia language"""
 
-    all_letters = (
+    all_letters = [
         "ଁ",
         "ଂ",
         "ଃ",
@@ -94,13 +95,13 @@ class Letters:
         "୰",
         "ୱ",
         "୲",
-    )
+    ]
 
-    vowels = ("ଅ", "ଆ", "ଇ", "ଈ", "ଉ", "ଊ", "ଋ", "ଌ", "ଏ", "ଐ", "ଓ", "ଔ")
+    vowels = ["ଅ", "ଆ", "ଇ", "ଈ", "ଉ", "ଊ", "ଋ", "ଌ", "ଏ", "ଐ", "ଓ", "ଔ"]
 
-    numbers = ("୦", "୧", "୨", "୩", "୪", "୫", "୬", "୭", "୮", "୯")
+    numbers = ["୦", "୧", "୨", "୩", "୪", "୫", "୬", "୭", "୮", "୯"]
 
-    consonants = (
+    consonants = [
         "କ",
         "ଖ",
         "ଗ",
@@ -135,9 +136,9 @@ class Letters:
         "ଷ",
         "ସ",
         "ହ",
-    )
+    ]
 
-    matra = (
+    matras = [
         "ଁ",
         "ଂ",
         "ଃ",
@@ -160,4 +161,6 @@ class Letters:
         "୰",
         "ୱ",
         "୲",
-    )
+    ]
+
+    punctuations = tuple(f"{punctuation}୲")

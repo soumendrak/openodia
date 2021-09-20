@@ -25,3 +25,7 @@ pip install openodia
 >>> Letters.matra
 ('ଁ', 'ଂ', 'ଃ', '଼', 'ଽ', 'ା', 'ି', 'ୀ', 'ୁ', 'ୂ', 'ୃ', 'ୄ', 'େ', 'ୈ', 'ୋ', 'ୌ', '୍', 'ୖ', 'ୗ', '୰', 'ୱ', '୲')
 ```
+
+## Caution
+
+The library is in development phase and not for production use.
