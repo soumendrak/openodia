@@ -20,7 +20,7 @@ with open(os.path.join(HERE, "requirements.txt")) as rt:
 # This call to setup() does all the work
 setup(
     name="openodia",
-    version="0.0.11",
+    version="0.0.12",
     description="Open source Odia language tools",
     long_description=README,
     long_description_content_type="text/markdown",
