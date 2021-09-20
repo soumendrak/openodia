@@ -12,6 +12,14 @@ pip install openodia
 
 ## Usage
 
+The tools are available in Odia language.
+
+- [x] [Odia Alphabets](#odia-alphabets)
+- [x] [Generate random Odia names](#odia-names)
+- [x] [Detect Odia Language](#detect-odia-language)
+- [x] [Word Tokenizer](#word-tokenizer)
+- [x] [Remove stopwords](#remove-stopwords)
+
 ### Odia alphabets 
 
 - To get the Odia alphabets use the `alphabet` module
@@ -61,6 +69,26 @@ pip install openodia
 ['ପରିଜା', 'ରଣସିଂହ', 'ମହାପାତ୍ର', 'ରଥ', 'ମହନ୍ତ', 'ବେହେରା', 'ଦେଓ', 'ଧଳ', 'ଦିଆନ', 'ହିମିରିକା']
 ```
 
+### Detect Odia Language
+
+- A binary language classification method used which will return if the input text is in Odia language or in any other non-Odia language. 
+- Along with this a confidence score also returned. The score provides how confident the library is that it is Odia or Non-Odia.
+- There is a `threshold` parameter to the method which can be configured to tune the confidence score threshold after which it will be regarded as Odia. The default value is 0.5.
+
+```python
+>>> from openodia import UD
+>>> UD.detect_language("hey how are you?")
+{'language': 'non-odia', 'confidence_score': 1.0}
+
+>>> UD.detect_language("hey how are you? ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ")
+{'language': 'odia', 'confidence_score': 0.66666}
+
+>>> UD.detect_language("hey how are you? ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ", threshold=0.7)
+{'language': 'non-odia', 'confidence_score': 0.333333}
+
+>>> UD.detect_language("ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ ବା ପ୍ରାକୃତିକ ଭାଷା ପ୍ରକ୍ରିୟାକରଣ କଂପ୍ୟୁଟର ବିଜ୍ଞାନ ଏବଂ ଆର୍ଟିଫିସିଆଲ ଇଣ୍ଟେଲିଜେନ୍ସର ସେହି ବିଭାଗକୁ କୁହାଯ ାଏ ଯାହା ମନୁଷ୍ୟର ଭାଷାଗୁଡ଼ିକ ସହ କମ୍ପ୍ୟୁଟରର କଥାବାର୍ତ୍ତାକୁ ବୁଝାଇଥାଏ। ")
+{'language': 'odia', 'confidence_score': 0.99404}
+```
 ### Word Tokenizer
 
 - To tokenize odia text into multiple words or tokens `word_tokenizer` module can be used.
