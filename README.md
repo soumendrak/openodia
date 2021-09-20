@@ -46,6 +46,17 @@ By default it will return ten randomly generated names. If you want, you can gen
 ['ସାବିତ୍ରୀ ଧଳ', 'ଶ୍ରୀଯୁକ୍ତ ଉତ୍କଳ ପାଳ', 'ଯଦୁମଣି ସୁବାହୁ', 'ପ୍ରେମଲତା ପମ', 'ଗୁରୁ ପୃଷ୍ଟି', 'ଗୀତା ଦାସବର୍ମା', 'କୁମାରୀ ଦୁର୍ଗା ବ୍ରହ୍ମା', 'କୁମାରୀ ପୁପୁଲ ହେମ୍ବ୍ରମ', 'ମକର ସାଇ', 'ଲକ୍ଷ୍ମୀକାନ୍ତ ନନ୍ଦି', 'ଶ୍ରୀ ଦୀନବନ୍ଧୁ ଲୋକ', 'କୁମାରୀ ଜିନା ଗଜପତି', 'ମୃଣାଳ ଭୂଷଣ ଛତ୍ରିଆ', 'ସୁଧାଂଶୁମାଳିନୀ ସିଂହ ସାଲୁଜା', 'ସୁଧାଂଶୁମାଳିନୀ ମହାନନ୍ଦ', 'ସୁମନୀ ନାଥ', 'କୁମାରୀ ନୀତୁ ହିକ୍କା', 'ଶ୍ରୀମତୀ ଲୀଳା କାଡାମ୍', 'ସନାତନ କୁଅଁର', 'କୁମାରୀ କବି ଦାସନାୟକ']
 ```
 
+## Word Tokenizer
+
+To tokenize input text into multiple words `word_tokenizer` module can be used.
+
+``` python
+>>> from openodia import tokenizer
+>>> from openodia import tokenizer
+>>> tokenizer.word_tokenizer("ଭାରତୀୟ ସ୍ୱାଧୀନତା ଆନ୍ଦୋଳନ, ହେଉଛି ଭାରତରେ ବ୍ରିଟିଶ ଶାସନର ଅନ୍ତ କରିବା ଲକ୍ଷ୍ୟରେ ଘଟିଥିବା ବିଭିନ୍ନ ଘଟଣାବଳୀଗୁଡ଼ିକର ଶୃଙ୍ଖଳା । ")
+['ଭାରତୀୟ', 'ସ୍ୱାଧୀନତା', 'ଆନ୍ଦୋଳନ', 'ହେଉଛି', 'ଭାରତରେ', 'ବ୍ରିଟିଶ', 'ଶାସନର', 'ଅନ୍ତ', 'କରିବା', 'ଲକ୍ଷ୍ୟରେ', 'ଘଟିଥିବା', 'ବିଭିନ୍ନ', 'ଘଟଣାବଳୀଗୁଡ଼ିକର', 'ଶୃଙ୍ଖଳା', '।']
+
+
 ## Caution
 
 The library is in development phase and not for production use.
