@@ -52,7 +52,6 @@ To tokenize input text into multiple words `word_tokenizer` module can be used.
 
 ``` python
 >>> from openodia import tokenizer
->>> from openodia import tokenizer
 >>> tokenizer.word_tokenizer("ଭାରତୀୟ ସ୍ୱାଧୀନତା ଆନ୍ଦୋଳନ, ହେଉଛି ଭାରତରେ ବ୍ରିଟିଶ ଶାସନର ଅନ୍ତ କରିବା ଲକ୍ଷ୍ୟରେ ଘଟିଥିବା ବିଭିନ୍ନ ଘଟଣାବଳୀଗୁଡ଼ିକର ଶୃଙ୍ଖଳା । ")
 ['ଭାରତୀୟ', 'ସ୍ୱାଧୀନତା', 'ଆନ୍ଦୋଳନ', 'ହେଉଛି', 'ଭାରତରେ', 'ବ୍ରିଟିଶ', 'ଶାସନର', 'ଅନ୍ତ', 'କରିବା', 'ଲକ୍ଷ୍ୟରେ', 'ଘଟିଥିବା', 'ବିଭିନ୍ନ', 'ଘଟଣାବଳୀଗୁଡ଼ିକର', 'ଶୃଙ୍ଖଳା', '।']
 ```
