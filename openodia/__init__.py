@@ -2,8 +2,9 @@
 """
 __version__ = "0.0.13"
 
-from .letters import Letters as alphabet
-from .odianames import Names as name
-from .understandData import UnderstandData as UD
+from ._letters import Letters as alphabet
+from ._odianames import Names as name
+from ._understandData import UnderstandData as UD
+from ._translate import odia_to_other_lang, other_lang_to_odia, universal_translation
 
-__all__ = ["alphabet", "name", "UD"]
+__all__ = ["alphabet", "name", "UD", "other_lang_to_odia", "odia_to_other_lang", "universal_translation"]

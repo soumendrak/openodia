@@ -1,6 +1,7 @@
 <h1 align="center">Open Odia</h1>
 
 - `openodia` is a Python package which contains various tools on Odia language.
+- The short term goal of this package is to not make state of the art methods, but to make tools which work.
 
 ## Install
 
@@ -114,6 +115,151 @@ The tools are available in Odia language.
 'ରାମ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ'
 ```
 Here the stopwords `ଓ` and `ଦେଇଛନ୍ତି` are removed from the text.
+
+### Translation
+
+- The translation module is a wrapper on top of Google Translate API.
+- There are two translation methods provided:
+    1. `odia_to_other_lang` and
+    2. `other_lang_to_odia`
+
+#### other_lang_to_odia
+
+- As the name suggests this function can be used to translate from any other language to Odia language.
+- If you are translating from any other language other than English, please provide the language code of it.
+- The possible language codes supported are:
+
+```json
+{
+    "af": "afrikaans",
+    "sq": "albanian",
+    "am": "amharic",
+    "ar": "arabic",
+    "hy": "armenian",
+    "az": "azerbaijani",
+    "eu": "basque",
+    "be": "belarusian",
+    "bn": "bengali",
+    "bs": "bosnian",
+    "bg": "bulgarian",
+    "ca": "catalan",
+    "ceb": "cebuano",
+    "ny": "chichewa",
+    "zh-cn": "chinese (simplified)",
+    "zh-tw": "chinese (traditional)",
+    "co": "corsican",
+    "hr": "croatian",
+    "cs": "czech",
+    "da": "danish",
+    "nl": "dutch",
+    "en": "english",
+    "eo": "esperanto",
+    "et": "estonian",
+    "tl": "filipino",
+    "fi": "finnish",
+    "fr": "french",
+    "fy": "frisian",
+    "gl": "galician",
+    "ka": "georgian",
+    "de": "german",
+    "el": "greek",
+    "gu": "gujarati",
+    "ht": "haitian creole",
+    "ha": "hausa",
+    "haw": "hawaiian",
+    "iw": "hebrew",
+    "he": "hebrew",
+    "hi": "hindi",
+    "hmn": "hmong",
+    "hu": "hungarian",
+    "is": "icelandic",
+    "ig": "igbo",
+    "id": "indonesian",
+    "ga": "irish",
+    "it": "italian",
+    "ja": "japanese",
+    "jw": "javanese",
+    "kn": "kannada",
+    "kk": "kazakh",
+    "km": "khmer",
+    "ko": "korean",
+    "ku": "kurdish (kurmanji)",
+    "ky": "kyrgyz",
+    "lo": "lao",
+    "la": "latin",
+    "lv": "latvian",
+    "lt": "lithuanian",
+    "lb": "luxembourgish",
+    "mk": "macedonian",
+    "mg": "malagasy",
+    "ms": "malay",
+    "ml": "malayalam",
+    "mt": "maltese",
+    "mi": "maori",
+    "mr": "marathi",
+    "mn": "mongolian",
+    "my": "myanmar (burmese)",
+    "ne": "nepali",
+    "no": "norwegian",
+    "or": "odia",
+    "ps": "pashto",
+    "fa": "persian",
+    "pl": "polish",
+    "pt": "portuguese",
+    "pa": "punjabi",
+    "ro": "romanian",
+    "ru": "russian",
+    "sm": "samoan",
+    "gd": "scots gaelic",
+    "sr": "serbian",
+    "st": "sesotho",
+    "sn": "shona",
+    "sd": "sindhi",
+    "si": "sinhala",
+    "sk": "slovak",
+    "sl": "slovenian",
+    "so": "somali",
+    "es": "spanish",
+    "su": "sundanese",
+    "sw": "swahili",
+    "sv": "swedish",
+    "tg": "tajik",
+    "ta": "tamil",
+    "te": "telugu",
+    "th": "thai",
+    "tr": "turkish",
+    "uk": "ukrainian",
+    "ur": "urdu",
+    "ug": "uyghur",
+    "uz": "uzbek",
+    "vi": "vietnamese",
+    "cy": "welsh",
+    "xh": "xhosa",
+    "yi": "yiddish",
+    "yo": "yoruba",
+    "zu": "zulu"
+}
+```
+
+```python
+>>> from openodia import other_lang_to_odia, odia_to_other_lang
+>>> other_lang_to_odia("hello! feeling good?")
+'ନମସ୍କାର!ଭଲ ଲାଗୁଛି?'
+>>> other_lang_to_odia("शेयर बाज़ार एक ऐसा बाज़ार है जहाँ कंपनियों के शेयर खरीदे-बेचे जा सकते हैं।", source_language="hi")
+'ଷ୍ଟକ୍ ମାର୍କେଟ୍ ହେଉଛି ଏକ ବଜାର ଯେଉଁଠାରେ କମ୍ପାନୀଗୁଡିକ କିଣାଯାଇପାରିବ |'
+```
+
+#### odia_to_other_lang
+
+- This function can be used to translate an Odia text into another language.
+- The same language code you can choose from as provided above.
+- By default the function will trasnlate to English language.
+
+```python
+>>> odia_to_other_lang("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?")
+'Hello! Sounds good?'
+```
+
 ## Caution
 
 Thanks for being an early visitor.  
