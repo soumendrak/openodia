@@ -20,6 +20,7 @@ The tools are available in Odia language.
 - [x] [Detect Odia Language](#detect-odia-language)
 - [x] [Word Tokenizer](#word-tokenizer)
 - [x] [Remove stopwords](#remove-stopwords)
+- [x] [Google Translate](#translation)
 
 ### Odia alphabets 
 
