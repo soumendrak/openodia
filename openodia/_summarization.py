@@ -17,7 +17,7 @@ from openodia.common.utility import LOGGER
 
 @dataclass
 class SummarizationBaseMethod(ABC):
-    text: str = None
+    text: str = ''
     token_list: List[str] = field(default_factory=list)
     sentence_list: List[str] = field(default_factory=list)
 
@@ -120,4 +120,4 @@ if __name__ == "__main__":
         "ଏକ ପରାମର୍ଶଦାତା ହିସାବରେ, ଏହା ଭାରତୀୟ ସମ୍ବିଧାନ ଅନୁସାରେ ରାଷ୍ଟ୍ରପତିଙ୍କଦ୍ୱାରା ସୂଚୀତ ବିଭିନ୍ନ ବିଷୟବସ୍ତୁ "
         "ଉପରେ ଶୁଣାଣି କରିଥାଏ । "
     )
-    wf.get_summary(4.0)
+    print(wf.get_summary(4.0))
