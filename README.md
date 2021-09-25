@@ -1,5 +1,7 @@
 <h1 align="center">Open Odia</h1>
 
+[![codecov](https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2)](https://codecov.io/gh/soumendrak/openodia)
+- 
 - `openodia` is a Python package which contains various tools on Odia language.
 - The short term goal of this package is to not make state of the art methods, but to make tools which work.
 
