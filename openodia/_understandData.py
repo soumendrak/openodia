@@ -1,7 +1,7 @@
 import re
 from typing import Any, Dict, List, Union
 
-from openodia.constants import STOPWORDS
+from openodia.common.constants import STOPWORDS
 
 
 class UnderstandData:
@@ -23,12 +23,18 @@ class UnderstandData:
     @classmethod
     def sentence_tokenizer(cls, text):
         """Split the text into sentences"""
-        raise NotImplementedError("Not implemented yet. Will be implemented soon!")
+        sent_list = text.split(" ।")
+        return sent_list
 
     @classmethod
-    def remove_stopwords(cls, text: str, get_str: bool = False) -> Union[List[str], str]:
-        """Remove frequently used words from the text"""
-        token_list: List[str] = cls.word_tokenizer(text)
+    def remove_stopwords(
+        cls, text: Union[str, List[str]], get_str: bool = False
+    ) -> Union[List[str], str]:
+        """Remove frequently used words from the text
+        :param text: It can take both tokens and text string as input
+        :param get_str: provide whether the output needed on str or list
+        """
+        token_list: List[str] = cls.word_tokenizer(text) if isinstance(text, str) else text
         cleaned_tokens = [token for token in token_list if token not in STOPWORDS]
         return " ".join(cleaned_tokens) if get_str else cleaned_tokens
 

@@ -3,7 +3,7 @@ from typing import List
 
 from faker import Faker
 
-from openodia.constants import (
+from openodia.common.constants import (
     PREFIXES,
     FIRST_NAMES_MALE,
     FIRST_NAMES_FEMALE,
