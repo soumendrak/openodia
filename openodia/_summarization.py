@@ -49,11 +49,11 @@ class SummarizationBaseMethod(ABC):
         """
         return self._number_of_words_in_text() / self._number_of_unique_words_in_text()
 
-    def words_having_higher_threshold(self) -> set[str]:
+    def words_having_higher_threshold(self, threshold_value: float = 1.0) -> set[str]:
         """Get the list of tokens having higher threshold value
         That means the words which are significant for the given text
         """
-        threshold_value = self._get_threshold_value()
+        threshold_value = threshold_value or self._get_threshold_value()
         LOGGER.info(f"{threshold_value=}")
         token_ctr = Counter(self.token_list)
         LOGGER.info(f"{token_ctr=}")
@@ -62,7 +62,7 @@ class SummarizationBaseMethod(ABC):
         )
         return frequent_token_set
 
-    def get_sentence_having_frequent_words(self, frequent_token_list: List[str]) -> str:
+    def get_sentence_having_frequent_words(self, frequent_token_list: set[str]) -> str:
         """Get the sentences having the frequent words"""
         summarized_text = []
         for sentence in self.sentence_list:
@@ -75,7 +75,7 @@ class SummarizationBaseMethod(ABC):
         return summarized_text
 
     @abstractmethod
-    def main(self) -> str:
+    def get_summary(self) -> str:
         """Main orchestrator"""
         raise NotImplementedError
 
@@ -84,14 +84,17 @@ class SummarizationBaseMethod(ABC):
 class WordFrequency(SummarizationBaseMethod, ABC):
     """Get summarized text based on word frequency method"""
 
-    def main(self) -> str:
+    def get_summary(self, threshold: float = None) -> str:
+        """Main function to orchestrate the summarization
+        :param threshold: The more the value the lesser the summary text
+        """
         self.get_tokens()
         LOGGER.info(f"{len(self.token_list)} number of tokens found: {self.token_list=}")
         self.get_sentences()
         LOGGER.info(f"{len(self.sentence_list)} number of sentences found.")
         self.remove_stopwords()
         LOGGER.info("stopwords removed")
-        frequent_token_list = self.words_having_higher_threshold()
+        frequent_token_list = self.words_having_higher_threshold(threshold)
         LOGGER.info(
             f"{len(frequent_token_list)} number of frequent tokens found: {frequent_token_list=}"
         )
@@ -117,4 +120,4 @@ if __name__ == "__main__":
         "ଏକ ପରାମର୍ଶଦାତା ହିସାବରେ, ଏହା ଭାରତୀୟ ସମ୍ବିଧାନ ଅନୁସାରେ ରାଷ୍ଟ୍ରପତିଙ୍କଦ୍ୱାରା ସୂଚୀତ ବିଭିନ୍ନ ବିଷୟବସ୍ତୁ "
         "ଉପରେ ଶୁଣାଣି କରିଥାଏ । "
     )
-    wf.main()
+    wf.get_summary(4.0)
