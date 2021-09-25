@@ -1,4 +1,4 @@
-from openodia import letters
+from openodia import alphabet
 
 
 class TestLetters:
@@ -23,5 +23,22 @@ class TestLetters:
         "ଁ", "ଂ", "ଃ", "଼", "ଽ", "ା", "ି", "ୀ", "ୁ", "ୂ", "ୃ", "ୄ", "େ", "ୈ", "ୋ", "ୌ", "୍", "ୖ", "ୗ", "୰", "ୱ", "୲"
         }
 
-    def test_letters(self):
-        assert len(letters.letters.all_letters) == len(self.ALL_CHAR_MAP.keys())
+    PUNCTUATION = r"""!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+
+    def test_all_letters(self):
+        assert len(alphabet.all_letters) == len(self.ALL_CHAR_MAP.keys())
+
+    def test_vowels(self):
+        assert len(alphabet.vowels) == len(self.VOWEL_MAP.keys())
+
+    def test_numbers(self):
+        assert len(alphabet.numbers) == len(self.NUMBER_MAP.keys())
+
+    def test_consonants(self):
+        assert len(alphabet.consonants) == len(self.CONSONANT_MAP.keys())
+
+    def test_matra(self):
+        assert len(alphabet.matras) == len(self.MATRA)
+
+    def test_punctuation(self):
+        assert len(alphabet.punctuations) == len(self.PUNCTUATION) + 1

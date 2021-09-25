@@ -12,6 +12,7 @@ from openodia.common.constants import (
     MIDDLE_NAMES,
     LAST_NAMES,
 )
+from openodia.common.utility import LOGGER
 
 
 class Names:
@@ -32,26 +33,27 @@ class Names:
         """
         fake = Faker("or_IN")
         name_list = [fake.name() for _ in range(count)]
+        LOGGER.debug(f"generated {len(name_list)} number of names.")
         return name_list
 
     @classmethod
-    def generate_firstnames(cls, count: int = 10, type: str = "") -> List[str]:
+    def generate_firstnames(cls, count: int = 10, name_type: str = "") -> List[str]:
         """Generate first names
         :param count: number of names to generate
-        :param type: types of name to give
+        :param name_type: types of name to give
         """
         valid_types = ("female", "male", "unisex")
-        if type.lower() == "male":
+        if name_type.lower() == "male":
             shuffle(FIRST_NAMES_MALE)
             return FIRST_NAMES_MALE[:count]
-        elif type.lower() == "female":
+        elif name_type.lower() == "female":
             shuffle(FIRST_NAMES_FEMALE)
             return FIRST_NAMES_FEMALE[:count]
-        elif type.lower() == "unisex":
+        elif name_type.lower() == "unisex":
             shuffle(FIRST_NAMES_UNISEX)
             return FIRST_NAMES_UNISEX[:count]
-        elif len(type) > 0:
-            print(f"Invalid {type=} provided.\n Please provide one of these {valid_types=}")
+        elif len(name_type) > 0:
+            print(f"Invalid {name_type=} provided.\n Please provide one of these {valid_types=}")
         else:
             # send mix of all first names
             shuffle(FIRST_NAMES)

@@ -1,4 +1,8 @@
-from typing import List
+"""
+License: MIT
+Author: Soumendra Kumar Sahoo
+Google wrapper for odia language
+"""
 from googletrans import Translator
 
 

@@ -15,5 +15,5 @@ __all__ = [
     "other_lang_to_odia",
     "odia_to_other_lang",
     "universal_translation",
-    "WordFrequency"
+    "WordFrequency",
 ]

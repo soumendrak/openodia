@@ -2,6 +2,7 @@ import re
 from typing import Any, Dict, List, Union
 
 from openodia.common.constants import STOPWORDS
+from openodia.common.utility import LOGGER
 
 
 class UnderstandData:
@@ -24,6 +25,7 @@ class UnderstandData:
     def sentence_tokenizer(cls, text):
         """Split the text into sentences"""
         sent_list = text.split(" ।")
+        LOGGER.debug(f"{len(sent_list)} sentences have been formed using ' ।' splitter.")
         return sent_list
 
     @classmethod

@@ -54,9 +54,9 @@ class SummarizationBaseMethod(ABC):
         That means the words which are significant for the given text
         """
         threshold_value = threshold_value or self._get_threshold_value()
-        LOGGER.info(f"{threshold_value=}")
+        LOGGER.debug(f"{threshold_value=}")
         token_ctr = Counter(self.token_list)
-        LOGGER.info(f"{token_ctr=}")
+        LOGGER.debug(f"{token_ctr=}")
         frequent_token_set = set(
             [word for word in self.token_list if token_ctr[word] > threshold_value]
         )
@@ -70,7 +70,7 @@ class SummarizationBaseMethod(ABC):
                 if token in sentence:
                     summarized_text.append(sentence)
                     break
-        LOGGER.info(f"{len(summarized_text)} number of sentences found in summarized text.")
+        LOGGER.debug(f"{len(summarized_text)} number of sentences found in summarized text.")
         summarized_text = " ".join(summarized_text)
         return summarized_text
 
@@ -89,17 +89,17 @@ class WordFrequency(SummarizationBaseMethod, ABC):
         :param threshold: The more the value the lesser the summary text
         """
         self.get_tokens()
-        LOGGER.info(f"{len(self.token_list)} number of tokens found: {self.token_list=}")
+        LOGGER.debug(f"{len(self.token_list)} number of tokens found.")
+        LOGGER.debug(f"{self.token_list=}")
         self.get_sentences()
-        LOGGER.info(f"{len(self.sentence_list)} number of sentences found.")
+        LOGGER.debug(f"{len(self.sentence_list)} number of sentences found.")
         self.remove_stopwords()
-        LOGGER.info("stopwords removed")
+        LOGGER.debug("stopwords removed")
         frequent_token_list = self.words_having_higher_threshold(threshold)
-        LOGGER.info(
-            f"{len(frequent_token_list)} number of frequent tokens found: {frequent_token_list=}"
-        )
+        LOGGER.debug(f"{len(frequent_token_list)} number of frequent tokens found.")
+        LOGGER.debug(f"{frequent_token_list=}")
         summary = self.get_sentence_having_frequent_words(frequent_token_list)
-        LOGGER.info(f"{summary=}")
+        LOGGER.debug(f"{summary=}")
         return summary
 
 
