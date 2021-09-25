@@ -33,6 +33,7 @@ The tools are available in Odia language.
 - [x] [Word Tokenizer](#word-tokenizer)
 - [x] [Remove stopwords](#remove-stopwords)
 - [x] [Google Translate](#translation)
+- [x] [Automatic extractive text summarization](#automatic-extractive-text-summarization)
 
 ### Odia alphabets 
 
