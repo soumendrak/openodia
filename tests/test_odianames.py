@@ -16,9 +16,10 @@ class TestOdiaNames:
         (23, "feMale", 23),
         (3, "uniSEX", 3),
         (3, "I will not say", None),
+        (10, "", 10),
     ])
     def test_generate_firstnames(self, count, name_type, output):
-        if name_type.lower() not in ("male", "female", "unisex"):
+        if name_type and name_type.lower() not in ("male", "female", "unisex"):
             with pytest.raises(ValueError):
                 assert name.generate_firstnames(count, name_type)
         else:
