@@ -10,6 +10,7 @@
 <a href=""><img alt="PyPI - Format" src="https://img.shields.io/pypi/format/openodia"></a>
 <a href=""><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/openodia"></a>
 <a href="https://codecov.io/gh/soumendrak/openodia"><img alt="code coverage" src="https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2"/></a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia.svg?type=shield"/></a>
 </a>
 
 - `openodia` is a Python package which contains various tools on Odia language.
@@ -311,3 +312,6 @@ Extracts the important summary snippet of a given text.
 
 Thanks for being an early visitor.  
 The library is in active development phase and not for production use.
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia?ref=badge_large)
