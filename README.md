@@ -1,15 +1,15 @@
 <h1 align="center">Open Odia</h1>
 
 <a align="center">
-<img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/openodia">
+<a href=""><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/openodia"></a>
 <a href="https://github.com/soumendrak/openodia/actions/workflows/black.yml"><img alt="Lint" src="https://github.com/soumendrak/openodia/actions/workflows/black.yml/badge.svg"></a>
 <a href="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml"><img alt="Code coverage" src="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml/badge.svg"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 <a href="https://github.com/psf/black/blob/main/LICENSE"><img alt="License: MIT" src="https://black.readthedocs.io/en/stable/_static/license.svg"></a>
 <a href="https://pypi.org/project/openodia/"><img alt="PyPI" src="https://img.shields.io/pypi/v/openodia"></a>
-<img alt="PyPI - Format" src="https://img.shields.io/pypi/format/openodia">
-<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/openodia">
-<a href="https://codecov.io/gh/soumendrak/openodia"><img src="https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2"/></a>
+<a href=""><img alt="PyPI - Format" src="https://img.shields.io/pypi/format/openodia"></a>
+<a href=""><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/openodia"></a>
+<a href="https://codecov.io/gh/soumendrak/openodia"><img alt="code coverage" src="https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2"/></a>
 </a>
 
 - `openodia` is a Python package which contains various tools on Odia language.
