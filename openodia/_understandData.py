@@ -56,4 +56,4 @@ class UnderstandData:
         score = len(odia_text) / len(space_removed_text)
         language = "odia" if score > threshold else "non-odia"
         confidence_score = score if language == "odia" else 1 - score
-        return {"language": language, "confidence_score": confidence_score}
+        return {"language": language, "confidence_score": round(confidence_score, 2)}

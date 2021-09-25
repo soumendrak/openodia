@@ -53,7 +53,9 @@ class Names:
             shuffle(FIRST_NAMES_UNISEX)
             return FIRST_NAMES_UNISEX[:count]
         elif len(name_type) > 0:
-            LOGGER.error(f"Invalid {name_type=} provided.\n Please provide one of these {valid_types=}")
+            LOGGER.error(
+                f"Invalid {name_type=} provided.\n Please provide one of these {valid_types=}"
+            )
         else:
             # send mix of all first names
             shuffle(FIRST_NAMES)
