@@ -17,7 +17,7 @@ from openodia.common.utility import LOGGER
 
 @dataclass
 class SummarizationBaseMethod(ABC):
-    text: str = ''
+    text: str = ""
     token_list: List[str] = field(default_factory=list)
     sentence_list: List[str] = field(default_factory=list)
 

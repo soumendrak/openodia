@@ -1,6 +1,19 @@
 <h1 align="center">Open Odia</h1>
 
+<p align="center">
+<a href="https://github.com/soumendrak/openodia/actions"><img alt="Actions Status" src="https://github.com/soumendrak/openodia/workflows/Test/badge.svg"></a>
+<a href="https://github.com/psf/black/actions"><img alt="Actions Status" src="https://github.com/psf/black/workflows/Primer/badge.svg"></a>
+<a href="https://black.readthedocs.io/en/stable/?badge=stable"><img alt="Documentation Status" src="https://readthedocs.org/projects/black/badge/?version=stable"></a>
+<a href="https://coveralls.io/github/psf/black?branch=main"><img alt="Coverage Status" src="https://coveralls.io/repos/github/psf/black/badge.svg?branch=main"></a>
+<a href="https://github.com/psf/black/blob/main/LICENSE"><img alt="License: MIT" src="https://black.readthedocs.io/en/stable/_static/license.svg"></a>
+<a href="https://pypi.org/project/black/"><img alt="PyPI" src="https://img.shields.io/pypi/v/black"></a>
+<a href="https://pepy.tech/project/black"><img alt="Downloads" src="https://pepy.tech/badge/black"></a>
+<a href="https://anaconda.org/conda-forge/black/"><img alt="conda-forge" src="https://img.shields.io/conda/dn/conda-forge/black.svg?label=conda-forge"></a>
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+</p>
+
 [![codecov](https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2)](https://codecov.io/gh/soumendrak/openodia)
+![Pypi wheel](https://img.shields.io/pypi/wheel/openodia)
 - 
 - `openodia` is a Python package which contains various tools on Odia language.
 - The short term goal of this package is to not make state of the art methods, but to make tools which work.
