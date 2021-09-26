@@ -16,6 +16,6 @@ jobs:
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CUSTOM_DOMAIN: https://openodia.soumendrak.com
+          CUSTOM_DOMAIN: openodia.soumendrak.com
           CONFIG_FILE: mkdocs.yml
           EXTRA_PACKAGES: build-base
