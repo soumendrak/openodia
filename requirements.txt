@@ -1,4 +1,7 @@
 coverage==5.5
 googletrans==4.0.0rc1
 Faker==8.13.2
+mkdocs==1.2.2
+mkdocs-git-revision-date-localized-plugin==0.10.0
+mkdocs-material==7.3.0
 rich==10.11.0

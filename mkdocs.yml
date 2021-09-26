@@ -1,0 +1,119 @@
+# build command: mkdocs serve -a 127.0.0.1:7742 --livereload
+# Website
+site_name: OpenOdia
+#site_url:
+site_author: Soumendra Kumar Sahoo
+site_description: >-
+  A website about the documentation of `openodia` library.
+
+# Repository
+repo_name: OpenOdia
+repo_url: https://github.com/soumendrak/openodia
+
+# Copyright
+copyright: MIT License
+
+
+# Configuration
+theme:
+  name: material
+  collapse_by_default: true
+  highlights: true
+#  logo: images/logo.png
+
+  # Don't include MkDocs' JavaScript
+  include_search_page: false
+  search_index_only: true
+
+  # Default values, taken from mkdocs_theme.yml
+  language: en
+  features:
+    - instant
+    # - navigation.sections
+    - navigation.top
+    - navigation.tabs
+    - tabs
+    - toc.integrate
+  palette:
+  - scheme: default
+    primary: indigo
+    accent: blue
+    toggle:
+      icon: material/toggle-switch-off-outline
+      name: Switch to dark mode
+  - scheme: slate
+    primary: green
+    accent: blue
+    toggle:
+      icon: material/toggle-switch
+      name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  favicon: assets/favicon.png
+  icon:
+    logo: logo
+
+plugins:
+  - search:
+      prebuild_index: true
+  - git-revision-date-localized:
+      type: timeago
+
+markdown_extensions:
+  - admonition
+  - abbr
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: squidfunk
+      repo: mkdocs-material
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - pymdownx.snippets
+  - pymdownx.progressbar
+
+# Customization
+extra:
+#  homepage:
+
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/soumendrak
+    - icon: fontawesome/brands/stack-overflow
+      link: https://stackoverflow.com/users/5014656/soumendra?tab=profile
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/soumendra_ks
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/soumendrak/
+
+nav:
+  - Get started: home.md
