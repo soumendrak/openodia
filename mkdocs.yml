@@ -1,7 +1,7 @@
 # build command: mkdocs serve -a 127.0.0.1:7742 --livereload
 # Website
 site_name: OpenOdia
-#site_url:
+site_url: https://openodia.soumendrak.com
 site_author: Soumendra Kumar Sahoo
 site_description: >-
   A website about the documentation of `openodia` library.
