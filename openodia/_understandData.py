@@ -5,42 +5,16 @@ from typing import Any, Dict, List, Union
 from openodia.common.constants import STOPWORDS
 from openodia.common.utility import LOGGER
 
-
 class UnderstandData:
     """Tokenizer implementation"""
-    
     @classmethod
     def word_tokenizer(cls,text):
         """Split the text into words"""
         punct = regex.compile(r'(\p{Punctuation})')    
-        x=punct.split(test_data)
-        str1=""
-        for i in x:
-            str1+=i+' '
-        token_list = [
-                token
-                for token in str1.split()
-                if token
-            ]
+        splitPunct=punct.split(text)
+        sentence = ' '.join([str(words) for words in splitPunct])
+        token_list = [token for token in sentence.split() if token]
         return token_list
-
-# import regex
-
-# def word_tokenizer(text):
-#     punct = regex.compile(r'(\p{Punctuation})')    
-#     x=punct.split(test_data)
-#     str1=""
-#     for i in x:
-#         str1+=i+' '
-#     token_list = [
-#             token
-#             for token in str1.split()
-#             if token
-#         ]
-#     return token_list
-
-# test_data = "ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ।"
-# print(word_tokenizer(test_data))
 
     @classmethod
     def sentence_tokenizer(cls, text):
