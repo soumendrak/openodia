@@ -101,7 +101,7 @@ The tools are available in Odia language.
 
 ### Sentence Tokenizer
 
-- o tokenize a paragraph into multiple sentences.
+- Tokenize a paragraph into multiple sentences.
 - Only working on full stop.
 
 ```python
