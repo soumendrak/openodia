@@ -1,4 +1,4 @@
-coverage==5.5
+coverage==6.0
 googletrans==4.0.0rc1
 Faker==8.14.0
 mkdocs==1.2.2
