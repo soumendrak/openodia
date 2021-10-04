@@ -5,3 +5,4 @@ mkdocs==1.2.2
 mkdocs-git-revision-date-localized-plugin==0.10.0
 mkdocs-material==7.3.0
 rich==10.11.0
+regex==2021.9.24
