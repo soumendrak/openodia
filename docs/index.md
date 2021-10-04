@@ -22,7 +22,7 @@ The tools are available in Odia language.
 
 ## Roadmap
 
-- [ ] Add Dictionary corpus addition
+- [ ] Add Dictionary corpus
 - [ ] Add English-Odia Parallel corpus
 - [ ] Add Odia Monolingual corpus
 - [ ] Add NER dataset of places, actors, etc. 

@@ -33,7 +33,7 @@ The tools are available in Odia language.
 
 ## Roadmap
 
-- [ ] Add Dictionary corpus addition
+- [ ] Add Dictionary corpus
 - [ ] Add English-Odia Parallel corpus
 - [ ] Add Odia Monolingual corpus
 - [ ] Add NER dataset of places, actors, etc. 
@@ -41,6 +41,7 @@ The tools are available in Odia language.
 - [ ] Stemming tool
 - [ ] Customized stopword support
 - [ ] Add OdiaBert
+- [ ] Improve the CI/CD pipeline
 
 ### Odia alphabets 
 
