@@ -1,4 +1,4 @@
-[![image](docs/cover-pic.png)
+![image](docs/cover-pic.png)
 
 <h4 align="center">
   <a href="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml"><img alt="Code coverage" src="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml/badge.svg"></a>
