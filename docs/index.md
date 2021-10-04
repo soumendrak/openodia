@@ -20,6 +20,18 @@ The tools are available in Odia language.
 - [x] [Google Translate](#translation)
 - [x] [Automatic extractive text summarization](#automatic-extractive-text-summarization)
 
+## Roadmap
+
+- [ ] Add Dictionary corpus addition
+- [ ] Add English-Odia Parallel corpus
+- [ ] Add Odia Monolingual corpus
+- [ ] Add NER dataset of places, actors, etc. 
+- [ ] Robust paragraph to sentence tokenizer covering edge cases
+- [ ] Stemming tool
+- [ ] Customized stopword support
+- [ ] Add OdiaBert
+- [ ] Improve the CI/CD pipeline
+
 ### Odia alphabets 
 
 - To get the Odia alphabets use the `alphabet` module
