@@ -8,7 +8,7 @@ Setup the library from Pypi using the following command in your terminal or comm
 pip install openodia
 ```
 
-## Usage
+## Features
 
 The tools are available in Odia language.
 
@@ -19,10 +19,7 @@ The tools are available in Odia language.
 - [x] [Remove stopwords](#remove-stopwords)
 - [x] [Google Translate](#translation)
 - [x] [Automatic extractive text summarization](#automatic-extractive-text-summarization)
-
-## Roadmap
-
-- [ ] Add Dictionary corpus
+- [x] [Add Dictionary corpus](#offline-dictionary)
 - [ ] Add English-Odia Parallel corpus
 - [ ] Add Odia Monolingual corpus
 - [ ] Add NER dataset of places, actors, etc. 
@@ -32,7 +29,7 @@ The tools are available in Odia language.
 - [ ] Add OdiaBert
 - [ ] Improve the CI/CD pipeline
 
-### Odia alphabets 
+### :material-format-letter-case: Odia alphabets 
 
 - To get the Odia alphabets use the `alphabet` module
 
@@ -50,7 +47,7 @@ The tools are available in Odia language.
 ['ଁ', 'ଂ', 'ଃ', '଼', 'ଽ', 'ା', 'ି', 'ୀ', 'ୁ', 'ୂ', 'ୃ', 'ୄ', 'େ', 'ୈ', 'ୋ', 'ୌ', '୍', 'ୖ', 'ୗ', '୰', 'ୱ', '୲']
 ```
 
-### Odia names
+### :people_holding_hands_tone1: Odia names
 
 - You can generate Odia names using the `name` module with the following syntax:
 
@@ -81,7 +78,7 @@ The tools are available in Odia language.
 ['ପରିଜା', 'ରଣସିଂହ', 'ମହାପାତ୍ର', 'ରଥ', 'ମହନ୍ତ', 'ବେହେରା', 'ଦେଓ', 'ଧଳ', 'ଦିଆନ', 'ହିମିରିକା']
 ```
 
-### Detect Odia Language
+### :material-text-box-search-outline: Detect Odia Language
 
 - A binary language classification method used which will return if the input text is in Odia language or in any other non-Odia language. 
 - Along with this a confidence score also returned. The score provides how confident the library is that it is Odia or Non-Odia.
@@ -101,7 +98,7 @@ The tools are available in Odia language.
 >>> ud.detect_language("ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ ବା ପ୍ରାକୃତିକ ଭାଷା ପ୍ରକ୍ରିୟାକରଣ କଂପ୍ୟୁଟର ବିଜ୍ଞାନ ଏବଂ ଆର୍ଟିଫିସିଆଲ ଇଣ୍ଟେଲିଜେନ୍ସର ସେହି ବିଭାଗକୁ କୁହାଯ ାଏ ଯାହା ମନୁଷ୍ୟର ଭାଷାଗୁଡ଼ିକ ସହ କମ୍ପ୍ୟୁଟରର କଥାବାର୍ତ୍ତାକୁ ବୁଝାଇଥାଏ। ")
 {'language': 'odia', 'confidence_score': 0.99404}
 ```
-### Word Tokenizer
+### :material-set-split: Word Tokenizer
 
 - To tokenize odia text into multiple words or tokens `word_tokenizer` module can be used.
 
@@ -111,7 +108,7 @@ The tools are available in Odia language.
 ['କ୍ୱାଣ୍ଟମ', 'କମ୍ପ୍ୟୁଟିଙ୍ଗ', 'ହେଉଛି', 'ଏକ', 'ଉଦୀୟମାନ', 'ହାର୍ଡ଼ୱେର', 'ଏବଂ', 'ସଫ୍ଟୱେରର', 'ପ୍ରଯୁକ୍ତିବିଦ୍ୟା', 'ଯାହା', 'କଠିନ', 'ଗାଣିତିକ', 'ସମସ୍ୟାଗୁଡ଼ିକର', 'ସମାଧାନ', 'ପାଇଁ', 'ଉପ', 'ପାରମାଣବିକ', 'ଘଟଣାଗୁଡ଼ିକର', 'ଉପଯୋଗ', 'କରିଥାଏ', '।', '୧']
 ```
 
-### Sentence Tokenizer
+### :material-call-split: Sentence Tokenizer
 
 - Tokenize a paragraph into multiple sentences.
 - Only working on full stop.
@@ -121,7 +118,7 @@ The tools are available in Odia language.
 >>> ud.sentence_tokenizer()
 ```
 
-### Remove stopwords
+### :material-eye-remove: Remove stopwords
 
 - Frequently occurring words in a language are called as _stopwords_. Using the below function you can remove the stopwords.
 - Internally this method calls the `word_tokenize` method to get tokens from the text.
@@ -136,7 +133,7 @@ The tools are available in Odia language.
 ```
 Here the stopwords `ଓ` and `ଦେଇଛନ୍ତି` are removed from the text.
 
-### Translation
+### :material-translate: Translation
 
 - The translation module is a wrapper on top of Google Translate API.
 - There are two translation methods provided:
@@ -166,7 +163,7 @@ Here the stopwords `ଓ` and `ଦେଇଛନ୍ତି` are removed from the tex
 >>> odia_to_other_lang("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?")
 'Hello! Sounds good?'
 ```
-### Automatic extractive text summarization
+### :material-shovel: Automatic extractive text summarization
 
 Extracts the important summary snippet of a given text.
 
@@ -188,5 +185,31 @@ Extracts the important summary snippet of a given text.
         "ଏକ ପରାମର୍ଶଦାତା ହିସାବରେ, ଏହା ଭାରତୀୟ ସମ୍ବିଧାନ ଅନୁସାରେ ରାଷ୍ଟ୍ରପତିଙ୍କଦ୍ୱାରା ସୂଚୀତ ବିଭିନ୍ନ ବିଷୟବସ୍ତୁ "
         "ଉପରେ ଶୁଣାଣି କରିଥାଏ । ")
 >>> wf.get_summary() # Auto threshold calculation
+'ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ  ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି  ଭାରତର ମୁଖ୍ୟ ବିଚାରପତି ଏହାର ମୁଖ୍ୟ ଅଟନ୍ତି  ତତ୍ସହିତ ଏଥିରେ ସର୍ବାଧିକ ୩୪ ଜଣ ବିଚାରପତି ଅଛନ୍ତି  ମୁଖ୍ୟ, ଅପିଲୀୟ ତଥା ପରାମର୍ଶିକ ଆଦି ଅଧିକାରକ୍ଷେତ୍ର ମାଧ୍ୟମରେ ଏହାର ବିସ୍ତୃତ କ୍ଷମତା ରହିଛି  ଏହା ଭାରତରେ ସବୁଠାରୁ ଶକ୍ତିଶାଳୀ ଲୋକାନୁଷ୍ଠାନ ବୋଲି ଧରାଯାଇଅଛି  ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ  ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ  ଏକ ପରାମର୍ଶଦାତା ହିସାବରେ, ଏହା ଭାରତୀୟ ସମ୍ବିଧାନ ଅନୁସାରେ ରାଷ୍ଟ୍ରପତିଙ୍କଦ୍ୱାରା ସୂଚୀତ ବିଭିନ୍ନ ବିଷୟବସ୍ତୁ ଉପରେ ଶୁଣାଣି କରିଥାଏ'
+
 >>> wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
+'ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ  ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି  ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ  ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ'
+
 ```
+
+### :book: Offline Dictionary
+
+- An offline dictionary will be downloaded as soon as you install this library.
+- Therefore, when you translate from English to Odia words/phrases it will hit the offline dictionary first, if not found it will go for the Google translate API.
+- Google Translate API responses have been cached, therefore from the 2nd call onwards on the same term(s) it will fetch fast from the local in-memory cache.
+- We have used [LRU (Least Recently Used) cache](https://realpython.com/lru-cache-python/) with a maximum size of 10000.
+
+???+note "English to Odia translation Workflow"
+    Therefore, we have two flows on English to Odia dictionary translation:
+    
+    1. English text --> Check in Offline dictionary --> Found --> Return result
+    2. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Found --> Return result from Cache
+    3. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Not Found --> Hit Google Translate API --> Update the Cache --> Return result
+
+## :bug: Known Issues
+
+- There are few issues in the code an be found [here](https://github.com/soumendrak/openodia/issues).
+- Contributions are highly welcomed. :pray_tone2:
+
+???+quote
+    "In my dream of the 21st century for the State, I would have young men and women who put the interest of the State before them. They will have pride in themselves, confidence in themselves. They will not be at anybody’s mercy, except their own selves. By their brains, intelligence and capacity, they will recapture the history of Kalinga." - [Biju Pattnaik](https://en.wikipedia.org/wiki/Biju_Patnaik)
