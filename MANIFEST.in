@@ -1,1 +1,1 @@
-include openodia/*.cfg openodia/corpus/*.json
+include openodia/*.cfg openodia/corpus/*.json requirements.txt
