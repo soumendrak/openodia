@@ -49,7 +49,7 @@ class SummarizationBaseMethod(ABC):
         """
         return self._number_of_words_in_text() / self._number_of_unique_words_in_text()
 
-    def words_having_higher_threshold(self, threshold_value: float = 1.0) -> set[str]:
+    def words_having_higher_threshold(self, threshold_value: float = 1.0) -> Set[str]:
         """Get the list of tokens having higher threshold value
         That means the words which are significant for the given text
         """
