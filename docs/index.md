@@ -213,3 +213,16 @@ Extracts the important summary snippet of a given text.
 
 ???+quote
     "In my dream of the 21st century for the State, I would have young men and women who put the interest of the State before them. They will have pride in themselves, confidence in themselves. They will not be at anybody’s mercy, except their own selves. By their brains, intelligence and capacity, they will recapture the history of Kalinga." - [Biju Pattnaik](https://en.wikipedia.org/wiki/Biju_Patnaik)
+
+<!-- Citation -->
+<hr>
+To cite this page, please use:
+
+```bibtex
+@misc{OpenOdia,
+    author       = {Soumendra Kumar Sahoo},
+    title        = {OpenOdia Documentation},
+    howpublished = {\url{https://www.openodia.soumendrak.com/}},
+    year         = {2021}
+}
+```
