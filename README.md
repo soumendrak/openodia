@@ -22,6 +22,7 @@ pip install openodia
 - If you want to directly build from the binary, please clone the repo and run `setup.py`.
 ```shell
 git clone https://github.com/soumendrak/openodia.git
+python setup.py install
 ```
 
 ## Usage
