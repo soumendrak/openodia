@@ -1,6 +1,6 @@
 """Open Odia language tools
 """
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 from ._letters import Letters as alphabet
 from ._odianames import Names as name
