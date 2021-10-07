@@ -9,7 +9,7 @@ Reference: Automatic Text Summarization for Oriya language by Sujata Dash et al
 from abc import ABC, abstractmethod
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Set
 
 from openodia._understandData import UnderstandData as ud
 from openodia.common.utility import LOGGER
@@ -62,7 +62,7 @@ class SummarizationBaseMethod(ABC):
         )
         return frequent_token_set
 
-    def get_sentence_having_frequent_words(self, frequent_token_list: set[str]) -> str:
+    def get_sentence_having_frequent_words(self, frequent_token_list: Set[str]) -> str:
         """Get the sentences having the frequent words"""
         summarized_text = []
         for sentence in self.sentence_list:
