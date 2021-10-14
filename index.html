@@ -1,0 +1,756 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A website about the documentation of `openodia` library.">
+      
+      
+      
+        <meta name="author" content="Soumendra Kumar Sahoo">
+      
+      
+        <link rel="canonical" href="https://openodia.soumendrak.com/">
+      
+      <link rel="icon" href="assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.2">
+    
+    
+      
+        <title>OpenOdia</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.24c991ad.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.3f5d1f46.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="css/timeago.css">
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <script>function __prefix(e){return new URL(".",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+      <script>var palette=__get("__palette");if(null!==palette&&"object"==typeof palette.color)for(var key in palette.color)document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#get-started" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="OpenOdia" class="md-header__button md-logo" aria-label="OpenOdia" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 89 89">
+  <path d="M3.136,17.387l0,42.932l42.932,21.467l-42.932,-64.399Z" />
+  <path d="M21.91,8l42.933,64.398l-18.775,9.388l-42.932,-64.399l18.774,-9.387Z" style="fill-opacity: 0.5" />
+  <path d="M67.535,17.387l-27.262,18.156l21.878,32.818l5.384,2.691l0,-53.665Z" />
+  <path d="M67.535,17.387l0,53.666l18.774,-9.388l0,-53.665l-18.774,9.387Z" style="fill-opacity: 0.25" />
+</svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            OpenOdia
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Get started
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            </label>
+          
+        
+          
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/soumendrak/openodia/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    OpenOdia
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+    
+  
+
+
+  <li class="md-tabs__item">
+    <a href="." class="md-tabs__link md-tabs__link--active">
+      Get started
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="OpenOdia" class="md-nav__button md-logo" aria-label="OpenOdia" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 89 89">
+  <path d="M3.136,17.387l0,42.932l42.932,21.467l-42.932,-64.399Z" />
+  <path d="M21.91,8l42.933,64.398l-18.775,9.388l-42.932,-64.399l18.774,-9.387Z" style="fill-opacity: 0.5" />
+  <path d="M67.535,17.387l-27.262,18.156l21.878,32.818l5.384,2.691l0,-53.665Z" />
+  <path d="M67.535,17.387l0,53.666l18.774,-9.388l0,-53.665l-18.774,9.387Z" style="fill-opacity: 0.25" />
+</svg>
+
+    </a>
+    OpenOdia
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/soumendrak/openodia/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    OpenOdia
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Get started
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        Get started
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    Features
+  </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#odia-alphabets" class="md-nav__link">
+     Odia alphabets
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#odia-names" class="md-nav__link">
+    Odia names
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detect-odia-language" class="md-nav__link">
+     Detect Odia Language
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#word-tokenizer" class="md-nav__link">
+     Word Tokenizer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sentence-tokenizer" class="md-nav__link">
+     Sentence Tokenizer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove-stopwords" class="md-nav__link">
+     Remove stopwords
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#translation" class="md-nav__link">
+     Translation
+  </a>
+  
+    <nav class="md-nav" aria-label=" Translation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#other_lang_to_odia" class="md-nav__link">
+    other_lang_to_odia
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#odia_to_other_lang" class="md-nav__link">
+    odia_to_other_lang
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatic-extractive-text-summarization" class="md-nav__link">
+     Automatic extractive text summarization
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#offline-dictionary" class="md-nav__link">
+    Offline Dictionary
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-issues" class="md-nav__link">
+    Known Issues
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/soumendrak/openodia/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="get-started">Get started<a class="headerlink" href="#get-started" title="Permanent link">&para;</a></h1>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<p>Setup the library from Pypi using the following command in your terminal or command prompt.</p>
+<div class="highlight"><pre><span></span><code>pip install openodia
+</code></pre></div>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<p>The tools are available in Odia language.</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#odia-alphabets">Odia Alphabets</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#odia-names">Generate random Odia names</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#detect-odia-language">Detect Odia Language</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#word-tokenizer">Word Tokenizer</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#remove-stopwords">Remove stopwords</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#translation">Google Translate</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#automatic-extractive-text-summarization">Automatic extractive text summarization</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#offline-dictionary">Add Dictionary corpus</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Add English-Odia Parallel corpus</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Add Odia Monolingual corpus</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Add NER dataset of places, actors, etc. </li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Robust paragraph to sentence tokenizer covering edge cases</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Stemming tool</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Customized stopword support</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Add OdiaBert</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Improve the CI/CD pipeline</li>
+</ul>
+<h3 id="odia-alphabets"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.06 18a3.99 3.99 0 0 1-.2-.89c-.67.7-1.48 1.05-2.41 1.05-.83 0-1.52-.24-2.05-.71-.53-.45-.8-1.06-.8-1.79 0-.88.33-1.56 1-2.05.67-.49 1.61-.73 2.83-.73h1.4v-.64c0-.49-.15-.88-.45-1.17-.3-.29-.75-.43-1.33-.43-.52 0-.95.12-1.3.36-.35.25-.52.54-.52.89h-1.46c0-.43.15-.84.45-1.24.28-.4.71-.71 1.22-.94.51-.21 1.06-.35 1.69-.35.98 0 1.74.24 2.29.73s.84 1.16.86 2.02V16c0 .8.1 1.42.3 1.88V18h-1.52m-2.4-1.12c.45 0 .88-.11 1.29-.32.4-.21.7-.49.88-.83v-1.57H18.7c-1.77 0-2.66.47-2.66 1.41 0 .43.15.73.46.96.3.23.68.35 1.16.35m-12.2-3.17h4.07L7.5 8.29l-2.04 5.42M6.64 6h1.72l4.71 12h-1.93l-.97-2.57H4.82L3.86 18H1.93L6.64 6z"/></svg></span> Odia alphabets<a class="headerlink" href="#odia-alphabets" title="Permanent link">&para;</a></h3>
+<ul>
+<li>To get the Odia alphabets use the <code>alphabet</code> module</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">alphabet</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">alphabet</span><span class="o">.</span><span class="n">all_letters</span>
+<span class="p">[</span><span class="s1">&#39;ଁ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଂ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଃ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଅ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଆ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଇ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଈ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଉ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଊ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଋ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଌ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଏ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଐ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଓ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଔ&#39;</span><span class="p">,</span> <span class="s1">&#39;କ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଖ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଗ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଘ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଙ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଚ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଛ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଜ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଝ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଞ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଟ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଠ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଡ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଢ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଣ&#39;</span><span class="p">,</span> <span class="s1">&#39;ତ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଥ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଦ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଧ&#39;</span><span class="p">,</span> <span class="s1">&#39;ନ&#39;</span><span class="p">,</span> <span class="s1">&#39;ପ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଫ&#39;</span><span class="p">,</span> <span class="s1">&#39;ବ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଭ&#39;</span><span class="p">,</span> <span class="s1">&#39;ମ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଯ&#39;</span><span class="p">,</span> <span class="s1">&#39;ର&#39;</span><span class="p">,</span> <span class="s1">&#39;ଲ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଳ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଵ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଷ&#39;</span><span class="p">,</span> <span class="s1">&#39;ସ&#39;</span><span class="p">,</span> <span class="s1">&#39;ହ&#39;</span><span class="p">,</span> <span class="s1">&#39;଼&#39;</span><span class="p">,</span> <span class="s1">&#39;ଽ&#39;</span><span class="p">,</span> <span class="s1">&#39;ା&#39;</span><span class="p">,</span> <span class="s1">&#39;ି&#39;</span><span class="p">,</span> <span class="s1">&#39;ୀ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୁ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୂ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୃ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୄ&#39;</span><span class="p">,</span> <span class="s1">&#39;େ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୈ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୋ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୌ&#39;</span><span class="p">,</span> <span class="s1">&#39;୍&#39;</span><span class="p">,</span> <span class="s1">&#39;ୖ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୗ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଡ଼&#39;</span><span class="p">,</span> <span class="s1">&#39;ଢ଼&#39;</span><span class="p">,</span> <span class="s1">&#39;ୟ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୠ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୡ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୢ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୣ&#39;</span><span class="p">,</span> <span class="s1">&#39;୦&#39;</span><span class="p">,</span> <span class="s1">&#39;୧&#39;</span><span class="p">,</span> <span class="s1">&#39;୨&#39;</span><span class="p">,</span> <span class="s1">&#39;୩&#39;</span><span class="p">,</span> <span class="s1">&#39;୪&#39;</span><span class="p">,</span> <span class="s1">&#39;୫&#39;</span><span class="p">,</span> <span class="s1">&#39;୬&#39;</span><span class="p">,</span> <span class="s1">&#39;୭&#39;</span><span class="p">,</span> <span class="s1">&#39;୮&#39;</span><span class="p">,</span> <span class="s1">&#39;୯&#39;</span><span class="p">,</span> <span class="s1">&#39;୰&#39;</span><span class="p">,</span> <span class="s1">&#39;ୱ&#39;</span><span class="p">,</span> <span class="s1">&#39;୲&#39;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">alphabet</span><span class="o">.</span><span class="n">consonants</span>
+<span class="p">[</span><span class="s1">&#39;କ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଖ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଗ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଘ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଙ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଚ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଛ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଜ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଝ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଞ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଟ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଠ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଡ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଢ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଣ&#39;</span><span class="p">,</span> <span class="s1">&#39;ତ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଥ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଦ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଧ&#39;</span><span class="p">,</span> <span class="s1">&#39;ନ&#39;</span><span class="p">,</span> <span class="s1">&#39;ପ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଫ&#39;</span><span class="p">,</span> <span class="s1">&#39;ବ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଭ&#39;</span><span class="p">,</span> <span class="s1">&#39;ମ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଯ&#39;</span><span class="p">,</span> <span class="s1">&#39;ର&#39;</span><span class="p">,</span> <span class="s1">&#39;ଲ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଳ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଵ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଷ&#39;</span><span class="p">,</span> <span class="s1">&#39;ସ&#39;</span><span class="p">,</span> <span class="s1">&#39;ହ&#39;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">alphabet</span><span class="o">.</span><span class="n">vowels</span>
+<span class="p">[</span><span class="s1">&#39;ଅ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଆ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଇ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଈ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଉ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଊ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଋ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଌ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଏ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଐ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଓ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଔ&#39;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">alphabet</span><span class="o">.</span><span class="n">numbers</span>
+<span class="p">[</span><span class="s1">&#39;୦&#39;</span><span class="p">,</span> <span class="s1">&#39;୧&#39;</span><span class="p">,</span> <span class="s1">&#39;୨&#39;</span><span class="p">,</span> <span class="s1">&#39;୩&#39;</span><span class="p">,</span> <span class="s1">&#39;୪&#39;</span><span class="p">,</span> <span class="s1">&#39;୫&#39;</span><span class="p">,</span> <span class="s1">&#39;୬&#39;</span><span class="p">,</span> <span class="s1">&#39;୭&#39;</span><span class="p">,</span> <span class="s1">&#39;୮&#39;</span><span class="p">,</span> <span class="s1">&#39;୯&#39;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">alphabet</span><span class="o">.</span><span class="n">matra</span>
+<span class="p">[</span><span class="s1">&#39;ଁ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଂ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଃ&#39;</span><span class="p">,</span> <span class="s1">&#39;଼&#39;</span><span class="p">,</span> <span class="s1">&#39;ଽ&#39;</span><span class="p">,</span> <span class="s1">&#39;ା&#39;</span><span class="p">,</span> <span class="s1">&#39;ି&#39;</span><span class="p">,</span> <span class="s1">&#39;ୀ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୁ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୂ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୃ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୄ&#39;</span><span class="p">,</span> <span class="s1">&#39;େ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୈ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୋ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୌ&#39;</span><span class="p">,</span> <span class="s1">&#39;୍&#39;</span><span class="p">,</span> <span class="s1">&#39;ୖ&#39;</span><span class="p">,</span> <span class="s1">&#39;ୗ&#39;</span><span class="p">,</span> <span class="s1">&#39;୰&#39;</span><span class="p">,</span> <span class="s1">&#39;ୱ&#39;</span><span class="p">,</span> <span class="s1">&#39;୲&#39;</span><span class="p">]</span>
+</code></pre></div>
+<h3 id="odia-names"><img alt="🧑🏻‍🤝‍🧑🏻" class="twemoji" src="https://twemoji.maxcdn.com/v/latest/svg/1f9d1-1f3fb-200d-1f91d-200d-1f9d1-1f3fb.svg" title=":people_holding_hands_tone1:" /> Odia names<a class="headerlink" href="#odia-names" title="Permanent link">&para;</a></h3>
+<ul>
+<li>You can generate Odia names using the <code>name</code> module with the following syntax:</li>
+</ul>
+<p><div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">name</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">name</span><span class="o">.</span><span class="n">generate_names</span><span class="p">()</span>
+<span class="p">[</span><span class="s1">&#39;ଯଦୁମଣୀ ମାଢ଼ୀ&#39;</span><span class="p">,</span> <span class="s1">&#39;ବାସନ୍ତି ବ୍ରହ୍ମା&#39;</span><span class="p">,</span> <span class="s1">&#39;ପ୍ରବୀଣ ସିଂହ ମୁକ୍କିମ&#39;</span><span class="p">,</span> <span class="s1">&#39;ବୃନ୍ଦାବନ ଧଳ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଅଶ୍ୱିନୀ କିଶୋର ଜଗଦେବ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ୍ରୀଯୁକ୍ତ ଇରାଶିଷ ସେଠୀ&#39;</span><span class="p">,</span> <span class="s1">&#39;କୁମାରୀ ସୁମନ ସିଂଦେଓ&#39;</span><span class="p">,</span> <span class="s1">&#39;ସଲିଲ ଅଲ୍ଲୀ ଛତ୍ରିଆ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଦିବାକରନାଥ ରାଧାରାଣୀ ଆଚାର୍ଯ୍ୟ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଦୁର୍ଗା ସୁନ୍ଦରସୁର୍ଯ୍ୟା ପୁଟୀ&#39;</span><span class="p">]</span>
+</code></pre></div>
+- By default it will return ten randomly generated names. 
+- If you want, you can generate more names by providing the number of names needed in the first argument.</p>
+<p><div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">name</span><span class="o">.</span><span class="n">generate_names</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+<span class="p">[</span><span class="s1">&#39;ସାବିତ୍ରୀ ଧଳ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ୍ରୀଯୁକ୍ତ ଉତ୍କଳ ପାଳ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଯଦୁମଣି ସୁବାହୁ&#39;</span><span class="p">,</span> <span class="s1">&#39;ପ୍ରେମଲତା ପମ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଗୁରୁ ପୃଷ୍ଟି&#39;</span><span class="p">,</span> <span class="s1">&#39;ଗୀତା ଦାସବର୍ମା&#39;</span><span class="p">,</span> <span class="s1">&#39;କୁମାରୀ ଦୁର୍ଗା ବ୍ରହ୍ମା&#39;</span><span class="p">,</span> <span class="s1">&#39;କୁମାରୀ ପୁପୁଲ ହେମ୍ବ୍ରମ&#39;</span><span class="p">,</span> <span class="s1">&#39;ମକର ସାଇ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଲକ୍ଷ୍ମୀକାନ୍ତ ନନ୍ଦି&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ୍ରୀ ଦୀନବନ୍ଧୁ ଲୋକ&#39;</span><span class="p">,</span> <span class="s1">&#39;କୁମାରୀ ଜିନା ଗଜପତି&#39;</span><span class="p">,</span> <span class="s1">&#39;ମୃଣାଳ ଭୂଷଣ ଛତ୍ରିଆ&#39;</span><span class="p">,</span> <span class="s1">&#39;ସୁଧାଂଶୁମାଳିନୀ ସିଂହ ସାଲୁଜା&#39;</span><span class="p">,</span> <span class="s1">&#39;ସୁଧାଂଶୁମାଳିନୀ ମହାନନ୍ଦ&#39;</span><span class="p">,</span> <span class="s1">&#39;ସୁମନୀ ନାଥ&#39;</span><span class="p">,</span> <span class="s1">&#39;କୁମାରୀ ନୀତୁ ହିକ୍କା&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ୍ରୀମତୀ ଲୀଳା କାଡାମ୍&#39;</span><span class="p">,</span> <span class="s1">&#39;ସନାତନ କୁଅଁର&#39;</span><span class="p">,</span> <span class="s1">&#39;କୁମାରୀ କବି ଦାସନାୟକ&#39;</span><span class="p">]</span>
+</code></pre></div>
+- In addition to this, you can create specific name parts like prefix, first name, middle name, surname, etc.
+- By default you will get ten names. However, to get more number of results you can specify the number of names in the first argument.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">name</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">name</span><span class="o">.</span><span class="n">generate_firstnames</span><span class="p">()</span>
+<span class="p">[</span><span class="s1">&#39;ଅନିରୁଦ୍ଧ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଦେବରାଜ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଆଶ୍ରିତ&#39;</span><span class="p">,</span> <span class="s1">&#39;ବଦ୍ରି&#39;</span><span class="p">,</span> <span class="s1">&#39;ସଦାଶିବ&#39;</span><span class="p">,</span> <span class="s1">&#39;ପ୍ରଦିପ୍ତ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଧୃବ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ୍ରୀନାଥ&#39;</span><span class="p">,</span> <span class="s1">&#39;ସ୍ନିତି&#39;</span><span class="p">,</span> <span class="s1">&#39;ପ୍ରକୃତି&#39;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">name</span><span class="o">.</span><span class="n">generate_prefixes</span><span class="p">()</span>
+<span class="p">[</span><span class="s1">&#39;ଶ୍ରୀଯୁକ୍ତ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ୍ରୀମତୀ&#39;</span><span class="p">,</span> <span class="s1">&#39;କୁମାରୀ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ୍ରୀମାନ&#39;</span><span class="p">,</span> <span class="s1">&#39;ସୁଶ୍ରୀ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ୍ରୀ&#39;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">name</span><span class="o">.</span><span class="n">generate_middlenames</span><span class="p">()</span>
+<span class="p">[</span><span class="s1">&#39;ଲେଖା&#39;</span><span class="p">,</span> <span class="s1">&#39;ଶ୍ରୀ&#39;</span><span class="p">,</span> <span class="s1">&#39;ମାଧବ&#39;</span><span class="p">,</span> <span class="s1">&#39;କେତନ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଯୋଶେଫ୍&#39;</span><span class="p">,</span> <span class="s1">&#39;କେଶରୀ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଭୂଷଣ&#39;</span><span class="p">,</span> <span class="s1">&#39;ରାଧାରାଣୀ&#39;</span><span class="p">,</span> <span class="s1">&#39;ମାନସିଂହ&#39;</span><span class="p">,</span> <span class="s1">&#39;କିଶୋର&#39;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">name</span><span class="o">.</span><span class="n">generate_surnames</span><span class="p">()</span>
+<span class="p">[</span><span class="s1">&#39;ପରିଜା&#39;</span><span class="p">,</span> <span class="s1">&#39;ରଣସିଂହ&#39;</span><span class="p">,</span> <span class="s1">&#39;ମହାପାତ୍ର&#39;</span><span class="p">,</span> <span class="s1">&#39;ରଥ&#39;</span><span class="p">,</span> <span class="s1">&#39;ମହନ୍ତ&#39;</span><span class="p">,</span> <span class="s1">&#39;ବେହେରା&#39;</span><span class="p">,</span> <span class="s1">&#39;ଦେଓ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଧଳ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଦିଆନ&#39;</span><span class="p">,</span> <span class="s1">&#39;ହିମିରିକା&#39;</span><span class="p">]</span>
+</code></pre></div>
+<h3 id="detect-odia-language"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.5 12c2.5 0 4.5 2 4.5 4.5 0 .88-.25 1.71-.69 2.4l3.08 3.1L21 23.39l-3.12-3.07c-.69.43-1.51.68-2.38.68-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5m0 2a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5M5 3h14c1.11 0 2 .89 2 2v8.03c-.5-.8-1.19-1.49-2-2.03V5H5v14h4.5c.31.75.76 1.42 1.31 2H5c-1.11 0-2-.89-2-2V5c0-1.11.89-2 2-2m2 4h10v2H7V7m0 4h5.03c-.8.5-1.49 1.19-2.03 2H7v-2m0 4h2.17c-.11.5-.17 1-.17 1.5v.5H7v-2z"/></svg></span> Detect Odia Language<a class="headerlink" href="#detect-odia-language" title="Permanent link">&para;</a></h3>
+<ul>
+<li>A binary language classification method used which will return if the input text is in Odia language or in any other non-Odia language. </li>
+<li>Along with this a confidence score also returned. The score provides how confident the library is that it is Odia or Non-Odia.</li>
+<li>There is a <code>threshold</code> parameter to the method which can be configured to tune the confidence score threshold after which it will be regarded as Odia. The default value is 0.5.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">ud</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ud</span><span class="o">.</span><span class="n">detect_language</span><span class="p">(</span><span class="s2">&quot;hey how are you?&quot;</span><span class="p">)</span>
+<span class="p">{</span><span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="s1">&#39;non-odia&#39;</span><span class="p">,</span> <span class="s1">&#39;confidence_score&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ud</span><span class="o">.</span><span class="n">detect_language</span><span class="p">(</span><span class="s2">&quot;hey how are you? ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ&quot;</span><span class="p">)</span>
+<span class="p">{</span><span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="s1">&#39;odia&#39;</span><span class="p">,</span> <span class="s1">&#39;confidence_score&#39;</span><span class="p">:</span> <span class="mf">0.66666</span><span class="p">}</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ud</span><span class="o">.</span><span class="n">detect_language</span><span class="p">(</span><span class="s2">&quot;hey how are you? ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ&quot;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="p">{</span><span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="s1">&#39;non-odia&#39;</span><span class="p">,</span> <span class="s1">&#39;confidence_score&#39;</span><span class="p">:</span> <span class="mf">0.333333</span><span class="p">}</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ud</span><span class="o">.</span><span class="n">detect_language</span><span class="p">(</span><span class="s2">&quot;ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ ବା ପ୍ରାକୃତିକ ଭାଷା ପ୍ରକ୍ରିୟାକରଣ କଂପ୍ୟୁଟର ବିଜ୍ଞାନ ଏବଂ ଆର୍ଟିଫିସିଆଲ ଇଣ୍ଟେଲିଜେନ୍ସର ସେହି ବିଭାଗକୁ କୁହାଯ ାଏ ଯାହା ମନୁଷ୍ୟର ଭାଷାଗୁଡ଼ିକ ସହ କମ୍ପ୍ୟୁଟରର କଥାବାର୍ତ୍ତାକୁ ବୁଝାଇଥାଏ। &quot;</span><span class="p">)</span>
+<span class="p">{</span><span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="s1">&#39;odia&#39;</span><span class="p">,</span> <span class="s1">&#39;confidence_score&#39;</span><span class="p">:</span> <span class="mf">0.99404</span><span class="p">}</span>
+</code></pre></div>
+<h3 id="word-tokenizer"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7v2h5V7h-5M2 9v6h5V9H2m10 0v2H9v2h3v2l3-3-3-3m5 2v2h5v-2h-5m0 4v2h5v-2h-5z"/></svg></span> Word Tokenizer<a class="headerlink" href="#word-tokenizer" title="Permanent link">&para;</a></h3>
+<ul>
+<li>To tokenize odia text into multiple words or tokens <code>word_tokenizer</code> module can be used.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">ud</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ud</span><span class="o">.</span><span class="n">word_tokenizer</span><span class="p">(</span><span class="s2">&quot;କ୍ୱାଣ୍ଟମ କମ୍ପ୍ୟୁଟିଙ୍ଗ, ହେଉଛି ଏକ ଉଦୀୟମାନ ହାର୍ଡ଼ୱେର ଏବଂ ସଫ୍ଟୱେରର ପ୍ରଯୁକ୍ତିବିଦ୍ୟା, ଯାହା କଠିନ ଗାଣିତିକ ସମସ୍ୟାଗୁଡ଼ିକର ସମାଧାନ ପାଇଁ ଉପ-ପାରମାଣବିକ ଘଟଣାଗୁଡ଼ିକର ଉପଯୋଗ କରିଥାଏ ।[୧]&quot;</span><span class="p">)</span>
+<span class="p">[</span><span class="s1">&#39;କ୍ୱାଣ୍ଟମ&#39;</span><span class="p">,</span> <span class="s1">&#39;କମ୍ପ୍ୟୁଟିଙ୍ଗ&#39;</span><span class="p">,</span> <span class="s1">&#39;ହେଉଛି&#39;</span><span class="p">,</span> <span class="s1">&#39;ଏକ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଉଦୀୟମାନ&#39;</span><span class="p">,</span> <span class="s1">&#39;ହାର୍ଡ଼ୱେର&#39;</span><span class="p">,</span> <span class="s1">&#39;ଏବଂ&#39;</span><span class="p">,</span> <span class="s1">&#39;ସଫ୍ଟୱେରର&#39;</span><span class="p">,</span> <span class="s1">&#39;ପ୍ରଯୁକ୍ତିବିଦ୍ୟା&#39;</span><span class="p">,</span> <span class="s1">&#39;ଯାହା&#39;</span><span class="p">,</span> <span class="s1">&#39;କଠିନ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଗାଣିତିକ&#39;</span><span class="p">,</span> <span class="s1">&#39;ସମସ୍ୟାଗୁଡ଼ିକର&#39;</span><span class="p">,</span> <span class="s1">&#39;ସମାଧାନ&#39;</span><span class="p">,</span> <span class="s1">&#39;ପାଇଁ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଉପ&#39;</span><span class="p">,</span> <span class="s1">&#39;ପାରମାଣବିକ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଘଟଣାଗୁଡ଼ିକର&#39;</span><span class="p">,</span> <span class="s1">&#39;ଉପଯୋଗ&#39;</span><span class="p">,</span> <span class="s1">&#39;କରିଥାଏ&#39;</span><span class="p">,</span> <span class="s1">&#39;।&#39;</span><span class="p">,</span> <span class="s1">&#39;୧&#39;</span><span class="p">]</span>
+</code></pre></div>
+<h3 id="sentence-tokenizer"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14 4 2.29 2.29-2.88 2.88 1.42 1.42 2.88-2.88L20 10V4M10 4H4v6l2.29-2.29 4.71 4.7V20h2v-8.41l-5.29-5.3"/></svg></span> Sentence Tokenizer<a class="headerlink" href="#sentence-tokenizer" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Tokenize a paragraph into multiple sentences.</li>
+<li>Only working on full stop.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">ud</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ud</span><span class="o">.</span><span class="n">sentence_tokenizer</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="remove-stopwords"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22.54 16.88 20.41 19l2.13 2.12-1.42 1.42L19 20.41l-2.12 2.13-1.41-1.42L17.59 19l-2.12-2.12 1.41-1.41L19 17.59l2.12-2.12 1.42 1.41M12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3m0 8c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 .5-.1 1-.23 1.43.69-.27 1.44-.43 2.23-.43 1.12 0 2.17.32 3.07.85.36-.58.67-1.2.93-1.85-1.73-4.39-6-7.5-11-7.5S2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5.35 0 .69 0 1.03-.05-.03-.15-.03-.3-.03-.45 0-.79.16-1.54.43-2.23-.43.13-.93.23-1.43.23z"/></svg></span> Remove stopwords<a class="headerlink" href="#remove-stopwords" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Frequently occurring words in a language are called as <em>stopwords</em>. Using the below function you can remove the stopwords.</li>
+<li>Internally this method calls the <code>word_tokenize</code> method to get tokens from the text.</li>
+<li>As most of the time processing happens in list by default a list of strings will be returned.</li>
+</ul>
+<p><div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">ud</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ud</span><span class="o">.</span><span class="n">remove_stopwords</span><span class="p">(</span><span class="s2">&quot;ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି&quot;</span><span class="p">)</span>
+<span class="p">[</span><span class="s1">&#39;ରାମ&#39;</span><span class="p">,</span> <span class="s1">&#39;ସୀତା&#39;</span><span class="p">,</span> <span class="s1">&#39;ଆମକୁ&#39;</span><span class="p">,</span> <span class="s1">&#39;ଆଶୀର୍ବାଦ&#39;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ud</span><span class="o">.</span><span class="n">remove_stopwords</span><span class="p">(</span><span class="s2">&quot;ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି &quot;</span><span class="p">,</span> <span class="n">get_str</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="s1">&#39;ରାମ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ&#39;</span>
+</code></pre></div>
+Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> are removed from the text.</p>
+<h3 id="translation"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12m-2.62 7 1.62-4.33L19.12 17h-3.24z"/></svg></span> Translation<a class="headerlink" href="#translation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The translation module is a wrapper on top of Google Translate API.</li>
+<li>There are two translation methods provided:<ol>
+<li><code>odia_to_other_lang</code> and</li>
+<li><code>other_lang_to_odia</code></li>
+</ol>
+</li>
+</ul>
+<h4 id="other_lang_to_odia">other_lang_to_odia<a class="headerlink" href="#other_lang_to_odia" title="Permanent link">&para;</a></h4>
+<ul>
+<li>As the name suggests this function can be used to translate from any other language to Odia language.</li>
+<li>If you are translating from any other language other than English, please provide the language code of it.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">other_lang_to_odia</span><span class="p">,</span> <span class="n">odia_to_other_lang</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">other_lang_to_odia</span><span class="p">(</span><span class="s2">&quot;hello! feeling good?&quot;</span><span class="p">)</span>
+<span class="s1">&#39;ନମସ୍କାର!ଭଲ ଲାଗୁଛି?&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">other_lang_to_odia</span><span class="p">(</span><span class="s2">&quot;शेयर बाज़ार एक ऐसा बाज़ार है जहाँ कंपनियों के शेयर खरीदे-बेचे जा सकते हैं।&quot;</span><span class="p">,</span> <span class="n">source_language</span><span class="o">=</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
+<span class="s1">&#39;ଷ୍ଟକ୍ ମାର୍କେଟ୍ ହେଉଛି ଏକ ବଜାର ଯେଉଁଠାରେ କମ୍ପାନୀଗୁଡିକ କିଣାଯାଇପାରିବ |&#39;</span>
+</code></pre></div>
+<h4 id="odia_to_other_lang">odia_to_other_lang<a class="headerlink" href="#odia_to_other_lang" title="Permanent link">&para;</a></h4>
+<ul>
+<li>This function can be used to translate an Odia text into another language.</li>
+<li>The same language code you can choose from as provided above.</li>
+<li>By default the function will trasnlate to English language.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">odia_to_other_lang</span><span class="p">(</span><span class="s2">&quot;ନମସ୍କାର!ଭଲ ଲାଗୁଛି?&quot;</span><span class="p">)</span>
+<span class="s1">&#39;Hello! Sounds good?&#39;</span>
+</code></pre></div>
+<h3 id="automatic-extractive-text-summarization"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m15.1 1.81-2.83 2.83c-.77.78-.77 2.05 0 2.83l1.41 1.41-4.55 4.55-2.82-2.83L4.89 12c-4.95 5-1.39 8.5-1.39 8.5S7 24 12 19.09l1.41-1.41-2.8-2.8 4.54-4.54 1.39 1.39c.78.77 2.05.77 2.83 0L22.2 8.9l-7.1-7.09m2.83 8.47L16.55 8.9l-1.44-1.44-1.4-1.4 1.41-1.41 4.23 4.23-1.42 1.4z"/></svg></span> Automatic extractive text summarization<a class="headerlink" href="#automatic-extractive-text-summarization" title="Permanent link">&para;</a></h3>
+<p>Extracts the important summary snippet of a given text.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">WordFrequency</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">wf</span> <span class="o">=</span> <span class="n">WordFrequency</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ &quot;</span>
+        <span class="s2">&quot;ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ । &quot;</span>
+        <span class="s2">&quot;ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି । &quot;</span>
+        <span class="s2">&quot;ଭାରତର ମୁଖ୍ୟ ବିଚାରପତି ଏହାର ମୁଖ୍ୟ ଅଟନ୍ତି । ତତ୍ସହିତ ଏଥିରେ ସର୍ବାଧିକ ୩୪ ଜଣ ବିଚାରପତି ଅଛନ୍ତି । &quot;</span>
+        <span class="s2">&quot;ମୁଖ୍ୟ, ଅପିଲୀୟ ତଥା ପରାମର୍ଶିକ ଆଦି ଅଧିକାରକ୍ଷେତ୍ର ମାଧ୍ୟମରେ ଏହାର ବିସ୍ତୃତ କ୍ଷମତା ରହିଛି । &quot;</span>
+        <span class="s2">&quot;ଏହା ଭାରତରେ ସବୁଠାରୁ ଶକ୍ତିଶାଳୀ ଲୋକାନୁଷ୍ଠାନ ବୋଲି ଧରାଯାଇଅଛି । &quot;</span>
+        <span class="s2">&quot;ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା &quot;</span>
+        <span class="s2">&quot;ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ &quot;</span>
+        <span class="s2">&quot;ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ । &quot;</span>
+        <span class="s2">&quot;ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା &quot;</span>
+        <span class="s2">&quot;ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର &quot;</span>
+        <span class="s2">&quot;ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ । &quot;</span>
+        <span class="s2">&quot;ଏକ ପରାମର୍ଶଦାତା ହିସାବରେ, ଏହା ଭାରତୀୟ ସମ୍ବିଧାନ ଅନୁସାରେ ରାଷ୍ଟ୍ରପତିଙ୍କଦ୍ୱାରା ସୂଚୀତ ବିଭିନ୍ନ ବିଷୟବସ୍ତୁ &quot;</span>
+        <span class="s2">&quot;ଉପରେ ଶୁଣାଣି କରିଥାଏ । &quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">wf</span><span class="o">.</span><span class="n">get_summary</span><span class="p">()</span> <span class="c1"># Auto threshold calculation</span>
+<span class="s1">&#39;ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ  ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି  ଭାରତର ମୁଖ୍ୟ ବିଚାରପତି ଏହାର ମୁଖ୍ୟ ଅଟନ୍ତି  ତତ୍ସହିତ ଏଥିରେ ସର୍ବାଧିକ ୩୪ ଜଣ ବିଚାରପତି ଅଛନ୍ତି  ମୁଖ୍ୟ, ଅପିଲୀୟ ତଥା ପରାମର୍ଶିକ ଆଦି ଅଧିକାରକ୍ଷେତ୍ର ମାଧ୍ୟମରେ ଏହାର ବିସ୍ତୃତ କ୍ଷମତା ରହିଛି  ଏହା ଭାରତରେ ସବୁଠାରୁ ଶକ୍ତିଶାଳୀ ଲୋକାନୁଷ୍ଠାନ ବୋଲି ଧରାଯାଇଅଛି  ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ  ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ  ଏକ ପରାମର୍ଶଦାତା ହିସାବରେ, ଏହା ଭାରତୀୟ ସମ୍ବିଧାନ ଅନୁସାରେ ରାଷ୍ଟ୍ରପତିଙ୍କଦ୍ୱାରା ସୂଚୀତ ବିଭିନ୍ନ ବିଷୟବସ୍ତୁ ଉପରେ ଶୁଣାଣି କରିଥାଏ&#39;</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">wf</span><span class="o">.</span><span class="n">get_summary</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span> <span class="c1"># higher the threshold lesser the summary text</span>
+<span class="s1">&#39;ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ  ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି  ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ  ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ&#39;</span>
+</code></pre></div>
+<h3 id="offline-dictionary"><img alt="📖" class="twemoji" src="https://twemoji.maxcdn.com/v/latest/svg/1f4d6.svg" title=":book:" /> Offline Dictionary<a class="headerlink" href="#offline-dictionary" title="Permanent link">&para;</a></h3>
+<ul>
+<li>An offline dictionary will be downloaded as soon as you install this library.</li>
+<li>Therefore, when you translate from English to Odia words/phrases it will hit the offline dictionary first, if not found it will go for the Google translate API.</li>
+<li>Google Translate API responses have been cached, therefore from the 2<sup>nd</sup> call onwards on the same term(s) it will fetch fast from the local in-memory cache.</li>
+<li>We have used <a href="https://realpython.com/lru-cache-python/">LRU (Least Recently Used) cache</a> with a maximum size of 10000.</li>
+</ul>
+<details class="note" open="open"><summary>English to Odia translation Workflow</summary><p>Therefore, we have two flows on English to Odia dictionary translation:</p>
+<ol>
+<li>English text &rarr; Check in Offline dictionary &rarr; Found &rarr; Return result</li>
+<li>English text &rarr; Check in Offline dictionary &rarr; Not Found &rarr; Check in Cache &rarr; Found &rarr; Return result from Cache</li>
+<li>English text &rarr; Check in Offline dictionary &rarr; Not Found &rarr; Check in Cache &rarr; Not Found &rarr; Hit Google Translate API &rarr; Update the Cache &rarr; Return result</li>
+</ol>
+</details>
+<h2 id="known-issues"><img alt="🐛" class="twemoji" src="https://twemoji.maxcdn.com/v/latest/svg/1f41b.svg" title=":bug:" /> Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">&para;</a></h2>
+<ul>
+<li>There are few issues in the code an be found <a href="https://github.com/soumendrak/openodia/issues">here</a>.</li>
+<li>Contributions are highly welcomed. <img alt="🙏🏼" class="twemoji" src="https://twemoji.maxcdn.com/v/latest/svg/1f64f-1f3fc.svg" title=":pray_tone2:" /></li>
+</ul>
+<details class="quote" open="open"><summary>Quote</summary><p>"In my dream of the 21<sup>st</sup> century for the State, I would have young men and women who put the interest of the State before them. They will have pride in themselves, confidence in themselves. They will not be at anybody’s mercy, except their own selves. By their brains, intelligence and capacity, they will recapture the history of Kalinga." - <a href="https://en.wikipedia.org/wiki/Biju_Patnaik">Biju Pattnaik</a></p>
+</details>
+<!-- Citation -->
+<hr>
+<p>To cite this page, please use:</p>
+<div class="highlight"><pre><span></span><code><span class="nc">@misc</span><span class="p">{</span><span class="nl">OpenOdia</span><span class="p">,</span>
+    <span class="na">author</span>       <span class="p">=</span> <span class="s">{Soumendra Kumar Sahoo}</span><span class="p">,</span>
+    <span class="na">title</span>        <span class="p">=</span> <span class="s">{OpenOdia Documentation}</span><span class="p">,</span>
+    <span class="na">howpublished</span> <span class="p">=</span> <span class="s">{\url{https://www.openodia.soumendrak.com/}}</span><span class="p">,</span>
+    <span class="na">year</span>         <span class="p">=</span> <span class="s">{2021}</span>
+<span class="p">}</span>
+</code></pre></div>
+                
+                  
+                    
+
+<hr>
+<div class="md-source-date">
+  <small>
+    
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2021-10-14T09:50:27+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2021-10-14</span>
+      
+    
+  </small>
+</div>
+                  
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" data-md-state="hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            MIT License
+          </div>
+        
+        
+          Made with
+          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+            Material for MkDocs
+          </a>
+        
+        
+      </div>
+      
+  <div class="md-footer-social">
+    
+      
+      
+        
+        
+      
+      <a href="https://github.com/soumendrak" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+      </a>
+    
+      
+      
+        
+        
+      
+      <a href="https://stackoverflow.com/users/5014656/soumendra?tab=profile" target="_blank" rel="noopener" title="stackoverflow.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M290.7 311 95 269.7 86.8 309l195.7 41zm51-87L188.2 95.7l-25.5 30.8 153.5 128.3zm-31.2 39.7L129.2 179l-16.7 36.5L293.7 300zM262 32l-32 24 119.3 160.3 32-24zm20.5 328h-200v39.7h200zm39.7 80H42.7V320h-40v160h359.5V320h-40z"/></svg>
+      </a>
+    
+      
+      
+        
+        
+      
+      <a href="https://twitter.com/soumendra_ks" target="_blank" rel="noopener" title="twitter.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+      </a>
+    
+      
+      
+        
+        
+      
+      <a href="https://linkedin.com/in/soumendrak/" target="_blank" rel="noopener" title="linkedin.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
+      </a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": ".", "features": ["instant", "navigation.top", "navigation.tabs", "tabs", "toc.integrate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "assets/javascripts/workers/search.e99e714c.min.js", "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.bc35569b.min.js"></script>
+      
+        <script src="js/timeago.min.js"></script>
+      
+        <script src="js/timeago_mkdocs_material.js"></script>
+      
+    
+  </body>
+</html>
