@@ -403,6 +403,26 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#stemming-tool" class="md-nav__link">
+    Stemming tool
+  </a>
+  
+    <nav class="md-nav" aria-label="Stemming tool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#largest-substring-approach" class="md-nav__link">
+    Largest substring approach
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -536,7 +556,7 @@ python setup.py install
 <li>Along with this a confidence score also returned. The score provides how confident the library is that it is Odia or Non-Odia.</li>
 <li>There is a <code>threshold</code> parameter to the method which can be configured to tune the confidence score threshold after which it will be regarded as Odia. The default value is 0.5.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">ud</span>
+<p><div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">ud</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">ud</span><span class="o">.</span><span class="n">detect_language</span><span class="p">(</span><span class="s2">&quot;hey how are you?&quot;</span><span class="p">)</span>
 <span class="p">{</span><span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="s1">&#39;non-odia&#39;</span><span class="p">,</span> <span class="s1">&#39;confidence_score&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
 
@@ -549,6 +569,7 @@ python setup.py install
 <span class="o">&gt;&gt;&gt;</span> <span class="n">ud</span><span class="o">.</span><span class="n">detect_language</span><span class="p">(</span><span class="s2">&quot;ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ ବା ପ୍ରାକୃତିକ ଭାଷା ପ୍ରକ୍ରିୟାକରଣ କଂପ୍ୟୁଟର ବିଜ୍ଞାନ ଏବଂ ଆର୍ଟିଫିସିଆଲ ଇଣ୍ଟେଲିଜେନ୍ସର ସେହି ବିଭାଗକୁ କୁହାଯ ାଏ ଯାହା ମନୁଷ୍ୟର ଭାଷାଗୁଡ଼ିକ ସହ କମ୍ପ୍ୟୁଟରର କଥାବାର୍ତ୍ତାକୁ ବୁଝାଇଥାଏ। &quot;</span><span class="p">)</span>
 <span class="p">{</span><span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="s1">&#39;odia&#39;</span><span class="p">,</span> <span class="s1">&#39;confidence_score&#39;</span><span class="p">:</span> <span class="mf">0.99404</span><span class="p">}</span>
 </code></pre></div>
+- For more info on Odia language detection, please visit the blog post on this at <a href="https://blog.soumendrak.com/odia-language-detection">blog.soumendrak.com</a>.</p>
 <h3 id="word-tokenizer"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7v2h5V7h-5M2 9v6h5V9H2m10 0v2H9v2h3v2l3-3-3-3m5 2v2h5v-2h-5m0 4v2h5v-2h-5z"/></svg></span> Word Tokenizer<a class="headerlink" href="#word-tokenizer" title="Permanent link">&para;</a></h3>
 <ul>
 <li>To tokenize odia text into multiple words or tokens <code>word_tokenizer</code> module can be used.</li>
@@ -638,13 +659,38 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
 <li>Google Translate API responses have been cached, therefore from the 2<sup>nd</sup> call onwards on the same term(s) it will fetch fast from the local in-memory cache.</li>
 <li>We have used <a href="https://realpython.com/lru-cache-python/">LRU (Least Recently Used) cache</a> with a maximum size of 10000.</li>
 </ul>
-<details class="note" open="open"><summary>English to Odia translation Workflow</summary><p>Therefore, we have two flows on English to Odia dictionary translation:</p>
+<details class="note" open="open"><summary>English to Odia translation Workflow</summary><p>Therefore, we have three flows on English to Odia dictionary translation:</p>
 <ol>
 <li>English text &rarr; Check in Offline dictionary &rarr; Found &rarr; Return result</li>
 <li>English text &rarr; Check in Offline dictionary &rarr; Not Found &rarr; Check in Cache &rarr; Found &rarr; Return result from Cache</li>
 <li>English text &rarr; Check in Offline dictionary &rarr; Not Found &rarr; Check in Cache &rarr; Not Found &rarr; Hit Google Translate API &rarr; Update the Cache &rarr; Return result</li>
 </ol>
 </details>
+<h3 id="stemming-tool">Stemming tool<a class="headerlink" href="#stemming-tool" title="Permanent link">&para;</a></h3>
+<details class="note"><summary>Initial rough corpus</summary><ul>
+<li>["ଲେ", "ଠୁ", "ର", "ରେ", "ଟି", "ଟେ", "ଟା",</li>
+<li>ୁଥିଲେ</li>
+<li>["ଥିଲେ", "ଥିଲ", "ଥିଲୁ", "ଥିଲି", 
+    "ଉଛେ", "ଉଛ", "ଉଛୁ", "ଉଛି", 
+    "ଇଛେ", "ଇଛ", "ଇଛୁ", "ଇଛି",
+     "ଅଛେ", "ଅଛ", "ଅଛୁ", "ଅଛି",
+    "ସିଛେ", "ସିଛ", "ସିଛୁ", "ସିଛି",
+    "ଅନ୍ତେ", "ଅନ୍ତ", "ଅନ୍ତୁ", "ଅନ୍ତି",
+    "ଇଲେ", "ଇଲ", "ଇଲୁ", "ଇଲି",
+    "ଇବେ", "ଇବ", "ଇବୁ", "ଇବି",
+    "ଥିବେ", "ଥିବ", "ଥିବୁ", "ଥିବି",
+    "ଟାକୁ", "ଟାକେ", "ଟିର", "ଟିରେ", "ଟିଏ", "ମାନେ", "ଗୁଡ଼ା"]</li>
+<li>["ଗୁଡ଼ାଏ", "ଗୁଡ଼ାକ",] </li>
+</ul>
+</details>
+<h4 id="largest-substring-approach">Largest substring approach<a class="headerlink" href="#largest-substring-approach" title="Permanent link">&para;</a></h4>
+<ul>
+<li>By using the largest suffix substring removal process as shown in <a href="https://github.com/sainimohit23/hindi-stemmer/blob/master/stemmer.py">this code</a> by Mohit for Hindi language. </li>
+<li>In Odia language by using a specific set of suffixes we can omit critical information form the sentence.</li>
+<li>For example the suffixes like <em>uthilu</em>, <em>uthibe</em> describes about the tense of the sentence, whether it is in future or past or present.</li>
+<li>Similarly, there will be exceptions throughout the process and we can not use a generic set of suffixes to stem.</li>
+<li>Therefore, a better method need to be found out.</li>
+</ul>
 <h2 id="known-issues"><img alt="🐛" class="twemoji" src="https://twemoji.maxcdn.com/v/latest/svg/1f41b.svg" title=":bug:" /> Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">&para;</a></h2>
 <ul>
 <li>There are few issues in the code an be found <a href="https://github.com/soumendrak/openodia/issues">here</a>.</li>
@@ -670,7 +716,7 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2021-10-17T06:22:32+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2021-10-17</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2021-10-17T07:35:50+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2021-10-17</span>
       
     
   </small>
