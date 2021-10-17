@@ -10,11 +10,11 @@ from setuptools import find_packages, setup
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 # The text of the README file
-with open(os.path.join(HERE, "README.md")) as fid:
+with open(os.path.join(HERE, "README.md"), mode="rt", encoding="utf-8") as fid:
     README = fid.read()
 
 # The text of the requirements file
-with open(os.path.join(HERE, "requirements.txt")) as rt:
+with open(os.path.join(HERE, "requirements.txt"), mode="rt", encoding="utf-8") as rt:
     REQUIREMENTS = rt.readlines()
 
 # This call to setup() does all the work
