@@ -16,7 +16,7 @@
         <link rel="canonical" href="https://openodia.soumendrak.com/">
       
       <link rel="icon" href="assets/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.2">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.3">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.24c991ad.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.5143246d.min.css">
       
         
         <link rel="stylesheet" href="assets/stylesheets/palette.3f5d1f46.min.css">
@@ -73,7 +73,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#get-started" class="md-skip">
+        <a href="#installation" class="md-skip">
           Skip to content
         </a>
       
@@ -283,8 +283,6 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
       
       
-        
-      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           Get started
@@ -299,8 +297,6 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
-  
-    
   
   
     <label class="md-nav__title" for="__toc">
@@ -444,10 +440,34 @@
                   </a>
                 
                 
-                <h1 id="get-started">Get started<a class="headerlink" href="#get-started" title="Permanent link">&para;</a></h1>
+                  <h1>Get started</h1>
+                
+                <p><img alt="image" src="cover-pic.png" /></p>
+<h4 align="center">
+  <a href="https://img.shields.io/badge/Python-3.9-blue"><img alt="python 3.9" src="https://img.shields.io/badge/Python-3.9-blue"></a>
+  <a href="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml"><img alt="Code coverage" src="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml/badge.svg"></a>
+  <a href="https://github.com/psf/black/blob/main/LICENSE"><img alt="License: MIT" src="https://black.readthedocs.io/en/stable/_static/license.svg"></a>
+  <a href="https://codecov.io/gh/soumendrak/openodia"><img alt="code coverage" src="https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2"/></a>
+  <a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia.svg?type=shield" alt="license"/></a>
+  <a href="https://pepy.tech/project/openodia" alt="downloads"><img src="https://static.pepy.tech/personalized-badge/openodia?period=total&units=none&left_color=black&right_color=orange&left_text=Downloads"/></a>
+</h4>
+
+<ul>
+<li><code>openodia</code> is a Python package which contains various tools on Odia language.</li>
+<li>The short term goal of this package is to not make state-of-the-art methods, but to make tools which work.</li>
+</ul>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p>Setup the library from Pypi using the following command in your terminal or command prompt.</p>
-<div class="highlight"><pre><span></span><code>pip install openodia
+<ul>
+<li>Set up the library from Pypi using the following command in your terminal or command prompt.</li>
+<li>Make sure you have <strong>Python 3.9</strong> installed before.</li>
+</ul>
+<p><div class="highlight"><pre><span></span><code>pip install openodia
+</code></pre></div>
+If you want to install from the binary itself with latest changes use:</p>
+<div class="highlight"><pre><span></span><code>git clone https://github.com/soumendrak/openodia.git
+or
+git clone git@github.com:soumendrak/openodia.git
+python setup.py install
 </code></pre></div>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <p>The tools are available in Odia language.</p>
@@ -650,7 +670,7 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
 <div class="md-source-date">
   <small>
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2021-10-14T09:50:27+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2021-10-14</span>
+      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2021-10-17T06:11:47+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2021-10-17</span>
       
     
   </small>
@@ -742,10 +762,10 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": ".", "features": ["instant", "navigation.top", "navigation.tabs", "tabs", "toc.integrate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "assets/javascripts/workers/search.e99e714c.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": ".", "features": ["instant", "navigation.top", "navigation.tabs", "tabs", "toc.integrate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "assets/javascripts/workers/search.8397ff9e.min.js", "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.bc35569b.min.js"></script>
+      <script src="assets/javascripts/bundle.f89c2efe.min.js"></script>
       
         <script src="js/timeago.min.js"></script>
       
