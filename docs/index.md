@@ -119,6 +119,8 @@ The tools are available in Odia language.
 >>> ud.detect_language("ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ ବା ପ୍ରାକୃତିକ ଭାଷା ପ୍ରକ୍ରିୟାକରଣ କଂପ୍ୟୁଟର ବିଜ୍ଞାନ ଏବଂ ଆର୍ଟିଫିସିଆଲ ଇଣ୍ଟେଲିଜେନ୍ସର ସେହି ବିଭାଗକୁ କୁହାଯ ାଏ ଯାହା ମନୁଷ୍ୟର ଭାଷାଗୁଡ଼ିକ ସହ କମ୍ପ୍ୟୁଟରର କଥାବାର୍ତ୍ତାକୁ ବୁଝାଇଥାଏ। ")
 {'language': 'odia', 'confidence_score': 0.99404}
 ```
+- For more info on Odia language detection, please visit the blog post on this at [blog.soumendrak.com](https://blog.soumendrak.com/odia-language-detection).
+
 ### :material-set-split: Word Tokenizer
 
 - To tokenize odia text into multiple words or tokens `word_tokenizer` module can be used.
@@ -221,11 +223,36 @@ Extracts the important summary snippet of a given text.
 - We have used [LRU (Least Recently Used) cache](https://realpython.com/lru-cache-python/) with a maximum size of 10000.
 
 ???+note "English to Odia translation Workflow"
-    Therefore, we have two flows on English to Odia dictionary translation:
+    Therefore, we have three flows on English to Odia dictionary translation:
     
     1. English text --> Check in Offline dictionary --> Found --> Return result
     2. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Found --> Return result from Cache
     3. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Not Found --> Hit Google Translate API --> Update the Cache --> Return result
+
+### Stemming tool
+
+??? note "Initial rough corpus"
+    - ["ଲେ", "ଠୁ", "ର", "ରେ", "ଟି", "ଟେ", "ଟା",
+    - ୁଥିଲେ
+    - ["ଥିଲେ", "ଥିଲ", "ଥିଲୁ", "ଥିଲି", 
+        "ଉଛେ", "ଉଛ", "ଉଛୁ", "ଉଛି", 
+        "ଇଛେ", "ଇଛ", "ଇଛୁ", "ଇଛି",
+         "ଅଛେ", "ଅଛ", "ଅଛୁ", "ଅଛି",
+        "ସିଛେ", "ସିଛ", "ସିଛୁ", "ସିଛି",
+        "ଅନ୍ତେ", "ଅନ୍ତ", "ଅନ୍ତୁ", "ଅନ୍ତି",
+        "ଇଲେ", "ଇଲ", "ଇଲୁ", "ଇଲି",
+        "ଇବେ", "ଇବ", "ଇବୁ", "ଇବି",
+        "ଥିବେ", "ଥିବ", "ଥିବୁ", "ଥିବି",
+        "ଟାକୁ", "ଟାକେ", "ଟିର", "ଟିରେ", "ଟିଏ", "ମାନେ", "ଗୁଡ଼ା"]
+    - ["ଗୁଡ଼ାଏ", "ଗୁଡ଼ାକ",] 
+
+#### Largest substring approach
+- By using the largest suffix substring removal process as shown in [this code](https://github.com/sainimohit23/hindi-stemmer/blob/master/stemmer.py) by Mohit for Hindi language. 
+- In Odia language by using a specific set of suffixes we can omit critical information form the sentence.
+- For example the suffixes like _uthilu_, _uthibe_ describes about the tense of the sentence, whether it is in future or past or present.
+- Similarly, there will be exceptions throughout the process and we can not use a generic set of suffixes to stem.
+- Therefore, a better method need to be found out.
+
 
 ## :bug: Known Issues
 
