@@ -116,4 +116,5 @@ extra:
       link: https://linkedin.com/in/soumendrak/
 
 nav:
-  - Get started: index.md
+  - Documentation: index.md
+  - Application: application.md
