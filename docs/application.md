@@ -8,7 +8,34 @@
 
 ## Generate Odia names
 
-- Using the Odia names generation package you can create **lakhs of unique** Odia names.
+- Using the [Odia name generation package](../#odia-names) you can create **lakhs of unique** Odia names.
+
+```python
+from openodia import name
+name.generate_firstnames()
+'''
+['ଅନିରୁଦ୍ଧ', 'ଦେବରାଜ', 'ଆଶ୍ରିତ', 'ବଦ୍ରି', 'ସଦାଶିବ', 
+ 'ପ୍ରଦିପ୍ତ', 'ଧୃବ', 'ଶ୍ରୀନାଥ', 'ସ୍ନିତି', 'ପ୍ରକୃତି']
+'''
+
+name.generate_prefixes()
+'''
+['ଶ୍ରୀଯୁକ୍ତ', 'ଶ୍ରୀମତୀ', 'କୁମାରୀ', 'ଶ୍ରୀମାନ', 'ସୁଶ୍ରୀ', 'ଶ୍ରୀ']
+'''
+
+name.generate_middlenames()
+'''
+['ଲେଖା', 'ଶ୍ରୀ', 'ମାଧବ', 'କେତନ', 'ଯୋଶେଫ୍', 
+ 'କେଶରୀ', 'ଭୂଷଣ', 'ରାଧାରାଣୀ', 'ମାନସିଂହ', 'କିଶୋର']
+'''
+
+name.generate_surnames()
+'''
+['ପରିଜା', 'ରଣସିଂହ', 'ମହାପାତ୍ର', 'ରଥ', 'ମହନ୍ତ', 
+ 'ବେହେରା', 'ଦେଓ', 'ଧଳ', 'ଦିଆନ', 'ହିମିରିକା']
+'''
+```
+
 ??? note "Name morphology"
     - In Odia names, mostly the surname carries the family name.
     - Therefore, there is a limited number of surnames, which can be used to identify names in a text.
