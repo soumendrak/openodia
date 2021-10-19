@@ -48,9 +48,9 @@ theme:
       icon: material/toggle-switch
       name: Switch to light mode
   font:
-    text: Roboto
+    text: Space Grotesk
     code: Roboto Mono
-  favicon: assets/favicon.png
+  favicon: cover-pic.png
   icon:
     logo: logo
 
