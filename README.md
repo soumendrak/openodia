@@ -1,6 +1,7 @@
 ![image](docs/cover-pic.png)
 
 <h4 align="center">
+  <a href="https://img.shields.io/badge/Python-3.9-blue"><img alt="python 3.9" src="https://img.shields.io/badge/Python-3.9-blue"></a>
   <a href="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml"><img alt="Code coverage" src="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml/badge.svg"></a>
   <a href="https://github.com/psf/black/blob/main/LICENSE"><img alt="License: MIT" src="https://black.readthedocs.io/en/stable/_static/license.svg"></a>
   <a href="https://codecov.io/gh/soumendrak/openodia"><img alt="code coverage" src="https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2"/></a>
@@ -25,7 +26,7 @@ git clone https://github.com/soumendrak/openodia.git
 python setup.py install
 ```
 
-## Usage
+## Usage and Documentation
 
 For usage and further documentation please visit the [Documentation](https://openodia.soumendrak.com/) page. 
 
