@@ -39,4 +39,4 @@ For usage and further documentation please visit the [Documentation](https://ope
 ## Caution
 
 Thanks for being an early visitor.  
-The library is in active development phase and not for production use.
+The library is in active development phase and *not for production* use.
