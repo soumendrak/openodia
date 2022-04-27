@@ -109,6 +109,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.openodia/
 
 # Spyder project settings
 .spyderproject
