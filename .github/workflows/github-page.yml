@@ -20,9 +20,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          pip install poetry && poetry install
 
       - name: Deploy
         run: |
           git pull -r
-          mkdocs gh-deploy
+          poetry run mkdocs gh-deploy

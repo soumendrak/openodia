@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "openodia"
+version = "0.1.11"
+description = "Open source Odia language tools"
+authors = ["Soumendra Kumar Sahoo <proud_odia@outlook.com>"]
+license = "MIT"
+repository = 'https://github.com/soumendrak/openodia'
+readme = 'README.md'
+keywords = ["python", "packaging", "pypi", "poetry", "pip", "github-actions"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.22.3"
+Faker = "^13.4.0"
+googletrans = "^4.0.0rc1"
+rich = "^12.2.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+flake8 = "^4.0.1"
+pytest-cov = "^3.0.0"
+commitizen = "^2.20.3"
+bandit = "^1.7.1"
+pre-commit = "^2.17.0"
+mkdocs = "^1.2.2"
+mkdocs-git-revision-date-localized-plugin = "^0.10.0"
+mkdocs-material = "^7.3.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.semantic_release]
+version_variable = [
+    "openodia/__init__.py:__version__",
+    "pyproject.toml:version"
+]
+branch = "main"
+upload_to_pypi = true
+upload_to_release = true
+build_command = "pip install poetry && poetry build"
