@@ -14,7 +14,8 @@
 
 ## Install
 
-- Please install any Python 3 version. It should work. However, the library is tested in python 3.9 version.
+- Please install any version of Python which is higher than or equal to Python 3.9. It should work. 
+- The library is tested in python 3.9 version.
 
 ```bash
 pip install openodia
