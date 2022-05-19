@@ -36,4 +36,3 @@ For usage and further documentation please visit the [Documentation](https://ope
 <a align="center">
 <a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia?ref=badge_large" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia.svg?type=large"/></a>
 </a>
-
