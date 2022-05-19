@@ -1,5 +1,5 @@
 name: Code coverage
-on: [push, pull_request]
+on: [push]
 jobs:
   run:
     runs-on: ${{ matrix.os }}
