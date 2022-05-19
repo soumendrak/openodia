@@ -491,7 +491,7 @@ version = "1.22.3"
 description = "NumPy is the fundamental package for array computing with Python."
 category = "main"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 
 [[package]]
 name = "packaging"
@@ -858,7 +858,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.8"
+python-versions = "^3.9"
 content-hash = "6448691978cad3d671702b23d7a3583a23ab6b073b86274599f8f4c29e031ca8"
 
 [metadata.files]
