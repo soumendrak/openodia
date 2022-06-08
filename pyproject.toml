@@ -24,7 +24,7 @@ bandit = "^1.7.1"
 pre-commit = "^2.17.0"
 mkdocs = "^1.2.2"
 mkdocs-git-revision-date-localized-plugin = "^0.10.0"
-mkdocs-material = "^7.3.2"
+mkdocs-material = "^8.3.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
