@@ -9,6 +9,7 @@
   <a href="https://pepy.tech/project/openodia" alt="downloads"><img src="https://static.pepy.tech/personalized-badge/openodia?period=total&units=none&left_color=black&right_color=orange&left_text=Downloads"/></a>
 </h4>
 
+
 - `openodia` is a Python package which contains various tools on Odia language.
 - The short term goal of this package is to not make state-of-the-art methods, but to make tools which work.
 
