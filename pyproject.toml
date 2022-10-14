@@ -11,7 +11,7 @@ keywords = ["python", "packaging", "pypi", "poetry", "pip", "github-actions"]
 [tool.poetry.dependencies]
 python = "^3.9"
 numpy = "^1.22.3"
-Faker = "^13.4.0"
+Faker = ">=13.4,<16.0"
 googletrans = "^4.0.0rc1"
 rich = "^12.2.0"
 
