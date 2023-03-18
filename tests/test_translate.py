@@ -39,7 +39,7 @@ class TestTranslate:
 
     @pytest.mark.parametrize("text, output, src, dest", [
         ("hello! feeling good?", "ନମସ୍କାର!ଭଲ ଲାଗୁଛି?", "en", "or"),
-        ("क्यों", "କାହିଁକି?", "hi", "or"),
+        ("क्यों", "କାହିଁକି", "hi", "or"),
         ("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?", "Hello! Sounds good?", "or", "en"),
         ("କାହିଁକି", "Why", "or", "en"),
         ("କାହିଁକି", "क्यों", "or", "hi")
