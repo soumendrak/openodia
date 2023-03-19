@@ -47,8 +47,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Python Semantic Release
-        uses: aadhithya/py-semantic-release-action@master
+        uses: python-semantic-release/python-semantic-release@v7.33.2
         with:
           github_token: ${{ secrets.GH_TOKEN }}
           repository_username: ${{ secrets.PYPI_USER }}
-          repository_password: ${{ secrets.PYPI_SECRET  }}
+          repository_password: ${{ secrets.PYPI_SECRET }}
