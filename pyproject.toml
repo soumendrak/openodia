@@ -16,7 +16,7 @@ googletrans = "^4.0.0rc1"
 rich = "^12.2.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
+pytest = "^8.1.0"
 flake8 = "^4.0.1"
 pytest-cov = "^3.0.0"
 commitizen = "^2.27.1"
