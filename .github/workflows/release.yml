@@ -7,11 +7,17 @@ jobs:
   Quality:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
-        python-version: "3.9"
-
+        python-version: "3.10"
+    - name: Cache Poetry cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pypoetry
+        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-
     - name: Configure poetry & Install dependencies
       run: |
        python -m pip install --upgrade pip
@@ -41,11 +47,11 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore(release):')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: "3.10"
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Python Semantic Release
         uses: python-semantic-release/python-semantic-release@v7.33.2
         with:
