@@ -7,7 +7,7 @@ jobs:
   Quality:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v2
       with:
         python-version: "3.9"
@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: 3.9
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Python Semantic Release
         uses: python-semantic-release/python-semantic-release@v7.33.2
         with:
