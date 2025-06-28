@@ -30,7 +30,15 @@ python setup.py install
 
 ## Usage and Documentation
 
-For usage and further documentation please visit the [Documentation](https://openodia.soumendrak.com/) page. 
+For usage and further documentation please visit the [Documentation](https://openodia.soumendrak.com/) page.
+
+### Example
+
+```python
+from openodia import ud
+ud.remove_stopwords("ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି", extra_stopwords=["ଆଶୀର୍ବାଦ"])
+# ['ରାମ', 'ସୀତା', 'ଆମକୁ']
+```
 
 ## License
 

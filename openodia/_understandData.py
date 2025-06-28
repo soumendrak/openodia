@@ -25,13 +25,23 @@ class UnderstandData:
         return sent_list
 
     @classmethod
-    def remove_stopwords(cls, text: Union[str, List[str]], get_str: bool = False) -> Union[List[str], str]:
-        """Remove frequently used words from the text
-        :param text: It can take both tokens and text string as input
-        :param get_str: provide whether the output needed on str or list
+    def remove_stopwords(
+        cls,
+        text: Union[str, List[str]],
+        get_str: bool = False,
+        extra_stopwords: List[str] | None = None,
+    ) -> Union[List[str], str]:
+        """Remove frequently used words from the text.
+
+        :param text: It can take both tokens and text string as input.
+        :param get_str: Set ``True`` to get string output instead of list.
+        :param extra_stopwords: Additional stopwords provided by user.
         """
         token_list: List[str] = cls.word_tokenizer(text) if isinstance(text, str) else text
-        cleaned_tokens = [token for token in token_list if token not in STOPWORDS]
+        stopwords = set(STOPWORDS)
+        if extra_stopwords:
+            stopwords.update(extra_stopwords)
+        cleaned_tokens = [token for token in token_list if token not in stopwords]
         return " ".join(cleaned_tokens) if get_str else cleaned_tokens
 
     @classmethod
