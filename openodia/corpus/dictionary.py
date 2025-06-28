@@ -3,6 +3,7 @@ This provides a dictionary with English text on key and Odia text as value
 @author: Soumendra Kumar Sahoo
 @license: MIT
 """
+
 import json
 import os
 from typing import Dict

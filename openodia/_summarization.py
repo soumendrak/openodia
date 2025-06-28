@@ -6,6 +6,7 @@ Date: 25 Sep 2021
 Author: Soumendra Kumar Sahoo
 Reference: Automatic Text Summarization for Oriya language by Sujata Dash et al
 """
+
 from abc import ABC, abstractmethod
 from collections import Counter
 from dataclasses import dataclass, field
@@ -70,7 +71,9 @@ class SummarizationBaseMethod(ABC):
                 if token in sentence:
                     summarized_text.append(sentence)
                     break
-        LOGGER.debug(f"{len(summarized_text)} number of sentences found in summarized text.")
+        LOGGER.debug(
+            f"{len(summarized_text)} number of sentences found in summarized text."
+        )
         summarized_text = " ".join(summarized_text)
         return summarized_text
 

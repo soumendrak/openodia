@@ -54,7 +54,7 @@ jobs:
         poetry run bandit -r -lll  -f txt -o ci-logs/bandit.log ./openodia ./tests
         
     - name: Archive bandit report
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: bandit-report
         path: ci-logs/bandit.log
