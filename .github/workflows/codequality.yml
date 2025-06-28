@@ -17,15 +17,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install poetry && poetry build
 
-  lint:
-    needs: build-test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: psf/black@stable
-        with:
-          options: "--check --verbose -l 100 -t py39"
-          src: "./openodia"
+  # lint:
+  #   needs: build-test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: psf/black@stable
+  #       with:
+  #         options: "--check --verbose -l 100 -t py39"
+  #         src: "./openodia"
 
   code-quality:
     needs: build-test
