@@ -12,6 +12,8 @@ from openodia import (
     odia_to_other_lang,
     universal_translation,
     WordFrequency,
+    normalize_text,
+    phonetic_odia,
 )
 
 
@@ -34,12 +36,14 @@ class TestInit:
         """Test that all __all__ exports are available"""
         expected_exports = [
             "alphabet",
-            "name", 
+            "name",
             "ud",
             "other_lang_to_odia",
             "odia_to_other_lang",
             "universal_translation",
             "WordFrequency",
+            "normalize_text",
+            "phonetic_odia",
         ]
         
         for export in expected_exports:
