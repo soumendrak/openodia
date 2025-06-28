@@ -7,7 +7,7 @@ Google wrapper for odia language
 from functools import lru_cache
 from typing import Dict, Tuple
 
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 
 from openodia.corpus.dictionary import get_dictionary
 
@@ -37,8 +37,8 @@ def _hit_google_api(text: str, source_lang_code: str, destination_lang_code: str
     if cached is not None:
         return cached
 
-    translator = Translator()
-    return translator.translate(text, src=source_lang_code, dest=destination_lang_code).text
+    translator = GoogleTranslator(source=source_lang_code, target=destination_lang_code)
+    return translator.translate(text)
 
 
 def other_lang_to_odia(text: str, source_language_code: str = "en") -> str:
