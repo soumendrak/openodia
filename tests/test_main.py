@@ -1,51 +1,45 @@
-"""
-Test cases for __main__ module
-"""
-import pytest
+"""Tests for the command line interface in :mod:`openodia.__main__`."""
+
 from io import StringIO
-import sys
 from unittest.mock import patch
+
+import pytest
 
 from openodia.__main__ import main
 
 
-class TestMain:
-    """Test main module functionality"""
+class TestCLI:
+    """CLI behaviour tests."""
 
-    def test_main_function_exists(self):
-        """Test that main function exists and is callable"""
-        assert callable(main)
+    def run(self, args):
+        with patch("sys.stdout", new_callable=StringIO) as stdout:
+            main(args)
+            return stdout.getvalue().strip()
 
-    def test_main_with_no_args(self):
-        """Test main function with no arguments"""
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            result = main()
-            output = mock_stdout.getvalue()
-            assert "CLI building is in-progress." in output
-            assert result is None
+    def test_tokenize_words(self):
+        output = self.run(["tokenize", "words", "ଏହା ଏକ ପରୀକ୍ଷା ।"])
+        assert output == "ଏହା ଏକ ପରୀକ୍ଷା ।"
 
-    def test_main_with_empty_args(self):
-        """Test main function with empty args list"""
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            result = main([])
-            output = mock_stdout.getvalue()
-            assert "CLI building is in-progress." in output
-            assert result is None
+    def test_tokenize_sentences(self):
+        text = "ଏହା ପ୍ରଥମ ବାକ୍ୟ । ଏହା ଦ୍ୱିତୀୟ ବାକ୍ୟ ।"
+        output = self.run(["tokenize", "sentences", text])
+        assert output == "ଏହା ପ୍ରଥମ ବାକ୍ୟ  ଏହା ଦ୍ୱିତୀୟ ବାକ୍ୟ"
 
-    def test_main_with_args(self):
-        """Test main function with arguments"""
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            result = main(['arg1', 'arg2'])
-            output = mock_stdout.getvalue()
-            assert "CLI building is in-progress." in output
-            assert result is None
+    def test_translate_default(self):
+        output = self.run(["translate", "hello! feeling good?"])
+        assert output == "ନମସ୍କାର!ଭଲ ଲାଗୁଛି?"
 
-    def test_main_entry_point(self):
-        """Test that the module can be run as main"""
-        with patch('sys.argv', ['__main__.py']):
-            with patch('sys.exit') as mock_exit:
-                with patch('sys.stdout', new_callable=StringIO):
-                    # Import and run the module's main block
-                    import openodia.__main__
-                    # The module should call sys.exit with the result of main()
-                    # Since main() returns None, sys.exit should be called with None
+    def test_summarize(self):
+        text = "ଏହା ପ୍ରଥମ ବାକ୍ୟ । ଏହା ଦ୍ୱିତୀୟ ବାକ୍ୟ ।"
+        output = self.run(["summarize", text, "--threshold", "1"])
+        assert output == "ଏହା ପ୍ରଥମ ବାକ୍ୟ  ଏହା ଦ୍ୱିତୀୟ ବାକ୍ୟ"
+
+    def test_dataset_info(self):
+        output = self.run(["dataset", "info"])
+        assert "dictionary" in output
+
+    def test_entry_point(self):
+        with patch("sys.argv", ["openodia", "translate", "hello! feeling good?"]):
+            with patch("sys.exit") as mock_exit:
+                main()
+                mock_exit.assert_not_called()

@@ -34,6 +34,31 @@ $ git clone https://github.com/soumendrak/openodia.git
 $ python setup.py install
 ```
 
+## Command Line Interface
+
+The package ships with an ``openodia`` command providing several utilities.
+Use ``-h`` to see all available subcommands.
+
+### Examples
+
+Tokenize text into words:
+
+```sh
+openodia tokenize words "ଏହା ଏକ ପରୀକ୍ଷା ।"
+```
+
+Translate a phrase from English to Odia:
+
+```sh
+openodia translate "hello! feeling good?"
+```
+
+Summarize a block of Odia text:
+
+```sh
+openodia summarize "ଏହା ପ୍ରଥମ ବାକ୍ୟ । ଏହା ଦ୍ୱିତୀୟ ବାକ୍ୟ ।" --threshold 1
+```
+
 ## Features
 
 The tools are available in Odia language.
