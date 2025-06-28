@@ -20,6 +20,8 @@
 
 ```bash
 pip install openodia
+# alternatively, using uv for a faster install
+uv pip install openodia
 ```
 
 - If you want to directly build from the binary, please clone the repo and run `setup.py`.
