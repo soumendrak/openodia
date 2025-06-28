@@ -41,10 +41,17 @@ uv sync --all-extras
 uv run pytest
 
 # Run linting
-uv run flake8 .
+uv run ruff check
+
+# Run formatting (if needed)
+uv run ruff format --check
 
 # Run security analysis
 uv run bandit -r ./openodia ./tests
+
+# Run linting and formatting
+uv run ruff check
+uv run ruff format --check
 
 # Build documentation
 uv run mkdocs serve

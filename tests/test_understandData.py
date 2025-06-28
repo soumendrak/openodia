@@ -48,10 +48,7 @@ class TestUnderstandData:
             "ଆମକୁ",
             "ଆଶୀର୍ବାଦ",
         ]
-        assert (
-            ud.remove_stopwords("ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି ", get_str=True)
-            == "ରାମ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ"
-        )
+        assert ud.remove_stopwords("ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି ", get_str=True) == "ରାମ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ"
 
     @pytest.mark.parametrize(
         "text, threshold, output",

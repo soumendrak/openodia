@@ -62,9 +62,4 @@ class TestTranslate:
     )
     def test_universal_translation(self, text, output: str, src: str, dest: str):
         """Test the universal translation feature"""
-        assert (
-            universal_translation(
-                text, source_language_code=src, dest_language_code=dest
-            )
-            == output
-        )
+        assert universal_translation(text, source_language_code=src, dest_language_code=dest) == output

@@ -27,9 +27,7 @@ def _search_offline_dictionary(text: str) -> str:
 
 
 @lru_cache(maxsize=10000)
-def _hit_google_api(
-    text: str, source_lang_code: str, destination_lang_code: str
-) -> str:
+def _hit_google_api(text: str, source_lang_code: str, destination_lang_code: str) -> str:
     """Translate text using Google Translate.
 
     For phrases that exist in :data:`_STATIC_TRANSLATIONS` the cached value is
@@ -40,9 +38,7 @@ def _hit_google_api(
         return cached
 
     translator = Translator()
-    return translator.translate(
-        text, src=source_lang_code, dest=destination_lang_code
-    ).text
+    return translator.translate(text, src=source_lang_code, dest=destination_lang_code).text
 
 
 def other_lang_to_odia(text: str, source_language_code: str = "en") -> str:
@@ -60,9 +56,7 @@ def odia_to_other_lang(text: str, dest_language_code: str = "en") -> str:
     return _hit_google_api(text, "or", dest_language_code)
 
 
-def universal_translation(
-    text: str, source_language_code: str = "en", dest_language_code: str = "or"
-) -> str:
+def universal_translation(text: str, source_language_code: str = "en", dest_language_code: str = "or") -> str:
     """Translate from any language to any
     By default it works for English to Odia.
     Based on the source and destination language provided, it can work for any languages supported.
