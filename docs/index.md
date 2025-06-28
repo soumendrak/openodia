@@ -43,6 +43,7 @@ The tools are available in Odia language.
 - [x] [Detect Odia Language](#detect-odia-language)
 - [x] [Word Tokenizer](#word-tokenizer)
 - [x] [Remove stopwords](#remove-stopwords)
+- [x] [Stemming](#stemming)
 - [x] [Google Translate](#translation)
 - [x] [Automatic extractive text summarization](#automatic-extractive-text-summarization)
 - [x] [Add Dictionary corpus](#offline-dictionary)
@@ -236,6 +237,25 @@ ud.remove_stopwords("ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବ�
 '''
 ```
 Here the stopwords `ଓ` and `ଦେଇଛନ୍ତି` are removed from the text.
+
+### :material-cut: Stemming
+
+A lightweight stemmer removes common suffixes from words.
+
+```python
+from openodia import stem_word
+
+stem_word("ପିଲାମାନେ")
+```
+returns `"ପିଲା"`.
+
+Use :func:`stem_text` for a full sentence:
+
+```python
+from openodia import stem_text
+stem_text("ପିଲାମାନେ ବইଗୁଡ଼ିକ ପଢ଼ୁଛନ୍ତି")
+```
+which outputs `"ପିଲା ବଇ ପଢ଼ୁଛ"`.
 
 ### :material-translate: Translation
 

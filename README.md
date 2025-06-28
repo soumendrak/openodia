@@ -30,7 +30,29 @@ python setup.py install
 
 ## Usage and Documentation
 
-For usage and further documentation please visit the [Documentation](https://openodia.soumendrak.com/) page. 
+For usage and further documentation please visit the [Documentation](https://openodia.soumendrak.com/) page.
+
+### Stemming
+
+Basic stemming support is available via a simple rule-based stemmer.
+
+```python
+from openodia import stem_word, stem_text
+
+stem_word("ପିଲାମାନେ")
+```
+will return:
+
+```python
+'ପିଲା'
+```
+
+`stem_text` can be used for whole sentences:
+
+```python
+stem_text("ପିଲାମାନେ ବইଗୁଡ଼ିକ ପଢ଼ୁଛନ୍ତି")
+```
+which gives `"ପିଲା ବଇ ପଢ଼ୁଛ"`.
 
 ## License
 
