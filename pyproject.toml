@@ -64,6 +64,8 @@ build_command = "pip install uv && uv build"
 [tool.ruff]
 target-version = "py39"
 line-length = 127
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -75,7 +77,7 @@ ignore = [
     "E501", # line too long, handled by formatter
 ]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 10
 
 [tool.ruff.format]
