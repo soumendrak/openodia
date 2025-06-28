@@ -9,14 +9,18 @@
         <meta name="description" content="A website about the documentation of `openodia` library.">
       
       
-      
         <meta name="author" content="Soumendra Kumar Sahoo">
       
       
         <link rel="canonical" href="https://openodia.soumendrak.com/">
       
+      
+      
+        <link rel="next" href="application/">
+      
+      
       <link rel="icon" href="cover-pic.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
     
     
       
@@ -24,30 +28,35 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.a57b2b03.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.342714a4.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.3f5d1f46.min.css">
+        <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
         
-      
-    
-    
-    
-      
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Space+Grotesk:300,400,400i,700%7CRoboto+Mono&display=fallback">
-        <style>:root{--md-text-font-family:"Space Grotesk";--md-code-font-family:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Space+Grotesk:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Space Grotesk";--md-code-font:"Roboto Mono"}</style>
       
-    
     
     
       <link rel="stylesheet" href="css/timeago.css">
     
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
-
+    
     
     
   </head>
@@ -63,10 +72,6 @@
     <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
   
     
-    <script>function __prefix(e){return new URL(".",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
-    
-      <script>var palette=__get("__palette");if(null!==palette&&"object"==typeof palette.color)for(var key in palette.color)document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
-    
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
@@ -81,6 +86,7 @@
     <div data-md-component="announce">
       
     </div>
+    
     
       
 
@@ -98,7 +104,8 @@
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
     </label>
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
@@ -117,71 +124,83 @@
       </div>
     </div>
     
-      <form class="md-header__option" data-md-component="palette">
-        
-          
-          
-          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
-          
-            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-            </label>
-          
-        
-          
-          
-          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
-          
-            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3z"/></svg>
-            </label>
-          
-        
-      </form>
-    
-    
-    
-      <label class="md-header__button md-icon" for="__search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
-      </label>
       
-<div class="md-search" data-md-component="search" role="dialog">
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
       </nav>
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
           </div>
-          <ol class="md-search-result__list"></ol>
+          <ol class="md-search-result__list" role="presentation"></ol>
         </div>
       </div>
     </div>
   </div>
 </div>
+      
     
     
       <div class="md-header__source">
-        
-<a href="https://github.com/soumendrak/openodia" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/soumendrak/openodia" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
     OpenOdia
@@ -200,33 +219,47 @@
           
             
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
-  <div class="md-tabs__inner md-grid">
+  <div class="md-grid">
     <ul class="md-tabs__list">
       
         
   
   
+  
     
   
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Documentation
 
-
-  <li class="md-tabs__item">
-    <a href="." class="md-tabs__link md-tabs__link--active">
-      Documentation
-    </a>
-  </li>
+      </a>
+    </li>
+  
 
       
         
   
   
+  
+  
+    <li class="md-tabs__item">
+      <a href="application/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Application
 
-
-  <li class="md-tabs__item">
-    <a href="application/" class="md-tabs__link">
-      Application
-    </a>
-  </li>
+      </a>
+    </li>
+  
 
       
     </ul>
@@ -244,6 +277,7 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
+
 
   
 
@@ -267,11 +301,10 @@
   </label>
   
     <div class="md-nav__source">
-      
-<a href="https://github.com/soumendrak/openodia" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/soumendrak/openodia" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
     OpenOdia
@@ -283,30 +316,44 @@
     
       
       
-      
-
   
   
     
   
   
+  
     <li class="md-nav__item md-nav__item--active">
       
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Documentation
+          
+  
+  
+  <span class="md-ellipsis">
+    Documentation
+    
+  </span>
+  
+
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="." class="md-nav__link md-nav__link--active">
-        Documentation
+        
+  
+  
+  <span class="md-ellipsis">
+    Documentation
+    
+  </span>
+  
+
       </a>
       
         
-
 
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
@@ -321,21 +368,27 @@
       
         <li class="md-nav__item">
   <a href="#about" class="md-nav__link">
-    About
+    <span class="md-ellipsis">
+      About
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
-    Installation
+    <span class="md-ellipsis">
+      Installation
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#features" class="md-nav__link">
-    Features
+    <span class="md-ellipsis">
+      Features
+    </span>
   </a>
   
     <nav class="md-nav" aria-label="Features">
@@ -343,64 +396,82 @@
         
           <li class="md-nav__item">
   <a href="#odia-alphabets" class="md-nav__link">
-     Odia alphabets
+    <span class="md-ellipsis">
+      Odia alphabets
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#odia-names" class="md-nav__link">
-    Odia names
+    <span class="md-ellipsis">
+      Odia names
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#detect-odia-language" class="md-nav__link">
-     Detect Odia Language
+    <span class="md-ellipsis">
+      Detect Odia Language
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#word-tokenizer" class="md-nav__link">
-     Word Tokenizer
+    <span class="md-ellipsis">
+      Word Tokenizer
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#sentence-tokenizer" class="md-nav__link">
-     Sentence Tokenizer
+    <span class="md-ellipsis">
+      Sentence Tokenizer
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#remove-stopwords" class="md-nav__link">
-     Remove stopwords
+    <span class="md-ellipsis">
+      Remove stopwords
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#translation" class="md-nav__link">
-     Translation
+    <span class="md-ellipsis">
+      Translation
+    </span>
   </a>
   
-    <nav class="md-nav" aria-label=" Translation">
+    <nav class="md-nav" aria-label="Translation">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#other_lang_to_odia" class="md-nav__link">
-    other_lang_to_odia
+    <span class="md-ellipsis">
+      other_lang_to_odia
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#odia_to_other_lang" class="md-nav__link">
-    odia_to_other_lang
+    <span class="md-ellipsis">
+      odia_to_other_lang
+    </span>
   </a>
   
 </li>
@@ -412,14 +483,18 @@
         
           <li class="md-nav__item">
   <a href="#automatic-extractive-text-summarization" class="md-nav__link">
-     Automatic extractive text summarization
+    <span class="md-ellipsis">
+      Automatic extractive text summarization
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#offline-dictionary" class="md-nav__link">
-    Offline Dictionary
+    <span class="md-ellipsis">
+      Offline Dictionary
+    </span>
   </a>
   
 </li>
@@ -431,14 +506,18 @@
       
         <li class="md-nav__item">
   <a href="#known-issues" class="md-nav__link">
-    Known Issues
+    <span class="md-ellipsis">
+      Known Issues
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#roadmap" class="md-nav__link">
-    Roadmap
+    <span class="md-ellipsis">
+      Roadmap
+    </span>
   </a>
   
 </li>
@@ -453,14 +532,21 @@
     
       
       
-      
-
+  
   
   
   
     <li class="md-nav__item">
       <a href="application/" class="md-nav__link">
-        Application
+        
+  
+  
+  <span class="md-ellipsis">
+    Application
+    
+  </span>
+  
+
       </a>
     </li>
   
@@ -474,22 +560,24 @@
             
             
           
-          <div class="md-content" data-md-component="content">
-            <article class="md-content__inner md-typeset">
-              
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
                 
-                  <a href="https://github.com/soumendrak/openodia/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
-                  </a>
-                
-                
-                  <h1>Documentation</h1>
-                
-                <p><img alt="image" src="cover-pic.png" /></p>
+                  
+
+
+  
+  
+
+
+  <h1>Documentation</h1>
+
+<p><img alt="image" src="cover-pic.png" /></p>
 <h4 align="center">
   <a href="https://img.shields.io/badge/Python-3.9-blue"><img alt="python 3.9" src="https://img.shields.io/badge/Python-3.9-blue"></a>
   <a href="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml"><img alt="Code coverage" src="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml/badge.svg"></a>
-  <a href="https://github.com/psf/black/blob/main/LICENSE"><img alt="License: MIT" src="https://black.readthedocs.io/en/stable/_static/license.svg"></a>
+  <a href="https://github.com/soumendrak/openodia/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
   <a href="https://codecov.io/gh/soumendrak/openodia"><img alt="code coverage" src="https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2"/></a>
   <a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia.svg?type=shield" alt="license"/></a>
   <a href="https://pepy.tech/project/openodia" alt="downloads"><img src="https://static.pepy.tech/personalized-badge/openodia?period=total&units=none&left_color=black&right_color=orange&left_text=Downloads"/></a>
@@ -531,11 +619,11 @@ $<span class="w"> </span>python<span class="w"> </span>setup.py<span class="w"> 
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#automatic-extractive-text-summarization">Automatic extractive text summarization</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#offline-dictionary">Add Dictionary corpus</a></li>
 </ul>
-<h3 id="odia-alphabets"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.06 18a3.99 3.99 0 0 1-.2-.89c-.67.7-1.48 1.05-2.41 1.05-.83 0-1.52-.24-2.05-.71-.53-.45-.8-1.06-.8-1.79 0-.88.33-1.56 1-2.05.67-.49 1.61-.73 2.83-.73h1.4v-.64c0-.49-.15-.88-.45-1.17-.3-.29-.75-.43-1.33-.43-.52 0-.95.12-1.3.36-.35.25-.52.54-.52.89h-1.46c0-.43.15-.84.45-1.24.28-.4.71-.71 1.22-.94.51-.21 1.06-.35 1.69-.35.98 0 1.74.24 2.29.73s.84 1.16.86 2.02V16c0 .8.1 1.42.3 1.88V18h-1.52m-2.4-1.12c.45 0 .88-.11 1.29-.32.4-.21.7-.49.88-.83v-1.57H18.7c-1.77 0-2.66.47-2.66 1.41 0 .43.15.73.46.96.3.23.68.35 1.16.35m-12.2-3.17h4.07L7.5 8.29l-2.04 5.42M6.64 6h1.72l4.71 12h-1.93l-.97-2.57H4.82L3.86 18H1.93L6.64 6z"/></svg></span> Odia alphabets<a class="headerlink" href="#odia-alphabets" title="Permanent link">&para;</a></h3>
+<h3 id="odia-alphabets"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.06 18a4 4 0 0 1-.2-.89c-.67.7-1.48 1.05-2.41 1.05-.83 0-1.52-.24-2.05-.71-.53-.45-.8-1.06-.8-1.79 0-.88.33-1.56 1-2.05s1.61-.73 2.83-.73h1.4v-.64q0-.735-.45-1.17c-.3-.29-.75-.43-1.33-.43-.52 0-.95.12-1.3.36-.35.25-.52.54-.52.89h-1.46c0-.43.15-.84.45-1.24.28-.4.71-.71 1.22-.94.51-.21 1.06-.35 1.69-.35.98 0 1.74.24 2.29.73s.84 1.16.86 2.02V16c0 .8.1 1.42.3 1.88V18zm-2.4-1.12c.45 0 .88-.11 1.29-.32.4-.21.7-.49.88-.83v-1.57H18.7c-1.77 0-2.66.47-2.66 1.41 0 .43.15.73.46.96.3.23.68.35 1.16.35m-12.2-3.17h4.07L7.5 8.29zM6.64 6h1.72l4.71 12h-1.93l-.97-2.57H4.82L3.86 18H1.93z"/></svg></span> Odia alphabets<a class="headerlink" href="#odia-alphabets" title="Permanent link">&para;</a></h3>
 <ul>
 <li>To get the Odia alphabets use the <code>alphabet</code> module</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">alphabet</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">alphabet</span>
 <span class="n">alphabet</span><span class="o">.</span><span class="n">all_letters</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">[&#39;ଁ&#39;, &#39;ଂ&#39;, &#39;ଃ&#39;, &#39;ଅ&#39;, &#39;ଆ&#39;, &#39;ଇ&#39;, &#39;ଈ&#39;, &#39;ଉ&#39;, &#39;ଊ&#39;, &#39;ଋ&#39;, &#39;ଌ&#39;, &#39;ଏ&#39;, &#39;ଐ&#39;, &#39;ଓ&#39;, &#39;ଔ&#39;, </span>
@@ -580,11 +668,11 @@ $<span class="w"> </span>python<span class="w"> </span>setup.py<span class="w"> 
 <span class="sd"> &#39;ୃ&#39;, &#39;ୄ&#39;, &#39;େ&#39;, &#39;ୈ&#39;, &#39;ୋ&#39;, &#39;ୌ&#39;, &#39;୍&#39;, &#39;ୖ&#39;, &#39;ୗ&#39;, &#39;୰&#39;, &#39;ୱ&#39;, &#39;୲&#39;]</span>
 <span class="sd">&#39;&#39;&#39;</span>
 </code></pre></div>
-<h3 id="odia-names"><img alt="🧑🏻‍🤝‍🧑🏻" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9d1-1f3fb-200d-1f91d-200d-1f9d1-1f3fb.svg" title=":people_holding_hands_tone1:" /> Odia names<a class="headerlink" href="#odia-names" title="Permanent link">&para;</a></h3>
+<h3 id="odia-names"><img alt="🧑🏻‍🤝‍🧑🏻" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f9d1-1f3fb-200d-1f91d-200d-1f9d1-1f3fb.svg" title=":people_holding_hands_tone1:" /> Odia names<a class="headerlink" href="#odia-names" title="Permanent link">&para;</a></h3>
 <ul>
 <li>You can generate Odia names using the <code>name</code> module with the following syntax:</li>
 </ul>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">name</span>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">name</span>
 <span class="n">name</span><span class="o">.</span><span class="n">generate_names</span><span class="p">()</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">[&#39;ଯଦୁମଣୀ ମାଢ଼ୀ&#39;, &#39;ବାସନ୍ତି ବ୍ରହ୍ମା&#39;, &#39;ପ୍ରବୀଣ ସିଂହ ମୁକ୍କିମ&#39;, &#39;ବୃନ୍ଦାବନ ଧଳ&#39;, &#39;ଅଶ୍ୱିନୀ କିଶୋର ଜଗଦେବ&#39;, </span>
@@ -593,7 +681,7 @@ $<span class="w"> </span>python<span class="w"> </span>setup.py<span class="w"> 
 </code></pre></div>
 - By default, it will return ten randomly generated names. 
 - If you want, you can generate more names by providing the number of names needed in the first argument.</p>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">name</span>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">name</span>
 <span class="n">name</span><span class="o">.</span><span class="n">generate_names</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">[&#39;ସାବିତ୍ରୀ ଧଳ&#39;, &#39;ଶ୍ରୀଯୁକ୍ତ ଉତ୍କଳ ପାଳ&#39;, &#39;ଯଦୁମଣି ସୁବାହୁ&#39;, &#39;ପ୍ରେମଲତା ପମ&#39;, &#39;ଗୁରୁ ପୃଷ୍ଟି&#39;, </span>
@@ -604,7 +692,7 @@ $<span class="w"> </span>python<span class="w"> </span>setup.py<span class="w"> 
 </code></pre></div>
 - In addition to this, you can create specific name parts like prefix, first name, middle name, surname, etc.
 - By default you will get ten names. However, to get more number of results you can specify the number of names in the first argument.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">name</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">name</span>
 <span class="n">name</span><span class="o">.</span><span class="n">generate_firstnames</span><span class="p">()</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">[&#39;ଅନିରୁଦ୍ଧ&#39;, &#39;ଦେବରାଜ&#39;, &#39;ଆଶ୍ରିତ&#39;, &#39;ବଦ୍ରି&#39;, &#39;ସଦାଶିବ&#39;, </span>
@@ -628,13 +716,13 @@ $<span class="w"> </span>python<span class="w"> </span>setup.py<span class="w"> 
 <span class="sd"> &#39;ବେହେରା&#39;, &#39;ଦେଓ&#39;, &#39;ଧଳ&#39;, &#39;ଦିଆନ&#39;, &#39;ହିମିରିକା&#39;]</span>
 <span class="sd">&#39;&#39;&#39;</span>
 </code></pre></div>
-<h3 id="detect-odia-language"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.5 12c2.5 0 4.5 2 4.5 4.5 0 .88-.25 1.71-.69 2.4l3.08 3.1L21 23.39l-3.12-3.07c-.69.43-1.51.68-2.38.68-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5m0 2a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5M5 3h14c1.11 0 2 .89 2 2v8.03c-.5-.8-1.19-1.49-2-2.03V5H5v14h4.5c.31.75.76 1.42 1.31 2H5c-1.11 0-2-.89-2-2V5c0-1.11.89-2 2-2m2 4h10v2H7V7m0 4h5.03c-.8.5-1.49 1.19-2.03 2H7v-2m0 4h2.17c-.11.5-.17 1-.17 1.5v.5H7v-2z"/></svg></span> Detect Odia Language<a class="headerlink" href="#detect-odia-language" title="Permanent link">&para;</a></h3>
+<h3 id="detect-odia-language"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.5 12c2.5 0 4.5 2 4.5 4.5 0 .88-.25 1.71-.69 2.4l3.08 3.1L21 23.39l-3.12-3.07c-.69.43-1.51.68-2.38.68-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5m0 2a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5M5 3h14c1.11 0 2 .89 2 2v8.03c-.5-.8-1.19-1.49-2-2.03V5H5v14h4.5c.31.75.76 1.42 1.31 2H5c-1.11 0-2-.89-2-2V5c0-1.11.89-2 2-2m2 4h10v2H7zm0 4h5.03c-.8.5-1.49 1.19-2.03 2H7zm0 4h2.17c-.11.5-.17 1-.17 1.5v.5H7z"/></svg></span> Detect Odia Language<a class="headerlink" href="#detect-odia-language" title="Permanent link">&para;</a></h3>
 <ul>
 <li>A binary language classification method used which will return if the input text is in Odia language or in any other non-Odia language. </li>
 <li>Along with this a confidence score also returned. The score provides how confident the library is that it is Odia or Non-Odia.</li>
 <li>There is a <code>threshold</code> parameter to the method which can be configured to tune the confidence score threshold after which it will be regarded as Odia. The default value is 0.5.</li>
 </ul>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">ud</span>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">ud</span>
 <span class="n">ud</span><span class="o">.</span><span class="n">detect_language</span><span class="p">(</span><span class="s2">&quot;hey how are you?&quot;</span><span class="p">)</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">{&#39;language&#39;: &#39;non-odia&#39;, &#39;confidence_score&#39;: 1.0}</span>
@@ -661,11 +749,11 @@ $<span class="w"> </span>python<span class="w"> </span>setup.py<span class="w"> 
 <span class="sd">&#39;&#39;&#39;</span>
 </code></pre></div>
 - For more info on Odia language detection, please visit the blog post on this at <a href="https://blog.soumendrak.com/odia-language-detection">blog.soumendrak.com</a>.</p>
-<h3 id="word-tokenizer"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7v2h5V7h-5M2 9v6h5V9H2m10 0v2H9v2h3v2l3-3-3-3m5 2v2h5v-2h-5m0 4v2h5v-2h-5z"/></svg></span> Word Tokenizer<a class="headerlink" href="#word-tokenizer" title="Permanent link">&para;</a></h3>
+<h3 id="word-tokenizer"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7v2h5V7zM2 9v6h5V9zm10 0v2H9v2h3v2l3-3zm5 2v2h5v-2zm0 4v2h5v-2z"/></svg></span> Word Tokenizer<a class="headerlink" href="#word-tokenizer" title="Permanent link">&para;</a></h3>
 <ul>
 <li>To tokenize odia text into multiple words or tokens <code>word_tokenizer</code> module can be used.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">ud</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">ud</span>
 <span class="n">ud</span><span class="o">.</span><span class="n">word_tokenizer</span><span class="p">(</span>
     <span class="s2">&quot;କ୍ୱାଣ୍ଟମ କମ୍ପ୍ୟୁଟିଙ୍ଗ, ହେଉଛି ଏକ ଉଦୀୟମାନ ହାର୍ଡ଼ୱେର ଏବଂ ସଫ୍ଟୱେରର ପ୍ରଯୁକ୍ତିବିଦ୍ୟା,&quot;</span> \ 
     <span class="s2">&quot;ଯାହା କଠିନ ଗାଣିତିକ ସମସ୍ୟାଗୁଡ଼ିକର ସମାଧାନ ପାଇଁ ଉପ-ପାରମାଣବିକ ଘଟଣାଗୁଡ଼ିକର ଉପଯୋଗ କରିଥାଏ ।[୧]&quot;</span><span class="p">)</span>
@@ -681,16 +769,16 @@ $<span class="w"> </span>python<span class="w"> </span>setup.py<span class="w"> 
 <li>Tokenize a paragraph into multiple sentences.</li>
 <li>Only working on full stop.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">ud</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">ud</span>
 <span class="n">ud</span><span class="o">.</span><span class="n">sentence_tokenizer</span><span class="p">()</span>
 </code></pre></div>
-<h3 id="remove-stopwords"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22.54 16.88 20.41 19l2.13 2.12-1.42 1.42L19 20.41l-2.12 2.13-1.41-1.42L17.59 19l-2.12-2.12 1.41-1.41L19 17.59l2.12-2.12 1.42 1.41M12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3m0 8c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 .5-.1 1-.23 1.43.69-.27 1.44-.43 2.23-.43 1.12 0 2.17.32 3.07.85.36-.58.67-1.2.93-1.85-1.73-4.39-6-7.5-11-7.5S2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5.35 0 .69 0 1.03-.05-.03-.15-.03-.3-.03-.45 0-.79.16-1.54.43-2.23-.43.13-.93.23-1.43.23z"/></svg></span> Remove stopwords<a class="headerlink" href="#remove-stopwords" title="Permanent link">&para;</a></h3>
+<h3 id="remove-stopwords"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22.54 16.88 20.41 19l2.13 2.12-1.42 1.42L19 20.41l-2.12 2.13-1.41-1.42L17.59 19l-2.12-2.12 1.41-1.41L19 17.59l2.12-2.12zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3m0 8c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 .5-.1 1-.23 1.43.69-.27 1.44-.43 2.23-.43 1.12 0 2.17.32 3.07.85.36-.58.67-1.2.93-1.85-1.73-4.39-6-7.5-11-7.5S2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5.35 0 .69 0 1.03-.05-.03-.15-.03-.3-.03-.45 0-.79.16-1.54.43-2.23-.43.13-.93.23-1.43.23"/></svg></span> Remove stopwords<a class="headerlink" href="#remove-stopwords" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Frequently occurring words in a language are called as <em>stopwords</em>. Using the below function you can remove the stopwords.</li>
 <li>Internally this method calls the <code>word_tokenize</code> method to get tokens from the text.</li>
 <li>As most of the time processing happens in list by default a list of strings will be returned.</li>
 </ul>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">ud</span>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">ud</span>
 <span class="n">ud</span><span class="o">.</span><span class="n">remove_stopwords</span><span class="p">(</span><span class="s2">&quot;ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି&quot;</span><span class="p">)</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">[&#39;ରାମ&#39;, &#39;ସୀତା&#39;, &#39;ଆମକୁ&#39;, &#39;ଆଶୀର୍ବାଦ&#39;]</span>
@@ -702,7 +790,7 @@ $<span class="w"> </span>python<span class="w"> </span>setup.py<span class="w"> 
 <span class="sd">&#39;&#39;&#39;</span>
 </code></pre></div>
 Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> are removed from the text.</p>
-<h3 id="translation"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12m-2.62 7 1.62-4.33L19.12 17h-3.24z"/></svg></span> Translation<a class="headerlink" href="#translation" title="Permanent link">&para;</a></h3>
+<h3 id="translation"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg></span> Translation<a class="headerlink" href="#translation" title="Permanent link">&para;</a></h3>
 <ul>
 <li>The translation module is a wrapper on top of Google Translate API.</li>
 <li>There are two translation methods provided:<ol>
@@ -716,7 +804,7 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
 <li>As the name suggests this function can be used to translate from any other language to Odia language.</li>
 <li>If you are translating from any other language other than English, please provide the language code of it.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">other_lang_to_odia</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">other_lang_to_odia</span>
 <span class="n">other_lang_to_odia</span><span class="p">(</span><span class="s2">&quot;hello! feeling good?&quot;</span><span class="p">)</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">&#39;ନମସ୍କାର!ଭଲ ଲାଗୁଛି?&#39;</span>
@@ -733,15 +821,15 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
 <li>The same language code you can choose from as provided above.</li>
 <li>By default, the function will translate to English language.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">odia_to_other_lang</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">odia_to_other_lang</span>
 <span class="n">odia_to_other_lang</span><span class="p">(</span><span class="s2">&quot;ନମସ୍କାର!ଭଲ ଲାଗୁଛି?&quot;</span><span class="p">)</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">&#39;Hello! Sounds good?&#39;</span>
 <span class="sd">&#39;&#39;&#39;</span>
 </code></pre></div>
-<h3 id="automatic-extractive-text-summarization"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m15.1 1.81-2.83 2.83c-.77.78-.77 2.05 0 2.83l1.41 1.41-4.55 4.55-2.82-2.83L4.89 12c-4.95 5-1.39 8.5-1.39 8.5S7 24 12 19.09l1.41-1.41-2.8-2.8 4.54-4.54 1.39 1.39c.78.77 2.05.77 2.83 0L22.2 8.9l-7.1-7.09m2.83 8.47L16.55 8.9l-1.44-1.44-1.4-1.4 1.41-1.41 4.23 4.23-1.42 1.4z"/></svg></span> Automatic extractive text summarization<a class="headerlink" href="#automatic-extractive-text-summarization" title="Permanent link">&para;</a></h3>
+<h3 id="automatic-extractive-text-summarization"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m15.1 1.81-2.83 2.83c-.77.78-.77 2.05 0 2.83l1.41 1.41-4.55 4.55-2.82-2.83L4.89 12c-4.95 5-1.39 8.5-1.39 8.5S7 24 12 19.09l1.41-1.41-2.8-2.8 4.54-4.54 1.39 1.39c.78.77 2.05.77 2.83 0L22.2 8.9zm2.83 8.47L16.55 8.9l-1.44-1.44-1.4-1.4 1.41-1.41 4.23 4.23z"/></svg></span> Automatic extractive text summarization<a class="headerlink" href="#automatic-extractive-text-summarization" title="Permanent link">&para;</a></h3>
 <p>Extracts the important summary snippet of a given text.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">openodia</span> <span class="kn">import</span> <span class="n">WordFrequency</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">WordFrequency</span>
 <span class="n">wf</span> <span class="o">=</span> <span class="n">WordFrequency</span><span class="p">(</span>
         <span class="n">text</span><span class="o">=</span><span class="s2">&quot;ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ &quot;</span>
         <span class="s2">&quot;ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ । &quot;</span>
@@ -782,7 +870,7 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
 <span class="sd">ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ&#39;</span>
 <span class="sd">&#39;&#39;&#39;</span>
 </code></pre></div>
-<h3 id="offline-dictionary"><img alt="📖" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f4d6.svg" title=":book:" /> Offline Dictionary<a class="headerlink" href="#offline-dictionary" title="Permanent link">&para;</a></h3>
+<h3 id="offline-dictionary"><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4d6.svg" title=":book:" /> Offline Dictionary<a class="headerlink" href="#offline-dictionary" title="Permanent link">&para;</a></h3>
 <ul>
 <li>An offline dictionary will be downloaded as soon as you install this library.</li>
 <li>Therefore, when you translate from English to Odia words/phrases it will hit the offline dictionary first, if not found it will go for the Google translate API.</li>
@@ -798,10 +886,10 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
 <li>English text &rarr; Check in Offline dictionary &rarr; Not Found &rarr; Check in Cache &rarr; Not Found &rarr; Hit Google Translate API &rarr; Update the Cache &rarr; Return result</li>
 </ol>
 </details>
-<h2 id="known-issues"><img alt="🐛" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f41b.svg" title=":bug:" /> Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">&para;</a></h2>
+<h2 id="known-issues"><img alt="🐛" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f41b.svg" title=":bug:" /> Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">&para;</a></h2>
 <ul>
 <li>There are few issues in the code an be found <a href="https://github.com/soumendrak/openodia/issues">here</a>.</li>
-<li>Contributions are highly welcomed. <img alt="🙏🏼" class="twemoji" src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f64f-1f3fc.svg" title=":pray_tone2:" /></li>
+<li>Contributions are highly welcomed. <img alt="🙏🏼" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f64f-1f3fc.svg" title=":pray_tone2:" /></li>
 </ul>
 <h2 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h2>
 <p>In the upcoming future the following features will be implemented in the package.</p>
@@ -829,118 +917,121 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
 <span class="w">    </span><span class="na">year</span><span class="w">         </span><span class="p">=</span><span class="w"> </span><span class="s">{2021}</span>
 <span class="p">}</span>
 </code></pre></div>
-                
-                  
-                    
 
-<hr>
-<div class="md-source-date">
-  <small>
+
+
+
+
+
+
+  
     
-      Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-06-28T11:42:17+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-06-28</span>
+  
+  
+
+
+  <aside class="md-source-file">
+    
       
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="June 28, 2025 13:23:43 UTC"><span class="timeago" datetime="2025-06-28T13:23:43+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="June 28, 2025 13:23:43 UTC">2025-06-28</span>
+  </span>
+
     
-  </small>
-</div>
-                  
-                
-              
-              
-                
+    
+    
+    
+  </aside>
 
 
-              
-            </article>
-          </div>
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
         
-          <a href="#" class="md-top md-icon" data-md-component="top" data-md-state="hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"/></svg>
-            Back to top
-          </a>
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
         
       </main>
       
-        
-<footer class="md-footer">
-  
-    <nav class="md-footer__inner md-grid" aria-label="Footer">
-      
-      
-        
-        <a href="application/" class="md-footer__link md-footer__link--next" aria-label="Next: Application" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              Application
-            </div>
-          </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
-          </div>
-        </a>
-      
-    </nav>
+        <footer class="md-footer">
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
-      <div class="md-footer-copyright">
-        
-          <div class="md-footer-copyright__highlight">
-            MIT License
-          </div>
-        
-        
-          Made with
-          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-            Material for MkDocs
-          </a>
-        
-        
-      </div>
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      MIT License
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
       
-  <div class="md-footer-social">
+        <div class="md-social">
+  
+    
+    
+    
     
       
       
-        
-        
-      
-      <a href="https://github.com/soumendrak" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
-      </a>
+    
+    <a href="https://github.com/soumendrak" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
     
       
       
-        
-        
-      
-      <a href="https://stackoverflow.com/users/5014656/soumendra?tab=profile" target="_blank" rel="noopener" title="stackoverflow.com" class="md-footer-social__link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M290.7 311 95 269.7 86.8 309l195.7 41zm51-87L188.2 95.7l-25.5 30.8 153.5 128.3zm-31.2 39.7L129.2 179l-16.7 36.5L293.7 300zM262 32l-32 24 119.3 160.3 32-24zm20.5 328h-200v39.7h200zm39.7 80H42.7V320h-40v160h359.5V320h-40z"/></svg>
-      </a>
+    
+    <a href="https://stackoverflow.com/users/5014656/soumendra?tab=profile" target="_blank" rel="noopener" title="stackoverflow.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M290.7 311 95 269.7 86.8 309l195.7 41zm51-87L188.2 95.7l-25.5 30.8 153.5 128.3zm-31.2 39.7L129.2 179l-16.7 36.5L293.7 300zM262 32l-32 24 119.3 160.3 32-24zm20.5 328h-200v39.7h200zm39.7 80H42.7V320h-40v160h359.5V320h-40z"/></svg>
+    </a>
+  
+    
+    
+    
     
       
       
-        
-        
-      
-      <a href="https://twitter.com/soumendra_ks" target="_blank" rel="noopener" title="twitter.com" class="md-footer-social__link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
-      </a>
+    
+    <a href="https://twitter.com/soumendra_ks" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253"/></svg>
+    </a>
+  
+    
+    
+    
     
       
       
-        
-        
-      
-      <a href="https://linkedin.com/in/soumendrak/" target="_blank" rel="noopener" title="linkedin.com" class="md-footer-social__link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
-      </a>
     
-  </div>
-
+    <a href="https://linkedin.com/in/soumendrak/" target="_blank" rel="noopener" title="linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5m282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+</div>
+      
     </div>
   </div>
 </footer>
@@ -949,10 +1040,14 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": ".", "features": ["instant", "navigation.top", "navigation.tabs", "tabs", "toc.integrate"], "search": "assets/javascripts/workers/search.fcfe8b6d.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.b1047164.min.js"></script>
+    
+      
+      <script id="__config" type="application/json">{"base": ".", "features": ["instant", "navigation.top", "navigation.tabs", "tabs", "toc.integrate"], "search": "assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.13a4f30d.min.js"></script>
       
         <script src="js/timeago.min.js"></script>
       
