@@ -46,6 +46,8 @@ The tools are available in Odia language.
 - [x] [Google Translate](#translation)
 - [x] [Automatic extractive text summarization](#automatic-extractive-text-summarization)
 - [x] [Add Dictionary corpus](#offline-dictionary)
+- [x] [Parallel corpus](#corpus-data)
+- [x] [Monolingual corpus](#corpus-data)
 
 
 ### :material-format-letter-case: Odia alphabets 
@@ -338,6 +340,15 @@ wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
     3. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Not Found --> Hit Google Translate API --> Update the Cache --> Return result
 
 
+### :open_file_folder: Corpus Data
+
+- Sample corpora are packaged with the library.
+- Use the :pyfunc:`openodia.corpus.load_parallel_corpus` function to load the
+  English–Odia parallel sentences from ``openodia/corpus/parallel_corpus``.
+  The CSV files are expected to contain ``english`` and ``odia`` columns.
+- Use :pyfunc:`openodia.corpus.load_monolingual_corpus` to access Odia-only
+  sentences stored as JSON under ``openodia/corpus/monolingual``.
+
 ## :bug: Known Issues
 
 - There are few issues in the code an be found [here](https://github.com/soumendrak/openodia/issues).
@@ -347,8 +358,8 @@ wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
 
 In the upcoming future the following features will be implemented in the package.
 
-- [ ] Add English-Odia Parallel corpus
-- [ ] Add Odia Monolingual corpus
+- [x] Add English-Odia Parallel corpus
+- [x] Add Odia Monolingual corpus
 - [ ] Add NER dataset of places, actors, etc. 
 - [ ] Robust paragraph to sentence tokenizer covering edge cases
 - [ ] Stemming tool
