@@ -58,9 +58,7 @@ class SummarizationBaseMethod(ABC):
         LOGGER.debug(f"{threshold_value=}")
         token_ctr = Counter(self.token_list)
         LOGGER.debug(f"{token_ctr=}")
-        frequent_token_set = set(
-            [word for word in self.token_list if token_ctr[word] > threshold_value]
-        )
+        frequent_token_set = set([word for word in self.token_list if token_ctr[word] > threshold_value])
         return frequent_token_set
 
     def get_sentence_having_frequent_words(self, frequent_token_list: Set[str]) -> str:
@@ -71,9 +69,7 @@ class SummarizationBaseMethod(ABC):
                 if token in sentence:
                     summarized_text.append(sentence)
                     break
-        LOGGER.debug(
-            f"{len(summarized_text)} number of sentences found in summarized text."
-        )
+        LOGGER.debug(f"{len(summarized_text)} number of sentences found in summarized text.")
         summarized_text = " ".join(summarized_text)
         return summarized_text
 

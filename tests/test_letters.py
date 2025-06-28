@@ -1,3 +1,5 @@
+import pytest
+
 from openodia import alphabet
 
 
@@ -200,3 +202,86 @@ class TestLetters:
 
     def test_punctuation(self):
         assert len(alphabet.punctuations) == len(self.PUNCTUATION) + 1
+
+    # Additional test cases
+    def test_vowels_are_in_all_letters(self):
+        """Test that all vowels are present in all_letters"""
+        for vowel in alphabet.vowels:
+            assert vowel in alphabet.all_letters
+
+    def test_consonants_are_in_all_letters(self):
+        """Test that all consonants are present in all_letters"""
+        for consonant in alphabet.consonants:
+            assert consonant in alphabet.all_letters
+
+    def test_numbers_are_in_all_letters(self):
+        """Test that all numbers are present in all_letters"""
+        for number in alphabet.numbers:
+            assert number in alphabet.all_letters
+
+    def test_matras_are_in_all_letters(self):
+        """Test that all matras are present in all_letters"""
+        for matra in alphabet.matras:
+            assert matra in alphabet.all_letters
+
+    def test_no_duplicates_in_all_letters(self):
+        """Test that all_letters has no duplicates"""
+        assert len(alphabet.all_letters) == len(set(alphabet.all_letters))
+
+    def test_no_duplicates_in_vowels(self):
+        """Test that vowels has no duplicates"""
+        assert len(alphabet.vowels) == len(set(alphabet.vowels))
+
+    def test_no_duplicates_in_consonants(self):
+        """Test that consonants has no duplicates"""
+        assert len(alphabet.consonants) == len(set(alphabet.consonants))
+
+    def test_no_duplicates_in_numbers(self):
+        """Test that numbers has no duplicates"""
+        assert len(alphabet.numbers) == len(set(alphabet.numbers))
+
+    def test_no_duplicates_in_matras(self):
+        """Test that matras has no duplicates"""
+        assert len(alphabet.matras) == len(set(alphabet.matras))
+
+    def test_vowels_consonants_no_overlap(self):
+        """Test that vowels and consonants don't overlap"""
+        vowel_set = set(alphabet.vowels)
+        consonant_set = set(alphabet.consonants)
+        assert len(vowel_set.intersection(consonant_set)) == 0
+
+    def test_unicode_ranges(self):
+        """Test that Odia letters are in correct Unicode range"""
+        for letter in alphabet.all_letters:
+            # Odia Unicode range is roughly 2816-2943
+            unicode_val = ord(letter[0])  # Get first character's Unicode
+            assert 2800 <= unicode_val <= 3000, f"Letter {letter} (Unicode: {unicode_val}) outside expected range"
+
+    def test_specific_vowels_present(self):
+        """Test that specific important vowels are present"""
+        important_vowels = ["ଅ", "ଆ", "ଇ", "ଈ", "ଉ", "ଊ", "ଏ", "ଓ"]
+        for vowel in important_vowels:
+            assert vowel in alphabet.vowels
+
+    def test_specific_consonants_present(self):
+        """Test that specific important consonants are present"""
+        important_consonants = ["କ", "ଖ", "ଗ", "ଘ", "ଙ", "ଚ", "ଛ", "ଜ", "ଝ", "ଞ"]
+        for consonant in important_consonants:
+            assert consonant in alphabet.consonants
+
+    def test_odia_numbers_sequence(self):
+        """Test that Odia numbers are in sequence"""
+        expected_numbers = ["୦", "୧", "୨", "୩", "୪", "୫", "୬", "୭", "୮", "୯"]
+        assert alphabet.numbers == expected_numbers
+
+    def test_punctuations_type(self):
+        """Test that punctuations is a tuple"""
+        assert isinstance(alphabet.punctuations, tuple)
+
+    def test_lists_are_lists(self):
+        """Test that letter collections are lists"""
+        assert isinstance(alphabet.all_letters, list)
+        assert isinstance(alphabet.vowels, list)
+        assert isinstance(alphabet.consonants, list)
+        assert isinstance(alphabet.numbers, list)
+        assert isinstance(alphabet.matras, list)

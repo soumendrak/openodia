@@ -1,6 +1,6 @@
 """Open Odia language tools"""
 
-__version__ = "0.1.11"
+__version__ = "0.1.12"
 
 from .common.constants import STOPWORDS
 from ._letters import Letters as alphabet
