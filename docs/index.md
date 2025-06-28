@@ -222,6 +222,7 @@ ud.sentence_tokenizer()
 - Frequently occurring words in a language are called as _stopwords_. Using the below function you can remove the stopwords.
 - Internally this method calls the `word_tokenize` method to get tokens from the text.
 - As most of the time processing happens in list by default a list of strings will be returned.
+- You can also pass a list of extra stopwords to filter out words of your choice.
 
 ```python
 from openodia import ud
@@ -233,6 +234,11 @@ ud.remove_stopwords("ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବ�
 ud.remove_stopwords("ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି ", get_str=True)
 '''
 'ରାମ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ'
+'''
+
+ud.remove_stopwords("ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି", extra_stopwords=["ଆଶୀର୍ବାଦ"])
+'''
+['ରାମ', 'ସୀତା', 'ଆମକୁ']
 '''
 ```
 Here the stopwords `ଓ` and `ଦେଇଛନ୍ତି` are removed from the text.

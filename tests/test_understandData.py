@@ -118,6 +118,13 @@ class TestUnderstandData:
         expected = ["ରାମ", "ସୀତା", "ଆମକୁ"]
         assert result == expected
 
+    def test_remove_stopwords_with_extra_stopwords(self):
+        """Test remove_stopwords with user supplied stopwords"""
+        text = "ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବାଦ ଦେଇଛନ୍ତି"
+        result = ud.remove_stopwords(text, extra_stopwords=["ଆମକୁ"])
+        assert "ଆମକୁ" not in result
+        assert result == ["ରାମ", "ସୀତା", "ଆଶୀର୍ବାଦ"]
+
     def test_remove_stopwords_empty_string(self):
         """Test remove_stopwords with empty string"""
         assert ud.remove_stopwords("") == []
