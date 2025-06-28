@@ -25,7 +25,9 @@ class UnderstandData:
     def sentence_tokenizer(cls, text):
         """Split the text into sentences"""
         sent_list = text.split(" ।")
-        LOGGER.debug(f"{len(sent_list)} sentences have been formed using ' ।' splitter.")
+        LOGGER.debug(
+            f"{len(sent_list)} sentences have been formed using ' ।' splitter."
+        )
         return sent_list
 
     @classmethod
@@ -36,7 +38,9 @@ class UnderstandData:
         :param text: It can take both tokens and text string as input
         :param get_str: provide whether the output needed on str or list
         """
-        token_list: List[str] = cls.word_tokenizer(text) if isinstance(text, str) else text
+        token_list: List[str] = (
+            cls.word_tokenizer(text) if isinstance(text, str) else text
+        )
         cleaned_tokens = [token for token in token_list if token not in STOPWORDS]
         return " ".join(cleaned_tokens) if get_str else cleaned_tokens
 
@@ -51,7 +55,11 @@ class UnderstandData:
             return {}
         space_removed_text = text.replace(" ", "")
         odia_text = "".join(
-            [letter for letter in space_removed_text if ord(letter) in range(2817, 2931)]
+            [
+                letter
+                for letter in space_removed_text
+                if ord(letter) in range(2817, 2931)
+            ]
         )
         score = len(odia_text) / len(space_removed_text)
         language = "odia" if score > threshold else "non-odia"

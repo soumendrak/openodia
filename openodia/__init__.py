@@ -1,5 +1,5 @@
-"""Open Odia language tools
-"""
+"""Open Odia language tools"""
+
 __version__ = "0.1.11"
 
 from .common.constants import STOPWORDS

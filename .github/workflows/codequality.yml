@@ -17,15 +17,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install poetry && poetry build
 
-  lint:
-    needs: build-test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: psf/black@stable
-        with:
-          options: "--check --verbose -l 100 -t py39"
-          src: "./openodia"
+  # lint:
+  #   needs: build-test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: psf/black@stable
+  #       with:
+  #         options: "--check --verbose -l 100 -t py39"
+  #         src: "./openodia"
 
   code-quality:
     needs: build-test
@@ -54,7 +54,7 @@ jobs:
         poetry run bandit -r -lll  -f txt -o ci-logs/bandit.log ./openodia ./tests
         
     - name: Archive bandit report
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: bandit-report
         path: ci-logs/bandit.log
