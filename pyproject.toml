@@ -27,6 +27,7 @@ dependencies = [
     "Faker>=13.4.0",
     "deep-translator>=1.11.4",
     "rich>=12.2.0",
+    "litellm>=1.34.0",
 ]
 
 [project.optional-dependencies]

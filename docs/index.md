@@ -343,6 +343,64 @@ wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
 - There are few issues in the code an be found [here](https://github.com/soumendrak/openodia/issues).
 - Contributions are highly welcomed. :pray_tone2:
 
+## LLM Features
+
+`openodia` now includes features powered by Large Language Models (LLMs) to provide advanced text analysis capabilities. These features are available through the `openodia.LLM` class.
+
+### Configuration
+
+The LLM features are designed to be provider-agnostic, thanks to the `litellm` library. You can configure the model and API keys using environment variables.
+
+- **Model Selection**: Set the `OPENODIA_LLM_MODEL` environment variable to specify which model to use. It defaults to `gemini/gemini-pro`. You can use any model supported by `litellm`, for example: `openai/gpt-4`, `anthropic/claude-2`, etc.
+
+- **API Keys**: Make sure to set the appropriate API key for your chosen provider in your environment. For example:
+    - `export OPENAI_API_KEY="your-openai-key"`
+    - `export ANTHROPIC_API_KEY="your-anthropic-key"`
+    - `export GEMINI_API_KEY="your-gemini-key"`
+
+### Abstractive Summarization
+
+Generate a concise, human-like summary of a given Odia text.
+
+```python
+from openodia import LLM
+
+llm = LLM()
+text = "ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ..." # (long Odia text)
+summary = llm.summarize(text)
+print(summary)
+```
+
+### Named Entity Recognition (NER)
+
+Identify and categorize named entities within an Odia text.
+
+```python
+from openodia import LLM
+
+llm = LLM()
+text = "ରାମ ଓ ସୀତା ଅଯୋଧ୍ୟାରେ ବାସ କରୁଥିଲେ।"
+entities = llm.named_entity_recognition(text)
+print(entities)
+# Expected output (example):
+# {'PERSON': ['ରାମ', 'ସୀତା'], 'LOCATION': ['ଅଯୋଧ୍ୟା']}
+```
+
+### Sentiment Analysis
+
+Determine the sentiment (positive, negative, or neutral) of an Odia text.
+
+```python
+from openodia import LLM
+
+llm = LLM()
+text = "ଏହି ଫିଲ୍ମଟି ବହୁତ ଭଲ ଥିଲା।"
+sentiment = llm.sentiment_analysis(text)
+print(sentiment)
+# Expected output (example):
+# {'sentiment': 'positive', 'confidence': 0.98}
+```
+
 ## Roadmap
 
 In the upcoming future the following features will be implemented in the package.
