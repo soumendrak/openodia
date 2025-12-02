@@ -9,6 +9,10 @@ from ._summarization import WordFrequency
 from ._translate import odia_to_other_lang, other_lang_to_odia, universal_translation
 from ._understandData import UnderstandData as ud
 
+# Tool interface for LLM/Agent integration
+from . import _tools as tools
+from ._tool_executor import execute_tool, execute
+
 __all__ = [
     "alphabet",
     "name",
@@ -18,4 +22,8 @@ __all__ = [
     "universal_translation",
     "WordFrequency",
     "STOPWORDS",
+    # Tool interface
+    "tools",
+    "execute_tool",
+    "execute",
 ]
