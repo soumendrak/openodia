@@ -2,8 +2,6 @@
 Test cases for constants module
 """
 
-import pytest
-
 from openodia.common.constants import (
     PREFIXES,
     PREFIXES_FEMALE,

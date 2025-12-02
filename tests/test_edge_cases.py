@@ -3,12 +3,13 @@ Test cases for error handling and edge cases across the library
 """
 
 import json
+import threading
 from unittest.mock import mock_open, patch
 
 import pytest
 
-from openodia.corpus.dictionary import get_dictionary
 from openodia import WordFrequency, alphabet, name, ud
+from openodia.corpus.dictionary import get_dictionary
 
 
 class TestErrorHandling:
@@ -159,8 +160,6 @@ class TestErrorHandling:
 
     def test_thread_safety_basic(self):
         """Basic test for thread safety of dictionary loading"""
-        import threading
-
         results = []
         errors = []
 

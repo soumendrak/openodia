@@ -5,8 +5,6 @@ Test cases for __main__ module
 from io import StringIO
 from unittest.mock import patch
 
-import pytest
-
 from openodia.__main__ import main
 
 
@@ -44,9 +42,10 @@ class TestMain:
     def test_main_entry_point(self):
         """Test that the module can be run as main"""
         with patch("sys.argv", ["__main__.py"]):
-            with patch("sys.exit") as mock_exit:
+            with patch("sys.exit"):
                 with patch("sys.stdout", new_callable=StringIO):
                     # Import and run the module's main block
-                    import openodia.__main__
+                    import openodia.__main__  # noqa: F401
+
                     # The module should call sys.exit with the result of main()
                     # Since main() returns None, sys.exit should be called with None

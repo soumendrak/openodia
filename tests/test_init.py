@@ -2,8 +2,6 @@
 Test cases for main module initialization
 """
 
-import pytest
-
 import openodia
 from openodia import (
     alphabet,
