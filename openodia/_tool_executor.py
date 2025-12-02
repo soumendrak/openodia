@@ -7,6 +7,7 @@ and structured output.
 Author: Soumendra Kumar Sahoo
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -37,7 +38,7 @@ class ToolExecutionError(Exception):
 
 
 # Tool handler mapping
-_TOOL_HANDLERS: dict[str, callable] = {}
+_TOOL_HANDLERS: dict[str, Callable[..., Any]] = {}
 
 
 def _register_handler(tool_name: str):
