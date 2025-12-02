@@ -39,9 +39,8 @@ logger = logging.getLogger("openodia.mcp")
 
 
 class MCPServer:
-    """
-    MCP Server implementation for OpenOdia.
-    
+    """MCP Server implementation for OpenOdia.
+
     Implements the Model Context Protocol over stdio transport.
     """
 
@@ -122,12 +121,11 @@ class MCPServer:
             }
 
     def handle_request(self, request: dict[str, Any]) -> dict[str, Any] | None:
-        """
-        Handle an incoming JSON-RPC request.
-        
+        """Handle an incoming JSON-RPC request.
+
         Args:
             request: JSON-RPC request object
-            
+
         Returns:
             JSON-RPC response object or None for notifications
         """
@@ -182,7 +180,7 @@ class MCPServer:
                 },
             }
 
-    async def run_stdio(self):
+    async def run_stdio(self):  # pragma: no cover
         """Run the MCP server over stdio transport."""
         logger.info("OpenOdia MCP Server starting on stdio...")
 
@@ -245,7 +243,7 @@ class MCPServer:
         logger.info("OpenOdia MCP Server stopped")
 
 
-def main():
+def main():  # pragma: no cover
     """Entry point for the MCP server."""
     server = MCPServer()
     try:

@@ -10,7 +10,8 @@ Author: Soumendra Kumar Sahoo
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 # Tool definitions with metadata
 TOOL_DEFINITIONS: list[dict[str, Any]] = [
@@ -247,9 +248,8 @@ class ToolRegistry:
         return list(self._tools.values())
 
     def get_openai_tools(self) -> list[dict[str, Any]]:
-        """
-        Get tool definitions in OpenAI function calling format.
-        
+        """Get tool definitions in OpenAI function calling format.
+
         Returns:
             List of tools in OpenAI's function format:
             {"type": "function", "function": {"name": ..., "description": ..., "parameters": ...}}
@@ -267,9 +267,8 @@ class ToolRegistry:
         return openai_tools
 
     def get_anthropic_tools(self) -> list[dict[str, Any]]:
-        """
-        Get tool definitions in Anthropic tool use format.
-        
+        """Get tool definitions in Anthropic tool use format.
+
         Returns:
             List of tools in Anthropic's format:
             {"name": ..., "description": ..., "input_schema": ...}
@@ -284,9 +283,8 @@ class ToolRegistry:
         return anthropic_tools
 
     def get_mcp_tools(self) -> list[dict[str, Any]]:
-        """
-        Get tool definitions in MCP format.
-        
+        """Get tool definitions in MCP format.
+
         Returns:
             List of tools in MCP's format:
             {"name": ..., "description": ..., "inputSchema": ...}

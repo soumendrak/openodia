@@ -221,3 +221,115 @@ class TestListHandlers:
         ]
         for tool in expected:
             assert tool in handlers
+
+
+class TestValidateArgumentsExtended:
+    """Extended validation tests for better coverage."""
+
+    def test_unknown_parameter(self):
+        """Unknown parameter fails validation."""
+        errors = validate_arguments(
+            "detect_language",
+            {"text": "hello", "unknown_param": "value"}
+        )
+        assert len(errors) > 0
+        assert any("Unknown parameter" in e for e in errors)
+
+    def test_wrong_type_number(self):
+        """Wrong type for number parameter fails validation."""
+        errors = validate_arguments(
+            "detect_language",
+            {"text": "hello", "threshold": "not_a_number"}
+        )
+        assert len(errors) > 0
+        assert any("must be a number" in e for e in errors)
+
+    def test_wrong_type_boolean(self):
+        """Wrong type for boolean parameter fails validation."""
+        errors = validate_arguments(
+            "remove_stopwords",
+            {"text": "hello", "return_string": "not_a_bool"}
+        )
+        assert len(errors) > 0
+        assert any("must be a boolean" in e for e in errors)
+
+    def test_valid_number_as_int(self):
+        """Integer is valid for number type."""
+        errors = validate_arguments(
+            "detect_language",
+            {"text": "hello", "threshold": 1}
+        )
+        # Should not have type error for threshold
+        assert not any("must be a number" in e for e in errors)
+
+    def test_valid_number_as_float(self):
+        """Float is valid for number type."""
+        errors = validate_arguments(
+            "detect_language",
+            {"text": "hello", "threshold": 0.5}
+        )
+        assert len(errors) == 0
+
+
+class TestExecuteToolExtended:
+    """Extended execution tests for better coverage."""
+
+    def test_execute_translate_to_odia_default_lang(self):
+        """Execute translate_to_odia with default source language."""
+        result = execute_tool("translate_to_odia", {"text": "hello"})
+        assert result.success is True
+        assert result.result is not None
+
+    def test_execute_translate_from_odia(self):
+        """Execute translate_from_odia."""
+        result = execute_tool("translate_from_odia", {"text": "କଣ"})
+        assert result.success is True
+        assert result.result is not None
+
+    def test_execute_universal_translate(self):
+        """Execute universal_translate."""
+        result = execute_tool(
+            "universal_translate",
+            {"text": "hello", "source_language_code": "en", "dest_language_code": "or"}
+        )
+        assert result.success is True
+        assert result.result is not None
+
+    def test_execute_generate_odia_names_default(self):
+        """Execute generate_odia_names with default count."""
+        result = execute_tool("generate_odia_names", {})
+        assert result.success is True
+        assert isinstance(result.result, list)
+        assert len(result.result) == 10  # default count
+
+    def test_execute_generate_odia_firstnames_default(self):
+        """Execute generate_odia_firstnames with default params."""
+        result = execute_tool("generate_odia_firstnames", {})
+        assert result.success is True
+        assert isinstance(result.result, list)
+
+    def test_execute_generate_odia_surnames_default(self):
+        """Execute generate_odia_surnames with default count."""
+        result = execute_tool("generate_odia_surnames", {})
+        assert result.success is True
+        assert isinstance(result.result, list)
+
+    def test_execute_summarize_with_threshold(self):
+        """Execute summarize_text with custom threshold."""
+        odia_text = "ଓଡ଼ିଶା ଭାରତର ଏକ ରାଜ୍ୟ । ଓଡ଼ିଶାର ରାଜଧାନୀ ଭୁବନେଶ୍ୱର । ଓଡ଼ିଶା ପୂର୍ବ ଭାରତରେ ଅବସ୍ଥିତ ।"
+        result = execute_tool("summarize_text", {"text": odia_text, "threshold": 2.0})
+        assert result.success is True
+
+    def test_execute_detect_language_with_threshold(self):
+        """Execute detect_language with custom threshold."""
+        result = execute_tool(
+            "detect_language",
+            {"text": "hello ନମସ୍କାର", "threshold": 0.8}
+        )
+        assert result.success is True
+        assert "language" in result.result
+
+    def test_execute_remove_stopwords_default(self):
+        """Execute remove_stopwords with default return_string."""
+        result = execute_tool("remove_stopwords", {"text": "ଏହା ଏକ ପରୀକ୍ଷା"})
+        assert result.success is True

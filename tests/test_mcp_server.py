@@ -239,3 +239,300 @@ class TestMCPErrors:
         assert response["jsonrpc"] == "2.0"
         assert response["id"] == 9
         assert response["result"] == {}
+
+
+class TestMCPToolsCallExtended:
+    """Extended tools/call tests for better coverage."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.server = MCPServer()
+
+    def test_translate_to_odia(self):
+        """Call translate_to_odia."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "tools/call",
+            "params": {
+                "name": "translate_to_odia",
+                "arguments": {"text": "hello"},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        assert response["result"].get("isError") is not True
+
+    def test_translate_from_odia(self):
+        """Call translate_from_odia."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "tools/call",
+            "params": {
+                "name": "translate_from_odia",
+                "arguments": {"text": "କଣ"},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        assert response["result"].get("isError") is not True
+
+    def test_universal_translate(self):
+        """Call universal_translate."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "tools/call",
+            "params": {
+                "name": "universal_translate",
+                "arguments": {"text": "hello"},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        assert response["result"].get("isError") is not True
+
+    def test_tokenize_sentences(self):
+        """Call tokenize_sentences."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "tools/call",
+            "params": {
+                "name": "tokenize_sentences",
+                "arguments": {"text": "ନମସ୍କାର । କେମିତି ଅଛ"},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        assert response["result"].get("isError") is not True
+
+    def test_remove_stopwords(self):
+        """Call remove_stopwords."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "tools/call",
+            "params": {
+                "name": "remove_stopwords",
+                "arguments": {"text": "ଏହା ଏକ ପରୀକ୍ଷା"},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        assert response["result"].get("isError") is not True
+
+    def test_summarize_text(self):
+        """Call summarize_text."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 15,
+            "method": "tools/call",
+            "params": {
+                "name": "summarize_text",
+                "arguments": {"text": "ଓଡ଼ିଶା ଭାରତର ଏକ ରାଜ୍ୟ । ଓଡ଼ିଶାର ରାଜଧାନୀ ଭୁବନେଶ୍ୱର ।"},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        assert response["result"].get("isError") is not True
+
+    def test_generate_odia_firstnames(self):
+        """Call generate_odia_firstnames."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 16,
+            "method": "tools/call",
+            "params": {
+                "name": "generate_odia_firstnames",
+                "arguments": {"count": 3},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        content = json.loads(response["result"]["content"][0]["text"])
+        assert isinstance(content, list)
+        assert len(content) == 3
+
+    def test_generate_odia_surnames(self):
+        """Call generate_odia_surnames."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 17,
+            "method": "tools/call",
+            "params": {
+                "name": "generate_odia_surnames",
+                "arguments": {"count": 3},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        content = json.loads(response["result"]["content"][0]["text"])
+        assert isinstance(content, list)
+        assert len(content) == 3
+
+
+class TestMCPInitializeExtended:
+    """Extended initialize tests."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.server = MCPServer()
+
+    def test_initialize_without_client_info(self):
+        """Initialize works without clientInfo."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 18,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert response["jsonrpc"] == "2.0"
+        assert "result" in response
+        assert response["result"]["serverInfo"]["name"] == "openodia"
+
+    def test_initialize_empty_params(self):
+        """Initialize works with empty params."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 19,
+            "method": "initialize",
+            "params": {},
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        assert "capabilities" in response["result"]
+
+
+class TestMCPRequestIdHandling:
+    """Test request ID handling."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.server = MCPServer()
+
+    def test_string_request_id(self):
+        """Request with string ID works."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": "string-id-123",
+            "method": "ping",
+            "params": {},
+        }
+        response = self.server.handle_request(request)
+
+        assert response["id"] == "string-id-123"
+
+    def test_null_request_id_notification(self):
+        """Request without ID is treated as notification."""
+        request = {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized",
+            "params": {},
+        }
+        response = self.server.handle_request(request)
+        assert response is None
+
+
+class TestMCPToolsCallWithDefaults:
+    """Test tools/call with default parameters."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.server = MCPServer()
+
+    def test_translate_to_odia_with_source_lang(self):
+        """Call translate_to_odia with source language."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 20,
+            "method": "tools/call",
+            "params": {
+                "name": "translate_to_odia",
+                "arguments": {"text": "hello", "source_language_code": "en"},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        assert response["result"].get("isError") is not True
+
+    def test_translate_from_odia_with_dest_lang(self):
+        """Call translate_from_odia with destination language."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 21,
+            "method": "tools/call",
+            "params": {
+                "name": "translate_from_odia",
+                "arguments": {"text": "କଣ", "dest_language_code": "en"},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        assert response["result"].get("isError") is not True
+
+    def test_detect_language_with_threshold(self):
+        """Call detect_language with custom threshold."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 22,
+            "method": "tools/call",
+            "params": {
+                "name": "detect_language",
+                "arguments": {"text": "hello ନମସ୍କାର", "threshold": 0.7},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        assert response["result"].get("isError") is not True
+
+    def test_generate_names_default_count(self):
+        """Call generate_odia_names with default count."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 23,
+            "method": "tools/call",
+            "params": {
+                "name": "generate_odia_names",
+                "arguments": {},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        content = json.loads(response["result"]["content"][0]["text"])
+        assert len(content) == 10  # default count
+
+    def test_generate_firstnames_with_type(self):
+        """Call generate_odia_firstnames with name_type."""
+        request = {
+            "jsonrpc": "2.0",
+            "id": 24,
+            "method": "tools/call",
+            "params": {
+                "name": "generate_odia_firstnames",
+                "arguments": {"count": 5, "name_type": "female"},
+            },
+        }
+        response = self.server.handle_request(request)
+
+        assert "result" in response
+        content = json.loads(response["result"]["content"][0]["text"])
+        assert len(content) == 5

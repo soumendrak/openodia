@@ -134,68 +134,73 @@ def _handle_generate_odia_surnames(arguments: dict[str, Any]) -> Any:
     return name.generate_surnames(count)
 
 
+def _validate_param_type(param_name: str, param_value: Any, expected_type: str) -> str | None:
+    """Validate a single parameter's type. Returns error message or None."""
+    type_validators = {
+        "string": lambda v: isinstance(v, str),
+        "integer": lambda v: isinstance(v, int),
+        "number": lambda v: isinstance(v, (int, float)),
+        "boolean": lambda v: isinstance(v, bool),
+    }
+    validator = type_validators.get(expected_type)
+    if validator and not validator(param_value):
+        return f"Parameter '{param_name}' must be a {expected_type}"
+    return None
+
+
 def validate_arguments(tool_name: str, arguments: dict[str, Any]) -> list[str]:
-    """
-    Validate arguments against tool schema.
-    
+    """Validate arguments against tool schema.
+
     Args:
         tool_name: Name of the tool
         arguments: Arguments to validate
-        
+
     Returns:
         List of validation error messages (empty if valid)
     """
     tool_def = get_tool(tool_name)
     if not tool_def:
         return [f"Unknown tool: {tool_name}"]
-    
+
     errors = []
     params = tool_def["parameters"]
     properties = params.get("properties", {})
     required = params.get("required", [])
-    
+
     # Check required parameters
     for req_param in required:
         if req_param not in arguments:
             errors.append(f"Missing required parameter: {req_param}")
-    
-    # Check parameter types (basic validation)
+
+    # Check parameter types and values
     for param_name, param_value in arguments.items():
         if param_name not in properties:
             errors.append(f"Unknown parameter: {param_name}")
             continue
-        
+
         param_schema = properties[param_name]
-        expected_type = param_schema.get("type")
-        
-        if expected_type == "string" and not isinstance(param_value, str):
-            errors.append(f"Parameter '{param_name}' must be a string")
-        elif expected_type == "integer" and not isinstance(param_value, int):
-            errors.append(f"Parameter '{param_name}' must be an integer")
-        elif expected_type == "number" and not isinstance(param_value, (int, float)):
-            errors.append(f"Parameter '{param_name}' must be a number")
-        elif expected_type == "boolean" and not isinstance(param_value, bool):
-            errors.append(f"Parameter '{param_name}' must be a boolean")
-        
+        type_error = _validate_param_type(param_name, param_value, param_schema.get("type", ""))
+        if type_error:
+            errors.append(type_error)
+
         # Check enum values
         if "enum" in param_schema and param_value not in param_schema["enum"]:
             errors.append(f"Parameter '{param_name}' must be one of: {param_schema['enum']}")
-    
+
     return errors
 
 
 def execute_tool(tool_name: str, arguments: dict[str, Any], validate: bool = True) -> ToolResult:
-    """
-    Execute a tool by name with given arguments.
-    
+    """Execute a tool by name with given arguments.
+
     Args:
         tool_name: Name of the tool to execute
         arguments: Dictionary of arguments for the tool
         validate: Whether to validate arguments before execution
-        
+
     Returns:
         ToolResult with success status and result or error
-        
+
     Example:
         >>> result = execute_tool("translate_to_odia", {"text": "hello"})
         >>> print(result.result)
@@ -207,7 +212,7 @@ def execute_tool(tool_name: str, arguments: dict[str, Any], validate: bool = Tru
             success=False,
             error=f"Unknown tool: {tool_name}. Available tools: {list(_TOOL_HANDLERS.keys())}"
         )
-    
+
     # Validate arguments if requested
     if validate:
         validation_errors = validate_arguments(tool_name, arguments)
@@ -216,7 +221,7 @@ def execute_tool(tool_name: str, arguments: dict[str, Any], validate: bool = Tru
                 success=False,
                 error=f"Validation failed: {'; '.join(validation_errors)}"
             )
-    
+
     # Execute the tool
     try:
         handler = _TOOL_HANDLERS[tool_name]
@@ -230,13 +235,12 @@ def execute_tool(tool_name: str, arguments: dict[str, Any], validate: bool = Tru
 
 
 def execute(tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
-    """
-    Convenience function to execute a tool and return dict result.
-    
+    """Convenience function to execute a tool and return dict result.
+
     Args:
         tool_name: Name of the tool to execute
         arguments: Dictionary of arguments for the tool
-        
+
     Returns:
         Dictionary with 'success' and 'result' or 'error' keys
     """
