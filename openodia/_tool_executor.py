@@ -138,14 +138,16 @@ def _handle_generate_odia_surnames(arguments: dict[str, Any]) -> Any:
 def _validate_param_type(param_name: str, param_value: Any, expected_type: str) -> str | None:
     """Validate a single parameter's type. Returns error message or None."""
     type_validators = {
-        "string": lambda v: isinstance(v, str),
-        "integer": lambda v: isinstance(v, int),
-        "number": lambda v: isinstance(v, (int, float)),
-        "boolean": lambda v: isinstance(v, bool),
+        "string": (lambda v: isinstance(v, str), "a string"),
+        "integer": (lambda v: isinstance(v, int), "an integer"),
+        "number": (lambda v: isinstance(v, (int, float)), "a number"),
+        "boolean": (lambda v: isinstance(v, bool), "a boolean"),
     }
-    validator = type_validators.get(expected_type)
-    if validator and not validator(param_value):
-        return f"Parameter '{param_name}' must be a {expected_type}"
+    validator_info = type_validators.get(expected_type)
+    if validator_info:
+        validator, type_name = validator_info
+        if not validator(param_value):
+            return f"Parameter '{param_name}' must be {type_name}"
     return None
 
 
