@@ -34,6 +34,9 @@ docs = [
     "mkdocs-git-revision-date-localized-plugin>=0.10.0",
     "mkdocs-material>=7.3.2",
 ]
+mcp = [
+    "mcp>=1.0.0",
+]
 dev = [
     "pytest>=6.2.5",
     "ruff>=0.1.0",
@@ -45,6 +48,9 @@ dev = [
     "mkdocs-git-revision-date-localized-plugin>=0.10.0",
     "mkdocs-material>=7.3.2",
 ]
+
+[project.scripts]
+openodia-mcp = "openodia.mcp_server:main"
 
 [project.urls]
 Repository = "https://github.com/soumendrak/openodia"

@@ -68,6 +68,7 @@ The tools are available in Odia language.
 - [x] [Google Translate](#translation)
 - [x] [Automatic extractive text summarization](#automatic-extractive-text-summarization)
 - [x] [Add Dictionary corpus](#offline-dictionary)
+- [x] [LLM Tool Interface](#llm-tool-interface) - OpenAI, Anthropic, MCP integration
 
 
 ### :material-format-letter-case: Odia alphabets 
@@ -364,6 +365,153 @@ wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
 
 - There are few issues in the code an be found [here](https://github.com/soumendrak/openodia/issues).
 - Contributions are highly welcomed. :pray_tone2:
+
+## LLM Tool Interface
+
+OpenOdia provides a tool interface for integration with AI agents and LLMs (OpenAI, Anthropic, MCP-compatible clients).
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `translate_to_odia` | Translate text from any language to Odia |
+| `translate_from_odia` | Translate Odia text to other languages |
+| `universal_translate` | Translate between any two languages |
+| `detect_language` | Detect if text is Odia or non-Odia |
+| `tokenize_words` | Split Odia text into word tokens |
+| `tokenize_sentences` | Split Odia text into sentences |
+| `remove_stopwords` | Remove common Odia stopwords |
+| `summarize_text` | Generate summary of Odia text |
+| `generate_odia_names` | Generate random Odia full names |
+| `generate_odia_firstnames` | Generate Odia first names |
+| `generate_odia_surnames` | Generate Odia surnames |
+
+### Direct Python Usage
+
+```python
+from openodia import execute, tools
+
+# Execute a tool directly
+result = execute("detect_language", {"text": "ନମସ୍କାର"})
+# {'success': True, 'result': {'language': 'odia', 'confidence_score': 1.0}}
+
+result = execute("tokenize_words", {"text": "ନମସ୍କାର ବନ୍ଧୁ"})
+# {'success': True, 'result': ['ନମସ୍କାର', 'ବନ୍ଧୁ']}
+
+# Get tool definitions for LLM integration
+openai_tools = tools.get_openai_tools()      # OpenAI function calling format
+anthropic_tools = tools.get_anthropic_tools() # Anthropic tool use format
+mcp_tools = tools.get_mcp_tools()            # MCP format
+```
+
+### OpenAI Function Calling
+
+```python
+from openai import OpenAI
+from openodia import tools, execute
+import json
+
+client = OpenAI()
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Translate 'good morning' to Odia"}],
+    tools=tools.get_openai_tools(),  # Pass openodia tools
+)
+
+# When GPT calls a tool, execute it
+tool_call = response.choices[0].message.tool_calls[0]
+result = execute(tool_call.function.name, json.loads(tool_call.function.arguments))
+```
+
+### Anthropic Tool Use
+
+```python
+from anthropic import Anthropic
+from openodia import tools, execute
+
+client = Anthropic()
+
+response = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    messages=[{"role": "user", "content": "Is 'ନମସ୍କାର' an Odia word?"}],
+    tools=tools.get_anthropic_tools(),  # Pass openodia tools
+)
+
+# Execute tool when Claude requests it
+for block in response.content:
+    if block.type == "tool_use":
+        result = execute(block.name, block.input)
+```
+
+### MCP Server
+
+OpenOdia includes an MCP (Model Context Protocol) server for IDE and agent integration.
+
+```bash
+# Run the MCP server
+python -m openodia.mcp_server
+
+# Or after installation
+openodia-mcp
+```
+
+**MCP Client Configuration** (for Claude Desktop, Cursor, etc.):
+
+```json
+{
+    "mcpServers": {
+        "openodia": {
+            "command": "python",
+            "args": ["-m", "openodia.mcp_server"]
+        }
+    }
+}
+```
+
+Then in Claude Desktop or other MCP clients, you can ask:
+
+- "Translate this English paragraph to Odia"
+- "Is this text written in Odia language?"
+- "Generate 5 random Odia names"
+
+The AI assistant will automatically call the openodia tools.
+
+### Building Custom AI Agents
+
+```python
+from openodia import execute
+
+def odia_text_processor(text: str) -> dict:
+    """Agent that processes Odia text."""
+    
+    # Step 1: Detect language
+    lang = execute("detect_language", {"text": text})
+    if lang["result"]["language"] != "odia":
+        # Translate to Odia first
+        text = execute("translate_to_odia", {"text": text})["result"]
+    
+    # Step 2: Summarize
+    summary = execute("summarize_text", {"text": text})
+    
+    # Step 3: Extract tokens
+    tokens = execute("tokenize_words", {"text": text})
+    
+    return {
+        "summary": summary["result"],
+        "word_count": len(tokens["result"]),
+    }
+```
+
+### Use Cases
+
+| Use Case | Tools Used |
+|----------|------------|
+| **Odia chatbot** | `detect_language`, `translate_*` |
+| **Document processing** | `tokenize_*`, `summarize_text`, `remove_stopwords` |
+| **Data generation** | `generate_odia_names`, `generate_odia_firstnames` |
+| **Language detection API** | `detect_language` |
+| **Translation service** | `translate_to_odia`, `translate_from_odia` |
 
 ## Roadmap
 
