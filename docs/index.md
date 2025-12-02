@@ -1,7 +1,7 @@
 ![image](cover-pic.png)
 
 <h4 align="center">
-  <a href="https://img.shields.io/badge/Python-3.9-blue"><img alt="python 3.9" src="https://img.shields.io/badge/Python-3.9-blue"></a>
+  <a href="https://img.shields.io/badge/Python-3.10+-blue"><img alt="python 3.10+" src="https://img.shields.io/badge/Python-3.10+-blue"></a>
   <a href="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml"><img alt="Code coverage" src="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml/badge.svg"></a>
   <a href="https://github.com/soumendrak/openodia/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
   <a href="https://codecov.io/gh/soumendrak/openodia"><img alt="code coverage" src="https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2"/></a>
@@ -18,20 +18,42 @@
 
 ## Installation
 
-- Set up the library from Pypi using the following command in your terminal or command prompt.
-- Make sure you have **Python 3.9** installed before.
+- Set up the library from PyPI using the following command in your terminal or command prompt.
+- Requires **Python 3.10 or higher**.
+- The library is tested on Python 3.10, 3.11, 3.12, 3.13, and 3.14.
     
     ??? hint "Python Installation instruction"
         You can download Python from [Python official website](https://www.python.org/downloads/) and install on your system. 
 
+### Using pip
+
 ```sh
 pip install openodia
 ```
-If you want to install from the binary itself with latest changes use:
+
+### Using uv (recommended)
+
+[uv](https://docs.astral.sh/uv/) is a fast Python package installer and resolver.
 
 ```sh
-$ git clone https://github.com/soumendrak/openodia.git
-$ python setup.py install
+# Install uv if you haven't already
+pip install uv
+
+# Install openodia
+uv pip install openodia
+
+# Or add to your project
+uv add openodia
+```
+
+### From source
+
+If you want to install from the source with latest changes:
+
+```sh
+git clone https://github.com/soumendrak/openodia.git
+cd openodia
+uv sync  # or: pip install -e .
 ```
 
 ## Features
