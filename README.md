@@ -1,7 +1,7 @@
 ![image](docs/cover-pic.png)
 
 <h4 align="center">
-  <a href="https://img.shields.io/badge/Python-3.9-blue"><img alt="python 3.9" src="https://img.shields.io/badge/Python-3.9-blue"></a>
+  <a href="https://img.shields.io/badge/Python-3.10+-blue"><img alt="python 3.10+" src="https://img.shields.io/badge/Python-3.10+-blue"></a>
   <a href="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml"><img alt="Code coverage" src="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml/badge.svg"></a>
   <a href="https://github.com/soumendrak/openodia/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
   <a href="https://codecov.io/gh/soumendrak/openodia"><img alt="code coverage" src="https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2"/></a>
@@ -15,17 +15,36 @@
 
 ## Install
 
-- Please install any version of Python which is higher than or equal to Python 3.9. It should work. 
-- The library is tested in python 3.9 version.
+- Requires **Python 3.10 or higher**.
+- The library is tested on Python 3.10, 3.11, 3.12, 3.13, and 3.14.
+
+### Using pip
 
 ```bash
 pip install openodia
 ```
 
-- If you want to directly build from the binary, please clone the repo and run `setup.py`.
-```shell
+### Using uv (recommended)
+
+[uv](https://docs.astral.sh/uv/) is a fast Python package installer and resolver.
+
+```bash
+# Install uv if you haven't already
+pip install uv
+
+# Install openodia
+uv pip install openodia
+
+# Or add to your project
+uv add openodia
+```
+
+### From source
+
+```bash
 git clone https://github.com/soumendrak/openodia.git
-python setup.py install
+cd openodia
+uv sync  # or: pip install -e .
 ```
 
 ## Usage and Documentation
