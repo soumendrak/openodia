@@ -3,6 +3,7 @@ Test cases for utility module
 """
 
 import logging
+
 import pytest
 from rich.logging import RichHandler
 

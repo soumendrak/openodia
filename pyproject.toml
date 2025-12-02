@@ -23,7 +23,6 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "numpy>=1.22.3",
     "Faker>=13.4.0",
     "deep-translator>=1.11.4",
     "rich>=12.2.0",

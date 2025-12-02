@@ -2,9 +2,10 @@
 Test cases for dictionary module
 """
 
-import pytest
-import os
 import json
+import os
+
+import pytest
 from unittest.mock import patch, mock_open
 
 from openodia.corpus.dictionary import get_dictionary
@@ -52,7 +53,7 @@ class TestDictionary:
 
         dict_file = os.path.join(os.path.dirname(dict_module.__file__), "En-Or_word_pairs_v3.json")
 
-        with open(dict_file, "r", encoding="utf-8") as f:
+        with open(dict_file, encoding="utf-8") as f:
             data = json.load(f)
             assert isinstance(data, dict)
 

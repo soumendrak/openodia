@@ -2,7 +2,6 @@
 Test cases for corpus module initialization
 """
 
-import pytest
 import os
 
 import openodia.corpus
@@ -41,7 +40,7 @@ class TestCorpusInit:
         json_file = os.path.join(corpus_dir, "En-Or_word_pairs_v3.json")
 
         # Test file can be opened and read
-        with open(json_file, "r", encoding="utf-8") as f:
+        with open(json_file, encoding="utf-8") as f:
             content = f.read(100)  # Read first 100 chars
             assert len(content) > 0
 
@@ -51,6 +50,6 @@ class TestCorpusInit:
         embeddings_file = os.path.join(corpus_dir, "embeddings.txt")
 
         # Test file can be opened and read
-        with open(embeddings_file, "r", encoding="utf-8") as f:
+        with open(embeddings_file, encoding="utf-8") as f:
             content = f.read(100)  # Read first 100 chars
             assert len(content) > 0

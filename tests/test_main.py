@@ -2,10 +2,10 @@
 Test cases for __main__ module
 """
 
-import pytest
 from io import StringIO
-import sys
 from unittest.mock import patch
+
+import pytest
 
 from openodia.__main__ import main
 

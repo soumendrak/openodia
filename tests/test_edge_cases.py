@@ -2,9 +2,10 @@
 Test cases for error handling and edge cases across the library
 """
 
-import pytest
-from unittest.mock import patch, mock_open
 import json
+from unittest.mock import mock_open, patch
+
+import pytest
 
 from openodia.corpus.dictionary import get_dictionary
 from openodia import WordFrequency, alphabet, name, ud
@@ -19,8 +20,8 @@ class TestErrorHandling:
         assert wf.text == ""
         # Should not raise an error
         try:
-            summary = wf.get_summary()
-            assert isinstance(summary, dict)
+            result = wf.get_summary()
+            assert isinstance(result, str)
         except Exception:
             pass  # Some implementations may not handle empty text
 
@@ -159,7 +160,6 @@ class TestErrorHandling:
     def test_thread_safety_basic(self):
         """Basic test for thread safety of dictionary loading"""
         import threading
-        import time
 
         results = []
         errors = []
