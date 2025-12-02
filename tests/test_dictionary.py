@@ -1,10 +1,12 @@
 """
 Test cases for dictionary module
 """
-import pytest
-import os
+
 import json
-from unittest.mock import patch, mock_open
+import os
+
+import pytest
+from unittest.mock import patch
 
 from openodia.corpus.dictionary import get_dictionary
 
@@ -40,6 +42,7 @@ class TestDictionary:
     def test_get_dictionary_file_path(self):
         """Test that dictionary file exists"""
         import openodia.corpus.dictionary as dict_module
+
         dict_file = os.path.join(os.path.dirname(dict_module.__file__), "En-Or_word_pairs_v3.json")
         assert os.path.exists(dict_file)
         assert dict_file.endswith("En-Or_word_pairs_v3.json")
@@ -47,21 +50,22 @@ class TestDictionary:
     def test_get_dictionary_file_format(self):
         """Test that dictionary file is valid JSON"""
         import openodia.corpus.dictionary as dict_module
+
         dict_file = os.path.join(os.path.dirname(dict_module.__file__), "En-Or_word_pairs_v3.json")
-        
-        with open(dict_file, 'r', encoding='utf-8') as f:
+
+        with open(dict_file, encoding="utf-8") as f:
             data = json.load(f)
             assert isinstance(data, dict)
 
-    @patch('builtins.open')
-    @patch('json.load')
+    @patch("builtins.open")
+    @patch("json.load")
     def test_get_dictionary_file_error_handling(self, mock_json_load, mock_file_open):
         """Test dictionary loading error handling"""
         # Clear the cache first
         get_dictionary.cache_clear()
-        
+
         mock_json_load.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
-        
+
         with pytest.raises(json.JSONDecodeError):
             get_dictionary()
 
@@ -73,5 +77,5 @@ class TestDictionary:
             assert isinstance(key, str)
             assert isinstance(value, str)
             # Ensure strings can be encoded/decoded without errors
-            key.encode('utf-8').decode('utf-8')
-            value.encode('utf-8').decode('utf-8')
+            key.encode("utf-8").decode("utf-8")
+            value.encode("utf-8").decode("utf-8")

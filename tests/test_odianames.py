@@ -131,12 +131,12 @@ class TestOdiaNames:
     def test_all_generated_names_are_strings(self):
         """Test that all generated items are strings"""
         prefixes = name.generate_prefixes(5)
-        names = name.generate_names(5)
+        generated_names = name.generate_names(5)
         firstnames = name.generate_firstnames(5, "male")
         middlenames = name.generate_middlenames(5)
         surnames = name.generate_surnames(5)
 
-        for item_list in [prefixes, names, firstnames, middlenames, surnames]:
+        for item_list in [prefixes, generated_names, firstnames, middlenames, surnames]:
             assert all(isinstance(item, str) for item in item_list)
             assert all(len(item) > 0 for item in item_list)
 
@@ -165,7 +165,7 @@ class TestOdiaNames:
         assert len(prefixes) > 0
         assert len(middlenames) > 0
         assert len(surnames) > 0
-        
+
         # Should not exceed the requested count
         assert len(prefixes) <= large_count
         assert len(middlenames) <= large_count
@@ -179,7 +179,7 @@ class TestOdiaNames:
             (name.generate_names, (5,)),
             (name.generate_firstnames, (5, "male")),
             (name.generate_middlenames, (5,)),
-            (name.generate_surnames, (5,))
+            (name.generate_surnames, (5,)),
         ]
 
         for method, params in methods_and_params:

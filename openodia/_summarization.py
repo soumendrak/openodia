@@ -1,5 +1,3 @@
-#!/usr/local/bin/python
-# -*- coding: utf-8 -*-
 """
 This module is regarding automatic text summarization
 Date: 25 Sep 2021
@@ -10,7 +8,6 @@ Reference: Automatic Text Summarization for Oriya language by Sujata Dash et al
 from abc import ABC, abstractmethod
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import List, Set
 
 from openodia._understandData import UnderstandData as ud
 from openodia.common.utility import LOGGER
@@ -19,8 +16,8 @@ from openodia.common.utility import LOGGER
 @dataclass
 class SummarizationBaseMethod(ABC):
     text: str = ""
-    token_list: List[str] = field(default_factory=list)
-    sentence_list: List[str] = field(default_factory=list)
+    token_list: list[str] = field(default_factory=list)
+    sentence_list: list[str] = field(default_factory=list)
 
     def get_tokens(self) -> None:
         """Get tokens from the text of the entire webpage"""
@@ -48,9 +45,12 @@ class SummarizationBaseMethod(ABC):
         number_of_words_in_text / number_of_unique_words_in_text
         Therefore, it will be always be greater than 1.0
         """
-        return self._number_of_words_in_text() / self._number_of_unique_words_in_text()
+        unique_words = self._number_of_unique_words_in_text()
+        if unique_words == 0:
+            return 1.0
+        return self._number_of_words_in_text() / unique_words
 
-    def words_having_higher_threshold(self, threshold_value: float = 1.0) -> Set[str]:
+    def words_having_higher_threshold(self, threshold_value: float = 1.0) -> set[str]:
         """Get the list of tokens having higher threshold value
         That means the words which are significant for the given text
         """
@@ -58,10 +58,10 @@ class SummarizationBaseMethod(ABC):
         LOGGER.debug(f"{threshold_value=}")
         token_ctr = Counter(self.token_list)
         LOGGER.debug(f"{token_ctr=}")
-        frequent_token_set = set([word for word in self.token_list if token_ctr[word] > threshold_value])
+        frequent_token_set = {word for word in self.token_list if token_ctr[word] > threshold_value}
         return frequent_token_set
 
-    def get_sentence_having_frequent_words(self, frequent_token_list: Set[str]) -> str:
+    def get_sentence_having_frequent_words(self, frequent_token_list: set[str]) -> str:
         """Get the sentences having the frequent words"""
         summarized_text = []
         for sentence in self.sentence_list:
@@ -80,7 +80,7 @@ class SummarizationBaseMethod(ABC):
 
 
 @dataclass
-class WordFrequency(SummarizationBaseMethod, ABC):
+class WordFrequency(SummarizationBaseMethod):
     """Get summarized text based on word frequency method"""
 
     def get_summary(self, threshold: float = None) -> str:

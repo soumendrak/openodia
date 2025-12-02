@@ -1,10 +1,7 @@
-import pytest
-
 from openodia import alphabet
 
 
 class TestLetters:
-    # -*- coding: utf-8 -*-
     ALL_CHAR_MAP = {
         "ଁ": 2817,
         "ଂ": 2818,

@@ -1,5 +1,4 @@
-from random import shuffle
-from typing import List
+import random
 
 from faker import Faker
 
@@ -19,15 +18,14 @@ class Names:
     """Names in Odia"""
 
     @classmethod
-    def generate_prefixes(cls, count: int = 10) -> List[str]:
+    def generate_prefixes(cls, count: int = 10) -> list[str]:
         """Generate prefixes
         :param count: number of prefixes to generate
         """
-        shuffle(PREFIXES)
-        return PREFIXES[:count]
+        return random.sample(PREFIXES, min(count, len(PREFIXES)))
 
     @classmethod
-    def generate_names(cls, count: int = 10) -> List[str]:
+    def generate_names(cls, count: int = 10) -> list[str]:
         """Generate Odia names
         :param count: number of names to generate
         """
@@ -37,41 +35,35 @@ class Names:
         return name_list
 
     @classmethod
-    def generate_firstnames(cls, count: int = 10, name_type: str = "") -> List[str]:
+    def generate_firstnames(cls, count: int = 10, name_type: str = "") -> list[str]:
         """Generate first names
         :param count: number of names to generate
         :param name_type: types of name to give
         """
         valid_types = ("female", "male", "unisex")
         if name_type.lower() == "male":
-            shuffle(FIRST_NAMES_MALE)
-            return FIRST_NAMES_MALE[:count]
+            return random.sample(FIRST_NAMES_MALE, min(count, len(FIRST_NAMES_MALE)))
         elif name_type.lower() == "female":
-            shuffle(FIRST_NAMES_FEMALE)
-            return FIRST_NAMES_FEMALE[:count]
+            return random.sample(FIRST_NAMES_FEMALE, min(count, len(FIRST_NAMES_FEMALE)))
         elif name_type.lower() == "unisex":
-            shuffle(FIRST_NAMES_UNISEX)
-            return FIRST_NAMES_UNISEX[:count]
+            return random.sample(FIRST_NAMES_UNISEX, min(count, len(FIRST_NAMES_UNISEX)))
         elif len(name_type) > 0:
             LOGGER.exception(f"Invalid {name_type=} provided.\n Please provide one of these {valid_types=}")
             raise ValueError("Invalid name_type provided")
         else:
             # send mix of all first names
-            shuffle(FIRST_NAMES)
-            return FIRST_NAMES[:count]
+            return random.sample(FIRST_NAMES, min(count, len(FIRST_NAMES)))
 
     @classmethod
-    def generate_middlenames(cls, count: int = 10) -> List[str]:
+    def generate_middlenames(cls, count: int = 10) -> list[str]:
         """Generate middle names
         :param count: number of middle names to generate
         """
-        shuffle(MIDDLE_NAMES)
-        return MIDDLE_NAMES[:count]
+        return random.sample(MIDDLE_NAMES, min(count, len(MIDDLE_NAMES)))
 
     @classmethod
-    def generate_surnames(cls, count: int = 10) -> List[str]:
+    def generate_surnames(cls, count: int = 10) -> list[str]:
         """Generate surnames
         :param count: number of surnames to generate
         """
-        shuffle(LAST_NAMES)
-        return LAST_NAMES[:count]
+        return random.sample(LAST_NAMES, min(count, len(LAST_NAMES)))

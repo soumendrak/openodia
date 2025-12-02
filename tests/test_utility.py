@@ -1,7 +1,9 @@
 """
 Test cases for utility module
 """
+
 import logging
+
 import pytest
 from rich.logging import RichHandler
 
@@ -23,8 +25,8 @@ class TestUtility:
     def test_logger_level(self):
         """Test logger level is set"""
         # Logger should have some level set
-        assert hasattr(LOGGER, 'level')
-        assert hasattr(LOGGER, 'handlers')
+        assert hasattr(LOGGER, "level")
+        assert hasattr(LOGGER, "handlers")
 
     def test_logger_can_log(self):
         """Test that logger can log messages"""
@@ -50,7 +52,7 @@ class TestUtility:
         # Test that logging has been configured
         root_logger = logging.getLogger()
         assert len(root_logger.handlers) >= 0  # May have handlers on root or parent
-        
+
         # Check if any handler is RichHandler (may be on parent logger)
         def has_rich_handler_recursive(logger):
             for handler in logger.handlers:
@@ -59,21 +61,21 @@ class TestUtility:
             if logger.parent and logger.parent != logger:
                 return has_rich_handler_recursive(logger.parent)
             return False
-        
+
         # The rich handler might be on the root logger or configured elsewhere
         # Just test that logging is working
-        assert hasattr(root_logger, 'handlers')
+        assert hasattr(root_logger, "handlers")
 
     def test_rich_handler_configuration(self):
         """Test RichHandler configuration"""
         root_logger = logging.getLogger()
         rich_handlers = [h for h in root_logger.handlers if isinstance(h, RichHandler)]
-        
+
         if rich_handlers:
             handler = rich_handlers[0]
             # Test that RichHandler has the expected configuration
-            assert hasattr(handler, 'rich_tracebacks')
-            assert hasattr(handler, 'tracebacks_show_locals')
+            assert hasattr(handler, "rich_tracebacks")
+            assert hasattr(handler, "tracebacks_show_locals")
 
     def test_logger_inheritance(self):
         """Test logger inheritance from root logger"""
@@ -89,7 +91,7 @@ class TestUtility:
     def test_logger_propagate(self):
         """Test logger propagation setting"""
         # By default, loggers should propagate to parent
-        assert hasattr(LOGGER, 'propagate')
+        assert hasattr(LOGGER, "propagate")
         assert isinstance(LOGGER.propagate, bool)
 
     def test_can_create_log_record(self):
@@ -105,6 +107,6 @@ class TestUtility:
 
     def test_logger_disabled_state(self):
         """Test logger disabled state"""
-        assert hasattr(LOGGER, 'disabled')
+        assert hasattr(LOGGER, "disabled")
         # Logger should not be disabled by default
         assert not LOGGER.disabled

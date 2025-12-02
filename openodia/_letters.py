@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Letters in Odia language
 @author: Soumendra Kumar Sahoo
 @date: 19-Sep-2021
