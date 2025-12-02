@@ -48,7 +48,10 @@ class SummarizationBaseMethod(ABC):
         number_of_words_in_text / number_of_unique_words_in_text
         Therefore, it will be always be greater than 1.0
         """
-        return self._number_of_words_in_text() / self._number_of_unique_words_in_text()
+        unique_words = self._number_of_unique_words_in_text()
+        if unique_words == 0:
+            return 1.0
+        return self._number_of_words_in_text() / unique_words
 
     def words_having_higher_threshold(self, threshold_value: float = 1.0) -> Set[str]:
         """Get the list of tokens having higher threshold value
@@ -58,7 +61,7 @@ class SummarizationBaseMethod(ABC):
         LOGGER.debug(f"{threshold_value=}")
         token_ctr = Counter(self.token_list)
         LOGGER.debug(f"{token_ctr=}")
-        frequent_token_set = set([word for word in self.token_list if token_ctr[word] > threshold_value])
+        frequent_token_set = {word for word in self.token_list if token_ctr[word] > threshold_value}
         return frequent_token_set
 
     def get_sentence_having_frequent_words(self, frequent_token_list: Set[str]) -> str:
@@ -80,7 +83,7 @@ class SummarizationBaseMethod(ABC):
 
 
 @dataclass
-class WordFrequency(SummarizationBaseMethod, ABC):
+class WordFrequency(SummarizationBaseMethod):
     """Get summarized text based on word frequency method"""
 
     def get_summary(self, threshold: float = None) -> str:

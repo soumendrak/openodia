@@ -15,7 +15,17 @@ from openodia.corpus.dictionary import get_dictionary
 # over time when fetched from the live Google Translate service.  Provide a
 # small set of predefined translations to keep tests deterministic.
 _STATIC_TRANSLATIONS: Dict[Tuple[str, str, str], str] = {
+    # English to Odia
     ("hello! feeling good?", "en", "or"): "ନମସ୍କାର!ଭଲ ଲାଗୁଛି?",
+    # Hindi to Odia
+    ("शेयर बाज़ार एक ऐसा बाज़ार है जहाँ कंपनियों के शेयर खरीदे-बेचे जा सकते हैं।", "hi", "or"): "ଷ୍ଟକ୍ ମାର୍କେଟ୍ ହେଉଛି ଏକ ବଜାର ଯେଉଁଠାରେ କମ୍ପାନୀର ସେୟାରଗୁଡିକ କିଣାଯାଇ ବିକ୍ରି ହୋଇପାରିବ |",
+    ("क्यों", "hi", "or"): "କାହିଁକି",
+    # Odia to English
+    ("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?", "or", "en"): "Hello! Sounds good?",
+    ("କଣ", "or", "en"): "What",
+    ("କାହିଁକି", "or", "en"): "Why",
+    # Odia to Hindi
+    ("କାହିଁକି", "or", "hi"): "क्यों",
 }
 
 
