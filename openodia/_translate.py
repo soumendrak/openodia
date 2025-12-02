@@ -5,7 +5,6 @@ Google wrapper for odia language
 """
 
 from functools import lru_cache
-from typing import Dict, Tuple
 
 from deep_translator import GoogleTranslator
 
@@ -14,7 +13,7 @@ from openodia.corpus.dictionary import get_dictionary
 # Certain phrases are used in the test-suite and their translation can change
 # over time when fetched from the live Google Translate service.  Provide a
 # small set of predefined translations to keep tests deterministic.
-_STATIC_TRANSLATIONS: Dict[Tuple[str, str, str], str] = {
+_STATIC_TRANSLATIONS: dict[tuple[str, str, str], str] = {
     # English to Odia
     ("hello! feeling good?", "en", "or"): "ନମସ୍କାର!ଭଲ ଲାଗୁଛି?",
     # Hindi to Odia

@@ -1,5 +1,4 @@
 import random
-from typing import List
 
 from faker import Faker
 
@@ -19,14 +18,14 @@ class Names:
     """Names in Odia"""
 
     @classmethod
-    def generate_prefixes(cls, count: int = 10) -> List[str]:
+    def generate_prefixes(cls, count: int = 10) -> list[str]:
         """Generate prefixes
         :param count: number of prefixes to generate
         """
         return random.sample(PREFIXES, min(count, len(PREFIXES)))
 
     @classmethod
-    def generate_names(cls, count: int = 10) -> List[str]:
+    def generate_names(cls, count: int = 10) -> list[str]:
         """Generate Odia names
         :param count: number of names to generate
         """
@@ -36,7 +35,7 @@ class Names:
         return name_list
 
     @classmethod
-    def generate_firstnames(cls, count: int = 10, name_type: str = "") -> List[str]:
+    def generate_firstnames(cls, count: int = 10, name_type: str = "") -> list[str]:
         """Generate first names
         :param count: number of names to generate
         :param name_type: types of name to give
@@ -56,14 +55,14 @@ class Names:
             return random.sample(FIRST_NAMES, min(count, len(FIRST_NAMES)))
 
     @classmethod
-    def generate_middlenames(cls, count: int = 10) -> List[str]:
+    def generate_middlenames(cls, count: int = 10) -> list[str]:
         """Generate middle names
         :param count: number of middle names to generate
         """
         return random.sample(MIDDLE_NAMES, min(count, len(MIDDLE_NAMES)))
 
     @classmethod
-    def generate_surnames(cls, count: int = 10) -> List[str]:
+    def generate_surnames(cls, count: int = 10) -> list[str]:
         """Generate surnames
         :param count: number of surnames to generate
         """
