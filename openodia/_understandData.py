@@ -6,7 +6,7 @@ from openodia.common.utility import LOGGER
 
 # Odia Unicode block range (U+0B01 to U+0B72)
 ODIA_UNICODE_START = 0x0B01  # 2817
-ODIA_UNICODE_END = 0x0B72    # 2930
+ODIA_UNICODE_END = 0x0B72  # 2930
 
 
 class UnderstandData:

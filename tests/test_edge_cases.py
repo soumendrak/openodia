@@ -1,6 +1,7 @@
 """
 Test cases for error handling and edge cases across the library
 """
+
 import pytest
 from unittest.mock import patch, mock_open
 import json
@@ -45,7 +46,7 @@ class TestErrorHandling:
 
     def test_alphabet_methods_return_types(self):
         """Test that alphabet methods return expected types"""
-        assert hasattr(alphabet, 'all_letters')
+        assert hasattr(alphabet, "all_letters")
         letters = alphabet.all_letters
         assert isinstance(letters, (list, str))
 
@@ -118,9 +119,9 @@ class TestErrorHandling:
         """Test dictionary loading with corrupted data"""
         # Clear cache first
         get_dictionary.cache_clear()
-        
-        with patch('builtins.open', mock_open(read_data='invalid json')):
-            with patch('json.load') as mock_json:
+
+        with patch("builtins.open", mock_open(read_data="invalid json")):
+            with patch("json.load") as mock_json:
                 mock_json.side_effect = json.JSONDecodeError("Invalid", "", 0)
                 with pytest.raises(json.JSONDecodeError):
                     get_dictionary()
@@ -129,7 +130,7 @@ class TestErrorHandling:
         """Test handling of various Unicode characters"""
         # Test with Odia text
         odia_text = "ଓଡିଆ ଭାଷା"
-        
+
         try:
             wf = WordFrequency(odia_text)
             assert wf.text == odia_text
@@ -148,7 +149,7 @@ class TestErrorHandling:
         """Test memory efficiency with large inputs"""
         # Test with reasonably large text
         large_text = "ଓଡିଆ " * 1000
-        
+
         try:
             wf = WordFrequency(large_text)
             assert isinstance(wf.text, str)
@@ -159,28 +160,28 @@ class TestErrorHandling:
         """Basic test for thread safety of dictionary loading"""
         import threading
         import time
-        
+
         results = []
         errors = []
-        
+
         def load_dict():
             try:
                 result = get_dictionary()
                 results.append(len(result))
             except Exception as e:
                 errors.append(e)
-        
+
         # Create multiple threads
         threads = []
         for _ in range(5):
             thread = threading.Thread(target=load_dict)
             threads.append(thread)
             thread.start()
-        
+
         # Wait for all threads
         for thread in threads:
             thread.join()
-        
+
         # Should not have errors and all results should be the same
         assert len(errors) == 0
         assert len(set(results)) <= 1  # All results should be identical

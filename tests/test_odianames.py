@@ -165,7 +165,7 @@ class TestOdiaNames:
         assert len(prefixes) > 0
         assert len(middlenames) > 0
         assert len(surnames) > 0
-        
+
         # Should not exceed the requested count
         assert len(prefixes) <= large_count
         assert len(middlenames) <= large_count
@@ -179,7 +179,7 @@ class TestOdiaNames:
             (name.generate_names, (5,)),
             (name.generate_firstnames, (5, "male")),
             (name.generate_middlenames, (5,)),
-            (name.generate_surnames, (5,))
+            (name.generate_surnames, (5,)),
         ]
 
         for method, params in methods_and_params:
