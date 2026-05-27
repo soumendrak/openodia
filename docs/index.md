@@ -68,6 +68,37 @@ The tools are available in Odia language.
 - [x] [Google Translate](#translation)
 - [x] [Automatic extractive text summarization](#automatic-extractive-text-summarization)
 - [x] [Add Dictionary corpus](#offline-dictionary)
+- [x] [Unicode normalization & clean](#unicode-normalization)
+
+
+### :material-broom: Unicode normalization
+
+- The same visible Odia string can be encoded in many byte sequences (e.g. precomposed vs decomposed nukta `ଡ଼`, stray ZWJ/ZWNJ from copy-paste, Latin digits mixed in with Odia).
+- Normalize text before tokenizing, indexing, hashing, or comparing.
+
+```python
+from openodia import normalize, clean
+
+# Pure Unicode normalization (NFC / NFD / NFKC / NFKD)
+normalize("ଡ" + "଼")           # "ଡ଼"  (composed)
+normalize("ଡ଼", form="NFD")    # "ଡ" + "଼"  (decomposed)
+
+# Opinionated cleanup: NFC + strip ZWJ/ZWNJ + collapse whitespace
+clean("  ନମ‌ସ୍କାର   ଓଡ଼ିଆ  ")
+# "ନମସ୍କାର ଓଡ଼ିଆ"
+
+# Optional digit conversion (off by default)
+from openodia.text import CleanOptions
+clean("ଆଜି 123 ବର୍ଷ", options=CleanOptions(latin_to_odia_digits=True))
+# "ଆଜି ୧୨୩ ବର୍ଷ"
+
+clean("ଆଜି ୧୨୩ ବର୍ଷ", options=CleanOptions(odia_to_latin_digits=True))
+# "ଆଜି 123 ବର୍ଷ"
+```
+
+??? hint "`clean()` is idempotent"
+    `clean(clean(x)) == clean(x)` always holds, so it is safe to apply repeatedly
+    or sprinkle through a pipeline without compounding side-effects.
 
 
 ### :material-format-letter-case: Odia alphabets 
