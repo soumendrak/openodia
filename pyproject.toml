@@ -51,6 +51,9 @@ Repository = "https://github.com/soumendrak/openodia"
 Documentation = "https://openodia.soumendrak.com"
 Issues = "https://github.com/soumendrak/openodia/issues"
 
+[project.scripts]
+openodia = "openodia.cli:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
