@@ -72,6 +72,7 @@ The tools are available in Odia language.
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
+- [x] [Sentence segmenter](#sentence-segmenter)
 
 
 ### :material-broom: Unicode normalization
@@ -209,6 +210,38 @@ numbers.odia_to_ascii("୨୦୨୬")   # '2026'
     as a single tuple of length 100. Native-speaker corrections land there
     and are picked up by every API in this module automatically.
 
+### :material-call-split: Sentence segmenter
+
+- Splits text into sentences on Odia (`।`, `॥`) and Latin (`.`, `?`, `!`, `…`) terminators.
+- Decimal numbers (`୨.୫`, `2.5`) and common abbreviations (`ଡଃ`, `Dr.`, `e.g.`) do **not** trigger a split.
+- Each sentence keeps its terminator by default.
+
+```python
+from openodia import sentences
+
+sentences("ଆଜି ୨.୫ କୋଟି। ଆଗକୁ କଣ? ଭଲ ଦିନ!")
+# ['ଆଜି ୨.୫ କୋଟି।', 'ଆଗକୁ କଣ?', 'ଭଲ ଦିନ!']
+
+sentences("ଡଃ ସୁନୀତା ଆସିଲେ। ସେ କଲେଜରେ ପଢ଼ାନ୍ତି।")
+# ['ଡଃ ସୁନୀତା ଆସିଲେ।', 'ସେ କଲେଜରେ ପଢ଼ାନ୍ତି।']
+
+# Strict mode: only Odia terminators trigger splits.
+sentences("Hi. ତୁମେ କେମିତି।", mode="strict")
+# ['Hi. ତୁମେ କେମିତି।']
+
+# Strip terminators
+sentences("Hello. World!", keep_terminators=False)
+# ['Hello', 'World']
+```
+
+??? hint "Extending the abbreviations list"
+    `openodia.segment.ABBREVIATIONS` is a public tuple. Project-specific
+    vocabulary (e.g. trade names, place abbreviations) can be added by
+    extending it in a wrapper module.
+
+??? note "Existing `ud.sentence_tokenizer` is unchanged"
+    The pre-existing helper continues to behave exactly as before (splits
+    on `" ।"` only). Adopt `openodia.sentences()` for new code.
 
 ### :material-format-letter-case: Odia alphabets 
 
