@@ -72,6 +72,7 @@ The tools are available in Odia language.
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
 - [x] [Translation cache configuration](#translation-cache)
+- [x] [Numbers, dates, and currency in words](#numbers-and-words)
 
 
 ### :material-broom: Unicode normalization
@@ -188,6 +189,53 @@ cache.clear()
     [`diskcache`](https://pypi.org/project/diskcache/). Calling
     `cache.configure(disk_path=...)` without the extra raises a clear
     `ImportError`. The base install has no new dependency.
+### :material-numeric: Numbers and words
+
+- Convert between integers and Odia words, in both **Indian** (lakh / crore) and **short** (million / billion / trillion) numbering scales.
+- Verbalise dates, currency amounts, and ordinals.
+- Bidirectional Odia ↔ ASCII digit conversion.
+
+```python
+from openodia import numbers
+
+# Cardinal numbers
+numbers.to_words(1234)
+# 'ଏକ ହଜାର ଦୁଇ ଶହ ଚଉତିରିଶ'
+
+numbers.to_words(12_34_567)            # Indian: lakh / crore
+# 'ବାର ଲକ୍ଷ ଚଉତିରିଶ ହଜାର ପାଞ୍ଚ ଶହ ସତଷଠି'
+
+numbers.to_words(1_000_000, scale="short")
+# 'ଏକ ମିଲିୟନ'
+
+numbers.to_words(-100)
+# 'ଋଣାତ୍ମକ ଏକ ଶହ'
+
+# Reverse direction
+numbers.from_words("ଏକ ହଜାର ଦୁଇ ଶହ ଚଉତିରିଶ")  # 1234
+
+# Ordinals (1..10 irregular, 11+ uses 'ତମ' suffix)
+numbers.to_ordinal(3)          # 'ତୃତୀୟ'
+numbers.to_ordinal(11)         # 'ଏଗାରତମ'
+
+# Currency
+numbers.to_words_currency(1500.50)
+# 'ଏକ ହଜାର ପାଞ୍ଚ ଶହ ଟଙ୍କା ପଚାଶ ପଇସା'
+
+# Date verbalisation
+from datetime import date
+numbers.to_words_date(date(2026, 5, 27))
+# '<day ordinal> ମଇ, ଦୁଇ ହଜାର ଛବିଶ'
+
+# Digit conversion
+numbers.ascii_to_odia("2026")   # '୨୦୨୬'
+numbers.odia_to_ascii("୨୦୨୬")   # '2026'
+```
+
+??? note "Number words 0..99"
+    The Odia counting table below 100 lives at `openodia/numbers/_tables.py`
+    as a single tuple of length 100. Native-speaker corrections land there
+    and are picked up by every API in this module automatically.
 
 
 ### :material-format-letter-case: Odia alphabets 
