@@ -64,7 +64,7 @@ class TestConstants:
 
     def test_stopwords_are_strings(self):
         """Test that all stopwords are strings"""
-        assert all(isinstance(word, str) for word in STOPWORDS[:20])
+        assert all(isinstance(word, str) for word in STOPWORDS)
 
     def test_constants_immutability(self):
         """Test that constants are immutable (lists but content should not change)"""
@@ -91,12 +91,9 @@ class TestConstants:
         assert len(PREFIXES) == len(set(PREFIXES))
 
     def test_stopwords_unique(self):
-        """Test that stopwords are unique"""
-        # Note: STOPWORDS may have intentional duplicates for linguistic reasons
-        # assert len(STOPWORDS) == len(set(STOPWORDS))
-        # Instead, just test that we can create a set without errors
-        stopwords_set = set(STOPWORDS)
-        assert len(stopwords_set) > 0
+        """STOPWORDS is now a frozenset, so uniqueness is guaranteed by construction."""
+        assert len(STOPWORDS) == len(set(STOPWORDS))
+        assert len(STOPWORDS) > 0
 
     def test_names_non_empty_strings(self):
         """Test that names are non-empty strings"""
@@ -112,7 +109,7 @@ class TestConstants:
 
     def test_stopwords_non_empty_strings(self):
         """Test that stopwords are non-empty strings"""
-        assert all(len(word.strip()) > 0 for word in STOPWORDS[:20])
+        assert all(len(word.strip()) > 0 for word in STOPWORDS)
 
     def test_names_encoding(self):
         """Test that names can be properly encoded/decoded"""
@@ -134,7 +131,7 @@ class TestConstants:
         assert any(contains_odia(name) for name in FIRST_NAMES_FEMALE[:20])
         assert any(contains_odia(name) for name in FIRST_NAMES_MALE[:20])
         assert any(contains_odia(prefix) for prefix in PREFIXES)
-        assert any(contains_odia(word) for word in STOPWORDS[:20])
+        assert any(contains_odia(word) for word in STOPWORDS)
 
     def test_constant_types_consistency(self):
         """Test that all constants are of expected types"""
@@ -148,9 +145,11 @@ class TestConstants:
             FIRST_NAMES_UNISEX,
             MIDDLE_NAMES,
             LAST_NAMES,
-            STOPWORDS,
         ]
 
         for constant in list_constants:
             assert isinstance(constant, list)
             assert len(constant) > 0
+
+        assert isinstance(STOPWORDS, frozenset)
+        assert len(STOPWORDS) > 0

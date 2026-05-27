@@ -82,11 +82,11 @@ class TestInit:
         assert wf.text == "Test text"
 
     def test_stopwords_import(self):
-        """Test STOPWORDS import"""
+        """Test STOPWORDS import. It is a frozenset for O(1) membership checks."""
         from openodia import STOPWORDS
 
         assert STOPWORDS is not None
-        assert isinstance(STOPWORDS, list)
+        assert isinstance(STOPWORDS, frozenset)
         assert len(STOPWORDS) > 0
 
     def test_module_docstring(self):
