@@ -4,10 +4,9 @@ Author: Soumendra Kumar Sahoo
 Google wrapper for odia language
 """
 
-from functools import lru_cache
-
 from deep_translator import GoogleTranslator
 
+from openodia.cache import get_cache
 from openodia.corpus.dictionary import get_dictionary
 
 # Certain phrases are used in the test-suite and their translation can change
@@ -39,19 +38,30 @@ def _search_offline_dictionary(text: str) -> str:
     return translated_odia_text
 
 
-@lru_cache(maxsize=10000)
 def _hit_google_api(text: str, source_lang_code: str, destination_lang_code: str) -> str:
     """Translate text using Google Translate.
 
-    For phrases that exist in :data:`_STATIC_TRANSLATIONS` the cached value is
-    returned to avoid network dependency during testing.
+    Results are routed through :mod:`openodia.cache` so callers can resize,
+    persist, or inspect the cache. Phrases listed in
+    :data:`_STATIC_TRANSLATIONS` are returned directly to keep tests
+    deterministic; they are stored in the cache on first use so subsequent
+    lookups never need a network call.
     """
-    cached = _STATIC_TRANSLATIONS.get((text, source_lang_code, destination_lang_code))
+    key = (text, source_lang_code, destination_lang_code)
+    cache = get_cache()
+    cached = cache.get(key)
     if cached is not None:
         return cached
 
+    static = _STATIC_TRANSLATIONS.get(key)
+    if static is not None:
+        cache.set(key, static)
+        return static
+
     translator = GoogleTranslator(source=source_lang_code, target=destination_lang_code)
-    return translator.translate(text)
+    result = translator.translate(text)
+    cache.set(key, result)
+    return result
 
 
 def other_lang_to_odia(text: str, source_language_code: str = "en") -> str:

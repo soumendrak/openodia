@@ -2,6 +2,7 @@
 
 __version__ = "0.1.12"
 
+from . import cache
 from .common.constants import STOPWORDS
 from ._letters import Letters as alphabet
 from ._odianames import Names as name
@@ -15,6 +16,7 @@ from .text import clean, normalize
 
 __all__ = [
     "alphabet",
+    "cache",
     "clean",
     "collocations",
     "cooccurrence",

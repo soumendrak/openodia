@@ -29,6 +29,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+cache = [
+    "diskcache>=5.0.0",
+]
 docs = [
     "mkdocs>=1.2.2",
     "mkdocs-git-revision-date-localized-plugin>=0.10.0",
@@ -44,6 +47,7 @@ dev = [
     "mkdocs>=1.2.2",
     "mkdocs-git-revision-date-localized-plugin>=0.10.0",
     "mkdocs-material>=7.3.2",
+    "diskcache>=5.0.0",
 ]
 
 [project.urls]
