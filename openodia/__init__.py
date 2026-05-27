@@ -8,6 +8,7 @@ from ._odianames import Names as name
 from ._summarization import WordFrequency
 from ._translate import odia_to_other_lang, other_lang_to_odia, universal_translation
 from ._understandData import UnderstandData as ud
+from . import numbers
 from . import syllable
 from .stats import FreqDist, collocations, cooccurrence, ngrams
 from .stopwords import Stopwords
@@ -22,6 +23,7 @@ __all__ = [
     "name",
     "ngrams",
     "normalize",
+    "numbers",
     "odia_to_other_lang",
     "other_lang_to_odia",
     "STOPWORDS",
