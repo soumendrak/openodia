@@ -290,6 +290,34 @@ ud.remove_stopwords("ରାମ ଓ ସୀତା ଆମକୁ ଆଶୀର୍ବ�
 ```
 Here the stopwords `ଓ` and `ଦେଇଛନ୍ତି` are removed from the text.
 
+#### Customising the stopword list
+
+`STOPWORDS` is a `frozenset` you can extend or replace per call. For richer
+workflows use the `Stopwords` class, which supports add / remove,
+loading from a file, deriving from a corpus, and saving back to disk.
+
+```python
+from openodia import Stopwords, ud
+
+# Start from the bundled list and tweak it.
+sw = Stopwords.default().add("ପ୍ରାୟ").remove("ଓ")
+ud.remove_stopwords("ରାମ ଓ ସୀତା", stopwords=sw)
+# ['ରାମ', 'ଓ', 'ସୀତା']  — 'ଓ' kept because we removed it from the list
+
+# Load a domain-specific list from disk.
+legal = Stopwords.from_file("legal_stopwords.txt")
+ud.remove_stopwords(article, stopwords=legal)
+
+# Derive a list from corpus frequency.
+auto = Stopwords.from_corpus(tokens, top_n=100)
+auto.save("derived_stopwords.txt")
+```
+
+Any container supporting `token in stopwords` works — `Stopwords`,
+`frozenset[str]`, `set[str]`, or `list[str]`. The bundled `STOPWORDS`
+constant remains the default when the kwarg is omitted, so existing code
+keeps working unchanged.
+
 ### :material-translate: Translation
 
 - The translation module is a wrapper on top of Google Translate API.

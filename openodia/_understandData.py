@@ -1,4 +1,5 @@
 import re
+from collections.abc import Container
 from typing import Any
 
 from openodia.common.constants import STOPWORDS
@@ -29,13 +30,26 @@ class UnderstandData:
         return sent_list
 
     @classmethod
-    def remove_stopwords(cls, text: str | list[str], get_str: bool = False) -> list[str] | str:
-        """Remove frequently used words from the text
-        :param text: It can take both tokens and text string as input
-        :param get_str: provide whether the output needed on str or list
+    def remove_stopwords(
+        cls,
+        text: str | list[str],
+        get_str: bool = False,
+        stopwords: Container[str] | None = None,
+    ) -> list[str] | str:
+        """Remove frequently used words from the text.
+
+        :param text: It can take both tokens and text string as input.
+        :param get_str: Whether the output should be a single string instead
+            of a list of tokens.
+        :param stopwords: Optional custom container. Anything that supports
+            ``token in stopwords`` works — :class:`openodia.Stopwords`,
+            ``frozenset[str]``, ``set[str]``, ``list[str]``, etc. Defaults
+            to the bundled :data:`openodia.STOPWORDS`.
         """
+        if stopwords is None:
+            stopwords = STOPWORDS
         token_list: list[str] = cls.word_tokenizer(text) if isinstance(text, str) else text
-        cleaned_tokens = [token for token in token_list if token not in STOPWORDS]
+        cleaned_tokens = [token for token in token_list if token not in stopwords]
         return " ".join(cleaned_tokens) if get_str else cleaned_tokens
 
     @classmethod
