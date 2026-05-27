@@ -526,6 +526,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Remove stopwords">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#customising-the-stopword-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customising the stopword list
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -934,6 +951,29 @@ or sprinkle through a pipeline without compounding side-effects.</p>
 <span class="sd">&#39;&#39;&#39;</span>
 </code></pre></div>
 Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> are removed from the text.</p>
+<h4 id="customising-the-stopword-list">Customising the stopword list<a class="headerlink" href="#customising-the-stopword-list" title="Permanent link">&para;</a></h4>
+<p><code>STOPWORDS</code> is a <code>frozenset</code> you can extend or replace per call. For richer
+workflows use the <code>Stopwords</code> class, which supports add / remove,
+loading from a file, deriving from a corpus, and saving back to disk.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">Stopwords</span><span class="p">,</span> <span class="n">ud</span>
+
+<span class="c1"># Start from the bundled list and tweak it.</span>
+<span class="n">sw</span> <span class="o">=</span> <span class="n">Stopwords</span><span class="o">.</span><span class="n">default</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;ପ୍ରାୟ&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;ଓ&quot;</span><span class="p">)</span>
+<span class="n">ud</span><span class="o">.</span><span class="n">remove_stopwords</span><span class="p">(</span><span class="s2">&quot;ରାମ ଓ ସୀତା&quot;</span><span class="p">,</span> <span class="n">stopwords</span><span class="o">=</span><span class="n">sw</span><span class="p">)</span>
+<span class="c1"># [&#39;ରାମ&#39;, &#39;ଓ&#39;, &#39;ସୀତା&#39;]  — &#39;ଓ&#39; kept because we removed it from the list</span>
+
+<span class="c1"># Load a domain-specific list from disk.</span>
+<span class="n">legal</span> <span class="o">=</span> <span class="n">Stopwords</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;legal_stopwords.txt&quot;</span><span class="p">)</span>
+<span class="n">ud</span><span class="o">.</span><span class="n">remove_stopwords</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">stopwords</span><span class="o">=</span><span class="n">legal</span><span class="p">)</span>
+
+<span class="c1"># Derive a list from corpus frequency.</span>
+<span class="n">auto</span> <span class="o">=</span> <span class="n">Stopwords</span><span class="o">.</span><span class="n">from_corpus</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">top_n</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">auto</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;derived_stopwords.txt&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Any container supporting <code>token in stopwords</code> works — <code>Stopwords</code>,
+<code>frozenset[str]</code>, <code>set[str]</code>, or <code>list[str]</code>. The bundled <code>STOPWORDS</code>
+constant remains the default when the kwarg is omitted, so existing code
+keeps working unchanged.</p>
 <h3 id="translation"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg></span> Translation<a class="headerlink" href="#translation" title="Permanent link">&para;</a></h3>
 <ul>
 <li>The translation module is a wrapper on top of Google Translate API.</li>
@@ -1081,7 +1121,7 @@ Here the stopwords <code>ଓ</code> and <code>ଦେଇଛନ୍ତି</code> ar
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 27, 2026 06:13:33 UTC"><span class="timeago" datetime="2026-05-27T06:13:33+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 27, 2026 06:13:33 UTC">2026-05-27</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 27, 2026 06:25:39 UTC"><span class="timeago" datetime="2026-05-27T06:25:39+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 27, 2026 06:25:39 UTC">2026-05-27</span>
   </span>
 
     
