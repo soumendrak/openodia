@@ -71,6 +71,7 @@ The tools are available in Odia language.
 - [x] [Unicode normalization & clean](#unicode-normalization)
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
+- [x] [Romanisation](#romanisation)
 
 
 ### :material-broom: Unicode normalization
@@ -159,6 +160,28 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ??? note "Round-trip property"
     `"".join(syllable.split(word)) == word` for any input — the splitter
     is a strict tokeniser, never modifying or normalising characters.
+
+
+### :material-alphabetical-variant: Romanisation
+
+- Three schemes — pick by use case:
+  - **ISO 15919** — academic / library transliteration, reversible, uses diacritics.
+  - **Hunterian** — Govt-of-India transliteration, ASCII, lossy (no diacritics).
+  - **ITRANS** — ASCII-only, keyboard-friendly, reversible.
+
+```python
+from openodia import roman
+
+roman.to_roman("ଓଡ଼ିଆ", "ISO15919")   # 'ōḍiā'
+roman.to_roman("ଓଡ଼ିଆ", "Hunterian")  # 'odia'
+roman.to_roman("ଓଡ଼ିଆ", "ITRANS")     # 'o.DiA'
+
+roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କାର' (best-effort)
+```
+
+??? note "Round-trip"
+    `to_roman` + `from_roman` round-trip exactly for `ISO15919` and
+    `ITRANS`. `Hunterian` is intentionally lossy; decoding is best-effort.
 
 ### :material-format-letter-case: Odia alphabets 
 
