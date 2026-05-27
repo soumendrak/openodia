@@ -463,6 +463,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#corpus-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Corpus statistics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#odia-alphabets" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -751,6 +762,7 @@ uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># or: pi
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#automatic-extractive-text-summarization">Automatic extractive text summarization</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#offline-dictionary">Add Dictionary corpus</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#unicode-normalization">Unicode normalization &amp; clean</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#corpus-statistics">Corpus statistics</a></li>
 </ul>
 <h3 id="unicode-normalization"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m19.36 2.72 1.42 1.42-5.72 5.71c1.07 1.54 1.22 3.39.32 4.59L9.06 8.12c1.2-.9 3.05-.75 4.59.32zM5.93 17.57c-2.01-2.01-3.24-4.41-3.58-6.65l4.88-2.09 7.44 7.44-2.09 4.88c-2.24-.34-4.64-1.57-6.65-3.58"/></svg></span> Unicode normalization<a class="headerlink" href="#unicode-normalization" title="Permanent link">&para;</a></h3>
 <ul>
@@ -779,6 +791,41 @@ uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># or: pi
 <summary><code>clean()</code> is idempotent</summary>
 <p><code>clean(clean(x)) == clean(x)</code> always holds, so it is safe to apply repeatedly
 or sprinkle through a pipeline without compounding side-effects.</p>
+</details>
+<h3 id="corpus-statistics"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 21H2V3h2v16h2v-9h4v9h2V6h4v13h2v-5h4z"/></svg></span> Corpus statistics<a class="headerlink" href="#corpus-statistics" title="Permanent link">&para;</a></h3>
+<ul>
+<li>N-grams, frequency distribution, collocations, and co-occurrence — pure-stdlib utilities for corpus exploration.</li>
+<li>All functions accept either a pre-tokenised <code>list[str]</code> or a raw string (auto-tokenised via <code>ud.word_tokenizer</code>).</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreqDist</span><span class="p">,</span> <span class="n">ngrams</span><span class="p">,</span> <span class="n">collocations</span><span class="p">,</span> <span class="n">cooccurrence</span>
+
+<span class="n">tokens</span> <span class="o">=</span> <span class="s2">&quot;ରାମ ସୀତା ରାମ ଲକ୍ଷ୍ମଣ&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+<span class="c1"># N-grams (generator)</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">ngrams</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="c1"># [(&#39;ରାମ&#39;, &#39;ସୀତା&#39;), (&#39;ସୀତା&#39;, &#39;ରାମ&#39;), (&#39;ରାମ&#39;, &#39;ଲକ୍ଷ୍ମଣ&#39;)]</span>
+
+<span class="c1"># Frequency distribution — a Counter subclass with hapaxes / entropy / TTR.</span>
+<span class="n">fd</span> <span class="o">=</span> <span class="n">FreqDist</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+<span class="n">fd</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>        <span class="c1"># [(&#39;ରାମ&#39;, 2), (&#39;ସୀତା&#39;, 1)]</span>
+<span class="n">fd</span><span class="o">.</span><span class="n">hapaxes</span><span class="p">()</span>             <span class="c1"># [&#39;ସୀତା&#39;, &#39;ଲକ୍ଷ୍ମଣ&#39;]</span>
+<span class="n">fd</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span>             <span class="c1"># Shannon entropy (bits)</span>
+<span class="n">fd</span><span class="o">.</span><span class="n">ttr</span>                   <span class="c1"># type-token ratio</span>
+
+<span class="c1"># PMI-scored bigram collocations.</span>
+<span class="n">collocations</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">min_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># [((&#39;ରାମ&#39;, &#39;ଲକ୍ଷ୍ମଣ&#39;), 1.0), ...]</span>
+
+<span class="c1"># Co-occurrence within a window (symmetric by default).</span>
+<span class="n">cooccurrence</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="c1"># Counter({(&#39;ରାମ&#39;, &#39;ସୀତା&#39;): 2, ...})</span>
+</code></pre></div>
+<details class="note">
+<summary>v1 scope</summary>
+<ul>
+<li><code>collocations</code> ships PMI scoring only. Log-likelihood and chi-square are easy follow-ups.</li>
+<li>Plot helpers are intentionally out of scope to keep the base install free of matplotlib.</li>
+</ul>
 </details>
 <h3 id="odia-alphabets"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.06 18a4 4 0 0 1-.2-.89c-.67.7-1.48 1.05-2.41 1.05-.83 0-1.52-.24-2.05-.71-.53-.45-.8-1.06-.8-1.79 0-.88.33-1.56 1-2.05s1.61-.73 2.83-.73h1.4v-.64q0-.735-.45-1.17c-.3-.29-.75-.43-1.33-.43-.52 0-.95.12-1.3.36-.35.25-.52.54-.52.89h-1.46c0-.43.15-.84.45-1.24.28-.4.71-.71 1.22-.94.51-.21 1.06-.35 1.69-.35.98 0 1.74.24 2.29.73s.84 1.16.86 2.02V16c0 .8.1 1.42.3 1.88V18zm-2.4-1.12c.45 0 .88-.11 1.29-.32.4-.21.7-.49.88-.83v-1.57H18.7c-1.77 0-2.66.47-2.66 1.41 0 .43.15.73.46.96.3.23.68.35 1.16.35m-12.2-3.17h4.07L7.5 8.29zM6.64 6h1.72l4.71 12h-1.93l-.97-2.57H4.82L3.86 18H1.93z"/></svg></span> Odia alphabets<a class="headerlink" href="#odia-alphabets" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1121,7 +1168,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 27, 2026 06:25:39 UTC"><span class="timeago" datetime="2026-05-27T06:25:39+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 27, 2026 06:25:39 UTC">2026-05-27</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 27, 2026 06:33:15 UTC"><span class="timeago" datetime="2026-05-27T06:33:15+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 27, 2026 06:33:15 UTC">2026-05-27</span>
   </span>
 
     
