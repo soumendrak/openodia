@@ -71,6 +71,7 @@ The tools are available in Odia language.
 - [x] [Unicode normalization & clean](#unicode-normalization)
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
+- [x] [Indic-to-Indic transliteration](#indic-transliteration)
 
 
 ### :material-broom: Unicode normalization
@@ -159,6 +160,30 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ??? note "Round-trip property"
     `"".join(syllable.split(word)) == word` for any input — the splitter
     is a strict tokeniser, never modifying or normalising characters.
+
+### :material-translate-variant: Indic transliteration
+
+- Script-only transliteration between Brahmic Indic scripts: **Devanagari**, **Bengali / Assamese**, **Gurmukhi**, **Gujarati**, **Odia**, **Tamil**, **Telugu**, **Kannada**, **Malayalam**.
+- Deterministic, fast, no external dependencies — pure Unicode block-offset translation.
+- Useful for cross-script reading, ML corpus alignment, and name normalisation across regions.
+
+```python
+from openodia import indic
+
+indic.transliterate("ଓଡ଼ିଆ", from_script="odia", to_script="devanagari")
+# 'ओड़िआ'
+
+indic.transliterate("नमस्ते", from_script="devanagari", to_script="odia")
+# 'ନମସ୍ତେ'
+
+indic.SCRIPTS  # ('devanagari', 'bengali', 'assamese', 'gurmukhi', 'gujarati', 'odia', 'tamil', 'telugu', 'kannada', 'malayalam')
+```
+
+??? note "Tamil caveat"
+    Tamil's encoding has only one consonant per articulation group. Inputs
+    with Devanagari/Odia aspirated or voiced consonants will land on
+    unassigned Tamil codepoints (rendered as placeholder boxes). This is
+    surfaced rather than silently collapsed.
 
 ### :material-format-letter-case: Odia alphabets 
 
