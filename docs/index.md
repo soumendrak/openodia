@@ -70,6 +70,7 @@ The tools are available in Odia language.
 - [x] [Add Dictionary corpus](#offline-dictionary)
 - [x] [Unicode normalization & clean](#unicode-normalization)
 - [x] [Corpus statistics](#corpus-statistics)
+- [x] [Syllabifier (akshara)](#syllabifier)
 
 
 ### :material-broom: Unicode normalization
@@ -135,6 +136,29 @@ cooccurrence(tokens, window=2)
 ??? note "v1 scope"
     - `collocations` ships PMI scoring only. Log-likelihood and chi-square are easy follow-ups.
     - Plot helpers are intentionally out of scope to keep the base install free of matplotlib.
+
+### :material-format-text-variant: Syllabifier
+
+- Splits a word into **aksharas** (orthographic syllables) using the Odia Unicode block rules: independent vowels, consonant clusters joined by halant (`୍`), matras, modifiers, and nukta.
+- Useful for TTS frontends, hyphenation/typography, character-level ML, and readability scoring.
+
+```python
+from openodia import syllable
+
+syllable.split("ନମସ୍କାର")        # ['ନ', 'ମ', 'ସ୍କା', 'ର']
+syllable.split("ଓଡ଼ିଆ")            # ['ଓ', 'ଡ଼ି', 'ଆ']
+syllable.split("ବିଦ୍ୟାଳୟ")        # ['ବି', 'ଦ୍ୟା', 'ଳ', 'ୟ']
+
+syllable.count("ବିଦ୍ୟାଳୟ")        # 4
+
+syllable.hyphenate("ବିଦ୍ୟାଳୟ")    # 'ବି-ଦ୍ୟା-ଳ-ୟ'
+syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
+# 'ନ·ମ·ସ୍କା·ର ଓ·ଡ଼ି·ଆ'
+```
+
+??? note "Round-trip property"
+    `"".join(syllable.split(word)) == word` for any input — the splitter
+    is a strict tokeniser, never modifying or normalising characters.
 
 ### :material-format-letter-case: Odia alphabets 
 
