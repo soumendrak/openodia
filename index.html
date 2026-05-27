@@ -485,6 +485,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#translation-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Translation cache
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#numbers-and-words" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -786,6 +797,7 @@ uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># or: pi
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#unicode-normalization">Unicode normalization &amp; clean</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#corpus-statistics">Corpus statistics</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#syllabifier">Syllabifier (akshara)</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#translation-cache">Translation cache configuration</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#numbers-and-words">Numbers, dates, and currency in words</a></li>
 </ul>
 <h3 id="unicode-normalization"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m19.36 2.72 1.42 1.42-5.72 5.71c1.07 1.54 1.22 3.39.32 4.59L9.06 8.12c1.2-.9 3.05-.75 4.59.32zM5.93 17.57c-2.01-2.01-3.24-4.41-3.58-6.65l4.88-2.09 7.44 7.44-2.09 4.88c-2.24-.34-4.64-1.57-6.65-3.58"/></svg></span> Unicode normalization<a class="headerlink" href="#unicode-normalization" title="Permanent link">&para;</a></h3>
@@ -872,6 +884,32 @@ or sprinkle through a pipeline without compounding side-effects.</p>
 <summary>Round-trip property</summary>
 <p><code>"".join(syllable.split(word)) == word</code> for any input — the splitter
 is a strict tokeniser, never modifying or normalising characters.</p>
+</details>
+<h3 id="translation-cache"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4-3.58 4-8 4-8-1.79-8-4m8.08 11H12c-4.42 0-8-1.79-8-4v3c0 2.21 3.58 4 8 4h.29a7.4 7.4 0 0 1-.29-2c0-.34.03-.67.08-1M20 12.08V9c0 2.21-3.58 4-8 4s-8-1.79-8-4v3c0 2.21 3.58 4 8 4h.69c1.13-2.37 3.53-4 6.31-4 .34 0 .67.03 1 .08m3.8 8.32c.1 0 .1.1 0 .2l-1 1.7c-.1.1-.2.1-.3.1l-1.2-.4c-.3.2-.5.3-.8.5l-.2 1.3c0 .1-.1.2-.2.2h-2c-.1 0-.2-.1-.3-.2l-.2-1.3c-.3-.1-.6-.3-.8-.5l-1.2.5c-.1 0-.2 0-.3-.1l-1-1.7c-.1-.1 0-.2.1-.3l1.1-.8v-1l-1.1-.8c-.1-.1-.1-.2-.1-.3l1-1.7c.1-.1.2-.1.3-.1l1.2.5c.3-.2.5-.3.8-.5l.2-1.3c0-.1.1-.2.3-.2h2c.1 0 .2.1.2.2l.2 1.3c.3.1.6.3.9.5l1.2-.5c.1 0 .3 0 .3.1l1 1.7c.1.1 0 .2-.1.3l-1.1.8v1zM20.5 19c0-.8-.7-1.5-1.5-1.5s-1.5.7-1.5 1.5.7 1.5 1.5 1.5 1.5-.7 1.5-1.5"/></svg></span> Translation cache<a class="headerlink" href="#translation-cache" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Translations are memoised in an LRU. Defaults to 10,000 entries in memory.</li>
+<li>Resize the cache, plug in a persistent disk backend, or inspect hit/miss counters.</li>
+<li>Environment variables <code>OPENODIA_CACHE_MAX_SIZE</code> and <code>OPENODIA_CACHE_DISK</code> set defaults at process start.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache</span>
+
+<span class="n">cache</span><span class="o">.</span><span class="n">stats</span><span class="p">()</span>
+<span class="c1"># {&#39;hits&#39;: 0, &#39;misses&#39;: 0, &#39;size&#39;: 0, &#39;max_size&#39;: 10000, &#39;disk_size&#39;: 0}</span>
+
+<span class="c1"># Resize the in-memory LRU.</span>
+<span class="n">cache</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">max_size</span><span class="o">=</span><span class="mi">50_000</span><span class="p">)</span>
+
+<span class="c1"># Persist across runs (requires the [cache] extra: pip install openodia[cache]).</span>
+<span class="n">cache</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">max_size</span><span class="o">=</span><span class="mi">50_000</span><span class="p">,</span> <span class="n">disk_path</span><span class="o">=</span><span class="s2">&quot;~/.cache/openodia/translate&quot;</span><span class="p">)</span>
+
+<span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</code></pre></div>
+<details class="note">
+<summary>Disk persistence is opt-in</summary>
+<p>Disk persistence is gated behind the <code>[cache]</code> extra, which pulls in
+<a href="https://pypi.org/project/diskcache/"><code>diskcache</code></a>. Calling
+<code>cache.configure(disk_path=...)</code> without the extra raises a clear
+<code>ImportError</code>. The base install has no new dependency.</p>
 </details>
 <h3 id="numbers-and-words"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 17V9H2V7h4v10zm18-2a2 2 0 0 1-2 2h-4v-2h4v-2h-2v-2h2V9h-4V7h4a2 2 0 0 1 2 2v1.5a1.5 1.5 0 0 1-1.5 1.5 1.5 1.5 0 0 1 1.5 1.5zm-8 0v2H8v-4a2 2 0 0 1 2-2h2V9H8V7h4a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2v2z"/></svg></span> Numbers and words<a class="headerlink" href="#numbers-and-words" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1261,7 +1299,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 27, 2026 19:59:14 UTC"><span class="timeago" datetime="2026-05-27T19:59:14+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 27, 2026 19:59:14 UTC">2026-05-27</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="May 27, 2026 20:13:30 UTC"><span class="timeago" datetime="2026-05-27T20:13:30+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 27, 2026 20:13:30 UTC">2026-05-27</span>
   </span>
 
     
