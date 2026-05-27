@@ -11,6 +11,7 @@ from ._translate import odia_to_other_lang, other_lang_to_odia, universal_transl
 from ._understandData import UnderstandData as ud
 from . import numbers
 from . import syllable
+from .segment import sentences
 from .stats import FreqDist, collocations, cooccurrence, ngrams
 from .stopwords import Stopwords
 from .text import clean, normalize
@@ -28,6 +29,7 @@ __all__ = [
     "numbers",
     "odia_to_other_lang",
     "other_lang_to_odia",
+    "sentences",
     "STOPWORDS",
     "Stopwords",
     "syllable",
