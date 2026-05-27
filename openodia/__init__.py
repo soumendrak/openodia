@@ -8,14 +8,17 @@ from ._odianames import Names as name
 from ._summarization import WordFrequency
 from ._translate import odia_to_other_lang, other_lang_to_odia, universal_translation
 from ._understandData import UnderstandData as ud
+from .text import clean, normalize
 
 __all__ = [
     "alphabet",
+    "clean",
     "name",
-    "ud",
-    "other_lang_to_odia",
+    "normalize",
     "odia_to_other_lang",
+    "other_lang_to_odia",
+    "STOPWORDS",
+    "ud",
     "universal_translation",
     "WordFrequency",
-    "STOPWORDS",
 ]
