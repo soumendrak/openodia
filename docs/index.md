@@ -69,6 +69,7 @@ The tools are available in Odia language.
 - [x] [Automatic extractive text summarization](#automatic-extractive-text-summarization)
 - [x] [Add Dictionary corpus](#offline-dictionary)
 - [x] [Unicode normalization & clean](#unicode-normalization)
+- [x] [Corpus statistics](#corpus-statistics)
 
 
 ### :material-broom: Unicode normalization
@@ -100,6 +101,40 @@ clean("ଆଜି ୧୨୩ ବର୍ଷ", options=CleanOptions(odia_to_latin_dig
     `clean(clean(x)) == clean(x)` always holds, so it is safe to apply repeatedly
     or sprinkle through a pipeline without compounding side-effects.
 
+
+### :material-chart-bar: Corpus statistics
+
+- N-grams, frequency distribution, collocations, and co-occurrence — pure-stdlib utilities for corpus exploration.
+- All functions accept either a pre-tokenised `list[str]` or a raw string (auto-tokenised via `ud.word_tokenizer`).
+
+```python
+from openodia import FreqDist, ngrams, collocations, cooccurrence
+
+tokens = "ରାମ ସୀତା ରାମ ଲକ୍ଷ୍ମଣ".split()
+
+# N-grams (generator)
+list(ngrams(tokens, 2))
+# [('ରାମ', 'ସୀତା'), ('ସୀତା', 'ରାମ'), ('ରାମ', 'ଲକ୍ଷ୍ମଣ')]
+
+# Frequency distribution — a Counter subclass with hapaxes / entropy / TTR.
+fd = FreqDist(tokens)
+fd.most_common(2)        # [('ରାମ', 2), ('ସୀତା', 1)]
+fd.hapaxes()             # ['ସୀତା', 'ଲକ୍ଷ୍ମଣ']
+fd.entropy()             # Shannon entropy (bits)
+fd.ttr                   # type-token ratio
+
+# PMI-scored bigram collocations.
+collocations(tokens, top_k=5, min_count=1)
+# [(('ରାମ', 'ଲକ୍ଷ୍ମଣ'), 1.0), ...]
+
+# Co-occurrence within a window (symmetric by default).
+cooccurrence(tokens, window=2)
+# Counter({('ରାମ', 'ସୀତା'): 2, ...})
+```
+
+??? note "v1 scope"
+    - `collocations` ships PMI scoring only. Log-likelihood and chi-square are easy follow-ups.
+    - Plot helpers are intentionally out of scope to keep the base install free of matplotlib.
 
 ### :material-format-letter-case: Odia alphabets 
 
