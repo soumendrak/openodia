@@ -71,6 +71,7 @@ The tools are available in Odia language.
 - [x] [Unicode normalization & clean](#unicode-normalization)
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
+- [x] [Command-line interface](#command-line-interface)
 
 
 ### :material-broom: Unicode normalization
@@ -159,6 +160,42 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ??? note "Round-trip property"
     `"".join(syllable.split(word)) == word` for any input — the splitter
     is a strict tokeniser, never modifying or normalising characters.
+
+
+### :material-console: Command-line interface
+
+- Installing the package adds an `openodia` command. Each subcommand wraps a function from the library so they're scriptable from any shell.
+- Pass `-` as the text argument to read from stdin. File paths are auto-detected and read from disk.
+
+```sh
+openodia --help
+
+# Tokenisation
+openodia tokenize "ରାମ ଓ ସୀତା ଆସୁଛନ୍ତି"
+openodia tokenize input.txt --sentences
+
+# Normalisation / cleanup
+openodia normalize input.txt --form NFC
+openodia clean "  ନମ‌ସ୍କାର  ଓଡ଼ିଆ  " --latin-to-odia
+
+# Translation
+openodia translate "ନମସ୍କାର!ଭଲ ଲାଗୁଛି?" --from or --to en
+echo "hello! feeling good?" | openodia translate - --from en --to or
+
+# Language detection
+openodia detect-language "ନମସ୍କାର" --json
+
+# Random Odia names
+openodia name --kind first --count 5
+
+# Extractive summary
+openodia summarize article.txt --threshold 3
+
+# Stopword removal + corpus stats
+openodia remove-stopwords "ରାମ ଓ ସୀତା"
+openodia ngrams "ରାମ ସୀତା ଲକ୍ଷ୍ମଣ" -n 2
+openodia freq corpus.txt --top 20
+```
 
 ### :material-format-letter-case: Odia alphabets 
 
