@@ -71,6 +71,7 @@ The tools are available in Odia language.
 - [x] [Unicode normalization & clean](#unicode-normalization)
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
+- [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
 
 
@@ -161,6 +162,33 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
     `"".join(syllable.split(word)) == word` for any input — the splitter
     is a strict tokeniser, never modifying or normalising characters.
 
+
+### :material-database-cog: Translation cache
+
+- Translations are memoised in an LRU. Defaults to 10,000 entries in memory.
+- Resize the cache, plug in a persistent disk backend, or inspect hit/miss counters.
+- Environment variables `OPENODIA_CACHE_MAX_SIZE` and `OPENODIA_CACHE_DISK` set defaults at process start.
+
+```python
+from openodia import cache
+
+cache.stats()
+# {'hits': 0, 'misses': 0, 'size': 0, 'max_size': 10000, 'disk_size': 0}
+
+# Resize the in-memory LRU.
+cache.configure(max_size=50_000)
+
+# Persist across runs (requires the [cache] extra: pip install openodia[cache]).
+cache.configure(max_size=50_000, disk_path="~/.cache/openodia/translate")
+
+cache.clear()
+```
+
+??? note "Disk persistence is opt-in"
+    Disk persistence is gated behind the `[cache]` extra, which pulls in
+    [`diskcache`](https://pypi.org/project/diskcache/). Calling
+    `cache.configure(disk_path=...)` without the extra raises a clear
+    `ImportError`. The base install has no new dependency.
 ### :material-numeric: Numbers and words
 
 - Convert between integers and Odia words, in both **Indian** (lakh / crore) and **short** (million / billion / trillion) numbering scales.
