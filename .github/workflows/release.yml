@@ -61,21 +61,44 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install uv
-      - name: Read the version being released
-        id: version
+      # A release is warranted only when pyproject declares a version PyPI does not
+      # have yet. Every other push to main rebuilds an already-published version,
+      # and since README.md is embedded in the wheel metadata that rebuild is a
+      # different artifact, which the publish step is right to reject.
+      - name: Decide whether this push releases
+        id: gate
         run: |
           version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
           echo "version=${version}" >> "$GITHUB_OUTPUT"
+          status=$(curl -sS -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/openodia/${version}/json")
+          case "$status" in
+            200)
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::openodia ${version} is already on PyPI. Bump the version in pyproject.toml to release."
+              ;;
+            404)
+              echo "publish=true" >> "$GITHUB_OUTPUT"
+              echo "::notice::openodia ${version} is not on PyPI yet; releasing it."
+              ;;
+            *)
+              # Anything else means we could not tell. Fail rather than guess, so a
+              # PyPI outage never silently skips or duplicates a release.
+              echo "::error::Unexpected HTTP ${status} from PyPI while checking ${version}."
+              exit 1
+              ;;
+          esac
       - name: Build package
+        if: steps.gate.outputs.publish == 'true'
         run: uv build
       # --check-url skips files already on PyPI, but the simple index is CDN-cached
       # and can still be stale seconds after an upload, so a concurrent run racing
       # this one would try to re-upload and fail. Re-publishing a version that is
       # already there is a no-op, not an error; anything else still fails the job.
       - name: Publish to PyPI
+        if: steps.gate.outputs.publish == 'true'
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ steps.gate.outputs.version }}
         run: |
           if output=$(uv publish --check-url https://pypi.org/simple/ 2>&1); then
             echo "$output"
@@ -92,9 +115,10 @@ jobs:
       # `gh release create` tags whatever the default branch points at when the
       # call lands, which is a different commit if another merge slipped in.
       - name: Tag the release and publish notes
+        if: steps.gate.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ steps.gate.outputs.version }}
         run: |
           if gh release view "${VERSION}" >/dev/null 2>&1; then
             echo "Release ${VERSION} already exists, nothing to do."
