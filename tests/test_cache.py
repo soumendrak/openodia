@@ -1,4 +1,6 @@
+from collections.abc import Iterator
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -189,13 +191,31 @@ class TestDiskCache:
 class TestTranslationIntegration:
     """The translation path should route through the cache."""
 
+    @pytest.fixture(autouse=True)
+    def _fake_translator(self) -> Iterator[None]:
+        """Keep these cache assertions off the live translation service.
+
+        What is under test is the caching behaviour, not the wording Google
+        returns, so a fixed reply is enough.
+        """
+        from openodia import _translate
+
+        class FakeGoogleTranslator:
+            def __init__(self, source: str, target: str) -> None:
+                pass
+
+            def translate(self, text: str) -> str:
+                return "Hello! Sounds good?"
+
+        with mock.patch.object(_translate, "GoogleTranslator", FakeGoogleTranslator):
+            yield
+
     def test_first_lookup_is_a_miss(self) -> None:
-        # Use a static-table entry so no real network call happens.
         from openodia import odia_to_other_lang
 
         result = odia_to_other_lang("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?")
         assert result == "Hello! Sounds good?"
-        # Either the result was static + stored, so we now have one entry.
+        # The reply was fetched and stored, so we now have one entry.
         assert cache.stats()["size"] == 1
         assert cache.stats()["misses"] == 1
 
