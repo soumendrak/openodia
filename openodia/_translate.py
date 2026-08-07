@@ -28,6 +28,7 @@ _STATIC_TRANSLATIONS: dict[tuple[str, str, str], str] = {
     ("କାହିଁକି", "or", "en"): "Why",
     # Odia to Hindi
     ("କାହିଁକି", "or", "hi"): "क्यों",
+    ("କଣ", "or", "hi"): "क्या",
 }
 
 
