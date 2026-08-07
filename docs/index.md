@@ -1,7 +1,7 @@
 ![image](cover-pic.png)
 
 <h4 align="center">
-  <a href="https://img.shields.io/badge/Python-3.10+-blue"><img alt="python 3.10+" src="https://img.shields.io/badge/Python-3.10+-blue"></a>
+  <a href="https://img.shields.io/badge/Python-3.11+-blue"><img alt="python 3.11+" src="https://img.shields.io/badge/Python-3.11+-blue"></a>
   <a href="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml"><img alt="Code coverage" src="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml/badge.svg"></a>
   <a href="https://github.com/soumendrak/openodia/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
   <a href="https://codecov.io/gh/soumendrak/openodia"><img alt="code coverage" src="https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2"/></a>
@@ -19,8 +19,8 @@
 ## Installation
 
 - Set up the library from PyPI using the following command in your terminal or command prompt.
-- Requires **Python 3.10 or higher**.
-- The library is tested on Python 3.10, 3.11, 3.12, 3.13, and 3.14.
+- Requires **Python 3.11 or higher**.
+- The library is tested on Python 3.11, 3.12, 3.13, and 3.14.
     
     ??? hint "Python Installation instruction"
         You can download Python from [Python official website](https://www.python.org/downloads/) and install on your system. 
