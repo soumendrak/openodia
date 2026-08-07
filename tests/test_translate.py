@@ -9,6 +9,7 @@ from unittest import mock
 import pytest
 
 from openodia import (
+    cache,
     other_lang_to_odia,
     odia_to_other_lang,
     universal_translation,
@@ -18,6 +19,14 @@ from openodia import (
 
 def mock_get_dictionary():
     return {"watch": "ଦେଖନ୍ତୁ"}
+
+
+@pytest.fixture
+def empty_cache():
+    """Give a test an empty translation cache, and leave one behind."""
+    cache.clear()
+    yield
+    cache.clear()
 
 
 class TestTranslate:
@@ -63,3 +72,24 @@ class TestTranslate:
     def test_universal_translation(self, text, output: str, src: str, dest: str):
         """Test the universal translation feature"""
         assert universal_translation(text, source_language_code=src, dest_language_code=dest) == output
+
+    def test_uncached_phrase_hits_google_once_then_caches(self, empty_cache):
+        """A phrase absent from the cache and the static table goes to Google.
+
+        The live service is mocked, so this covers the network branch of
+        ``_hit_google_api`` without making the suite depend on Google being
+        reachable or on its output staying stable.
+        """
+        translator = mock.Mock()
+        translator.translate.return_value = "ପରୀକ୍ଷା"
+        phrase = "a phrase that is in neither the cache nor the static table"
+
+        with mock.patch.object(_translate, "GoogleTranslator", return_value=translator) as make_translator:
+            first = universal_translation(phrase, source_language_code="en", dest_language_code="or")
+            second = universal_translation(phrase, source_language_code="en", dest_language_code="or")
+
+        assert first == "ପରୀକ୍ଷା"
+        assert second == "ପରୀକ୍ଷା"
+        # The second call is served from the cache, so Google is consulted only once.
+        make_translator.assert_called_once_with(source="en", target="or")
+        translator.translate.assert_called_once_with(phrase)
