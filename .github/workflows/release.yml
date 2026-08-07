@@ -47,6 +47,8 @@ jobs:
     # https://github.community/t/how-do-i-specify-job-dependency-running-in-another-workflow/16482
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore(release):')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to push the tag and create the GitHub release
     steps:
       - uses: actions/setup-python@v4
         with:
@@ -59,9 +61,29 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install uv
+      - name: Read the version being released
+        id: version
+        run: |
+          version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
       - name: Build package
         run: uv build
+      # --check-url skips files already on PyPI, so a merge that does not bump the
+      # version is a no-op instead of a "File already exists" failure.
       - name: Publish to PyPI
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: uv publish
+        run: uv publish --check-url https://pypi.org/simple/
+      # Tags are unprefixed here to match the existing ones (0.1.11, 0.1.12).
+      - name: Tag the release and publish notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if gh release view "${VERSION}" >/dev/null 2>&1; then
+            echo "Release ${VERSION} already exists, nothing to do."
+            exit 0
+          fi
+          gh release create "${VERSION}" dist/* \
+            --title "${VERSION}" \
+            --generate-notes
