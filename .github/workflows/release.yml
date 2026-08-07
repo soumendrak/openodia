@@ -68,13 +68,29 @@ jobs:
           echo "version=${version}" >> "$GITHUB_OUTPUT"
       - name: Build package
         run: uv build
-      # --check-url skips files already on PyPI, so a merge that does not bump the
-      # version is a no-op instead of a "File already exists" failure.
+      # --check-url skips files already on PyPI, but the simple index is CDN-cached
+      # and can still be stale seconds after an upload, so a concurrent run racing
+      # this one would try to re-upload and fail. Re-publishing a version that is
+      # already there is a no-op, not an error; anything else still fails the job.
       - name: Publish to PyPI
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: uv publish --check-url https://pypi.org/simple/
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if output=$(uv publish --check-url https://pypi.org/simple/ 2>&1); then
+            echo "$output"
+            exit 0
+          fi
+          echo "$output"
+          if grep -q 'File already exists' <<<"$output"; then
+            echo "::notice::${VERSION} is already on PyPI; nothing to upload."
+            exit 0
+          fi
+          exit 1
       # Tags are unprefixed here to match the existing ones (0.1.11, 0.1.12).
+      # --target pins the tag to the commit that was actually built; without it
+      # `gh release create` tags whatever the default branch points at when the
+      # call lands, which is a different commit if another merge slipped in.
       - name: Tag the release and publish notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -86,4 +102,5 @@ jobs:
           fi
           gh release create "${VERSION}" dist/* \
             --title "${VERSION}" \
+            --target "${GITHUB_SHA}" \
             --generate-notes
