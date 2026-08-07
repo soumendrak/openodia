@@ -1,6 +1,6 @@
 [project]
 name = "openodia"
-version = "0.1.12"
+version = "0.1.13"
 description = "Open source Odia language tools"
 authors = [
     {name = "Soumendra Kumar Sahoo", email = "proud_odia@outlook.com"}

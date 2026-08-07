@@ -645,7 +645,7 @@ wheels = [
 
 [[package]]
 name = "openodia"
-version = "0.1.12"
+version = "0.1.13"
 source = { editable = "." }
 dependencies = [
     { name = "deep-translator" },
