@@ -1,11 +1,10 @@
 ![image](cover-pic.png)
 
 <h4 align="center">
-  <a href="https://img.shields.io/badge/Python-3.10+-blue"><img alt="python 3.10+" src="https://img.shields.io/badge/Python-3.10+-blue"></a>
+  <a href="https://img.shields.io/badge/Python-3.11+-blue"><img alt="python 3.11+" src="https://img.shields.io/badge/Python-3.11+-blue"></a>
   <a href="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml"><img alt="Code coverage" src="https://github.com/soumendrak/openodia/actions/workflows/codecov.yml/badge.svg"></a>
   <a href="https://github.com/soumendrak/openodia/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
   <a href="https://codecov.io/gh/soumendrak/openodia"><img alt="code coverage" src="https://codecov.io/gh/soumendrak/openodia/branch/main/graph/badge.svg?token=1TOQIKGDQ2"/></a>
-  <a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsoumendrak%2Fopenodia.svg?type=shield" alt="license"/></a>
   <a href="https://pepy.tech/project/openodia" alt="downloads"><img src="https://static.pepy.tech/personalized-badge/openodia?period=total&units=none&left_color=black&right_color=orange&left_text=Downloads"/></a>
 </h4>
 
@@ -19,8 +18,8 @@
 ## Installation
 
 - Set up the library from PyPI using the following command in your terminal or command prompt.
-- Requires **Python 3.10 or higher**.
-- The library is tested on Python 3.10, 3.11, 3.12, 3.13, and 3.14.
+- Requires **Python 3.11 or higher**.
+- The library is tested on Python 3.11, 3.12, 3.13, and 3.14.
     
     ??? hint "Python Installation instruction"
         You can download Python from [Python official website](https://www.python.org/downloads/) and install on your system. 
@@ -72,6 +71,9 @@ The tools are available in Odia language.
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
 - [x] [Phonetic matching](#phonetic-matching)
+- [x] [Translation cache configuration](#translation-cache)
+- [x] [Numbers, dates, and currency in words](#numbers-and-words)
+- [x] [Sentence segmenter](#sentence-segmenter)
 
 
 ### :material-broom: Unicode normalization
@@ -184,6 +186,113 @@ phonetic.similarity("ସୀତା", "ବିଜୟ")             # ~ 0.0
     Soundex maximises recall (more collisions, broader match). Metaphone
     is finer-grained. `similarity()` averages them so the score behaves
     well as a sortable threshold for fuzzy-match queries.
+
+### :material-database-cog: Translation cache
+
+- Translations are memoised in an LRU. Defaults to 10,000 entries in memory.
+- Resize the cache, plug in a persistent disk backend, or inspect hit/miss counters.
+- Environment variables `OPENODIA_CACHE_MAX_SIZE` and `OPENODIA_CACHE_DISK` set defaults at process start.
+
+```python
+from openodia import cache
+
+cache.stats()
+# {'hits': 0, 'misses': 0, 'size': 0, 'max_size': 10000, 'disk_size': 0}
+
+# Resize the in-memory LRU.
+cache.configure(max_size=50_000)
+
+# Persist across runs (requires the [cache] extra: pip install openodia[cache]).
+cache.configure(max_size=50_000, disk_path="~/.cache/openodia/translate")
+
+cache.clear()
+```
+
+??? note "Disk persistence is opt-in"
+    Disk persistence is gated behind the `[cache]` extra, which pulls in
+    [`diskcache`](https://pypi.org/project/diskcache/). Calling
+    `cache.configure(disk_path=...)` without the extra raises a clear
+    `ImportError`. The base install has no new dependency.
+### :material-numeric: Numbers and words
+
+- Convert between integers and Odia words, in both **Indian** (lakh / crore) and **short** (million / billion / trillion) numbering scales.
+- Verbalise dates, currency amounts, and ordinals.
+- Bidirectional Odia ↔ ASCII digit conversion.
+
+```python
+from openodia import numbers
+
+# Cardinal numbers
+numbers.to_words(1234)
+# 'ଏକ ହଜାର ଦୁଇ ଶହ ଚଉତିରିଶ'
+
+numbers.to_words(12_34_567)            # Indian: lakh / crore
+# 'ବାର ଲକ୍ଷ ଚଉତିରିଶ ହଜାର ପାଞ୍ଚ ଶହ ସତଷଠି'
+
+numbers.to_words(1_000_000, scale="short")
+# 'ଏକ ମିଲିୟନ'
+
+numbers.to_words(-100)
+# 'ଋଣାତ୍ମକ ଏକ ଶହ'
+
+# Reverse direction
+numbers.from_words("ଏକ ହଜାର ଦୁଇ ଶହ ଚଉତିରିଶ")  # 1234
+
+# Ordinals (1..10 irregular, 11+ uses 'ତମ' suffix)
+numbers.to_ordinal(3)          # 'ତୃତୀୟ'
+numbers.to_ordinal(11)         # 'ଏଗାରତମ'
+
+# Currency
+numbers.to_words_currency(1500.50)
+# 'ଏକ ହଜାର ପାଞ୍ଚ ଶହ ଟଙ୍କା ପଚାଶ ପଇସା'
+
+# Date verbalisation
+from datetime import date
+numbers.to_words_date(date(2026, 5, 27))
+# '<day ordinal> ମଇ, ଦୁଇ ହଜାର ଛବିଶ'
+
+# Digit conversion
+numbers.ascii_to_odia("2026")   # '୨୦୨୬'
+numbers.odia_to_ascii("୨୦୨୬")   # '2026'
+```
+
+??? note "Number words 0..99"
+    The Odia counting table below 100 lives at `openodia/numbers/_tables.py`
+    as a single tuple of length 100. Native-speaker corrections land there
+    and are picked up by every API in this module automatically.
+
+### :material-call-split: Sentence segmenter
+
+- Splits text into sentences on Odia (`।`, `॥`) and Latin (`.`, `?`, `!`, `…`) terminators.
+- Decimal numbers (`୨.୫`, `2.5`) and common abbreviations (`ଡଃ`, `Dr.`, `e.g.`) do **not** trigger a split.
+- Each sentence keeps its terminator by default.
+
+```python
+from openodia import sentences
+
+sentences("ଆଜି ୨.୫ କୋଟି। ଆଗକୁ କଣ? ଭଲ ଦିନ!")
+# ['ଆଜି ୨.୫ କୋଟି।', 'ଆଗକୁ କଣ?', 'ଭଲ ଦିନ!']
+
+sentences("ଡଃ ସୁନୀତା ଆସିଲେ। ସେ କଲେଜରେ ପଢ଼ାନ୍ତି।")
+# ['ଡଃ ସୁନୀତା ଆସିଲେ।', 'ସେ କଲେଜରେ ପଢ଼ାନ୍ତି।']
+
+# Strict mode: only Odia terminators trigger splits.
+sentences("Hi. ତୁମେ କେମିତି।", mode="strict")
+# ['Hi. ତୁମେ କେମିତି।']
+
+# Strip terminators
+sentences("Hello. World!", keep_terminators=False)
+# ['Hello', 'World']
+```
+
+??? hint "Extending the abbreviations list"
+    `openodia.segment.ABBREVIATIONS` is a public tuple. Project-specific
+    vocabulary (e.g. trade names, place abbreviations) can be added by
+    extending it in a wrapper module.
+
+??? note "Existing `ud.sentence_tokenizer` is unchanged"
+    The pre-existing helper continues to behave exactly as before (splits
+    on `" ।"` only). Adopt `openodia.sentences()` for new code.
 
 ### :material-format-letter-case: Odia alphabets 
 
