@@ -183,6 +183,7 @@ class TestFreq:
 _FAKE_TRANSLATIONS = {
     ("or", "en"): {"ନମସ୍କାର!ଭଲ ଲାଗୁଛି?": "Hello! Feeling good?"},
     ("en", "or"): {"hello! feeling good?": "ନମସ୍କାର! ଭଲ ଲାଗୁଛି?"},
+    ("hi", "en"): {"क्यों": "why"},
 }
 
 
@@ -226,12 +227,13 @@ class TestTranslate:
         assert "ନମସ୍କାର" in out
 
     def test_universal_path(self, capsys: pytest.CaptureFixture[str]) -> None:
-        # Hindi → Odia exercises the universal branch (neither src nor dst is 'en').
-        code, _, _ = run(
-            ["translate", "क्यों", "--from", "hi", "--to", "or"],
+        # Hindi → English exercises the universal branch (neither side is 'or').
+        code, out, _ = run(
+            ["translate", "क्यों", "--from", "hi", "--to", "en"],
             capsys,
         )
         assert code == 0
+        assert "why" in out
 
 
 class TestFileInputAndStdin:
