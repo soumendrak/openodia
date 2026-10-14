@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
@@ -47,10 +47,12 @@ jobs:
     # https://github.community/t/how-do-i-specify-job-dependency-running-in-another-workflow/16482
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore(release):')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to push the tag and create the GitHub release
     steps:
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -59,9 +61,70 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install uv
+      # A release is warranted only when pyproject declares a version PyPI does not
+      # have yet. Every other push to main rebuilds an already-published version,
+      # and since README.md is embedded in the wheel metadata that rebuild is a
+      # different artifact, which the publish step is right to reject.
+      - name: Decide whether this push releases
+        id: gate
+        run: |
+          version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          status=$(curl -sS -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/openodia/${version}/json")
+          case "$status" in
+            200)
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::openodia ${version} is already on PyPI. Bump the version in pyproject.toml to release."
+              ;;
+            404)
+              echo "publish=true" >> "$GITHUB_OUTPUT"
+              echo "::notice::openodia ${version} is not on PyPI yet; releasing it."
+              ;;
+            *)
+              # Anything else means we could not tell. Fail rather than guess, so a
+              # PyPI outage never silently skips or duplicates a release.
+              echo "::error::Unexpected HTTP ${status} from PyPI while checking ${version}."
+              exit 1
+              ;;
+          esac
       - name: Build package
+        if: steps.gate.outputs.publish == 'true'
         run: uv build
+      # --check-url skips files already on PyPI, but the simple index is CDN-cached
+      # and can still be stale seconds after an upload, so a concurrent run racing
+      # this one would try to re-upload and fail. Re-publishing a version that is
+      # already there is a no-op, not an error; anything else still fails the job.
       - name: Publish to PyPI
+        if: steps.gate.outputs.publish == 'true'
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: uv publish
+          VERSION: ${{ steps.gate.outputs.version }}
+        run: |
+          if output=$(uv publish --check-url https://pypi.org/simple/ 2>&1); then
+            echo "$output"
+            exit 0
+          fi
+          echo "$output"
+          if grep -q 'File already exists' <<<"$output"; then
+            echo "::notice::${VERSION} is already on PyPI; nothing to upload."
+            exit 0
+          fi
+          exit 1
+      # Tags are unprefixed here to match the existing ones (0.1.11, 0.1.12).
+      # --target pins the tag to the commit that was actually built; without it
+      # `gh release create` tags whatever the default branch points at when the
+      # call lands, which is a different commit if another merge slipped in.
+      - name: Tag the release and publish notes
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.gate.outputs.version }}
+        run: |
+          if gh release view "${VERSION}" >/dev/null 2>&1; then
+            echo "Release ${VERSION} already exists, nothing to do."
+            exit 0
+          fi
+          gh release create "${VERSION}" dist/* \
+            --title "${VERSION}" \
+            --target "${GITHUB_SHA}" \
+            --generate-notes

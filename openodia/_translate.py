@@ -4,32 +4,10 @@ Author: Soumendra Kumar Sahoo
 Google wrapper for odia language
 """
 
-from functools import lru_cache
-
 from deep_translator import GoogleTranslator
 
+from openodia.cache import get_cache
 from openodia.corpus.dictionary import get_dictionary
-
-# Certain phrases are used in the test-suite and their translation can change
-# over time when fetched from the live Google Translate service.  Provide a
-# small set of predefined translations to keep tests deterministic.
-_STATIC_TRANSLATIONS: dict[tuple[str, str, str], str] = {
-    # English to Odia
-    ("hello! feeling good?", "en", "or"): "ନମସ୍କାର!ଭଲ ଲାଗୁଛି?",
-    # Hindi to Odia
-    (
-        "शेयर बाज़ार एक ऐसा बाज़ार है जहाँ कंपनियों के शेयर खरीदे-बेचे जा सकते हैं।",
-        "hi",
-        "or",
-    ): "ଷ୍ଟକ୍ ମାର୍କେଟ୍ ହେଉଛି ଏକ ବଜାର ଯେଉଁଠାରେ କମ୍ପାନୀର ସେୟାରଗୁଡିକ କିଣାଯାଇ ବିକ୍ରି ହୋଇପାରିବ |",
-    ("क्यों", "hi", "or"): "କାହିଁକି",
-    # Odia to English
-    ("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?", "or", "en"): "Hello! Sounds good?",
-    ("କଣ", "or", "en"): "What",
-    ("କାହିଁକି", "or", "en"): "Why",
-    # Odia to Hindi
-    ("କାହିଁକି", "or", "hi"): "क्यों",
-}
 
 
 def _search_offline_dictionary(text: str) -> str:
@@ -39,19 +17,22 @@ def _search_offline_dictionary(text: str) -> str:
     return translated_odia_text
 
 
-@lru_cache(maxsize=10000)
 def _hit_google_api(text: str, source_lang_code: str, destination_lang_code: str) -> str:
     """Translate text using Google Translate.
 
-    For phrases that exist in :data:`_STATIC_TRANSLATIONS` the cached value is
-    returned to avoid network dependency during testing.
+    Results are routed through :mod:`openodia.cache` so callers can resize,
+    persist, or inspect the cache.
     """
-    cached = _STATIC_TRANSLATIONS.get((text, source_lang_code, destination_lang_code))
+    key = (text, source_lang_code, destination_lang_code)
+    cache = get_cache()
+    cached = cache.get(key)
     if cached is not None:
         return cached
 
     translator = GoogleTranslator(source=source_lang_code, target=destination_lang_code)
-    return translator.translate(text)
+    result = translator.translate(text)
+    cache.set(key, result)
+    return result
 
 
 def other_lang_to_odia(text: str, source_language_code: str = "en") -> str:

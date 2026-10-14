@@ -1,6 +1,6 @@
 [project]
 name = "openodia"
-version = "0.1.12"
+version = "0.1.13"
 description = "Open source Odia language tools"
 authors = [
     {name = "Soumendra Kumar Sahoo", email = "proud_odia@outlook.com"}
@@ -13,7 +13,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -21,7 +20,7 @@ classifiers = [
     "Topic :: Text Processing :: Linguistic",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "Faker>=13.4.0",
     "deep-translator>=1.11.4",
@@ -29,6 +28,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+cache = [
+    "diskcache>=5.0.0",
+]
 docs = [
     "mkdocs>=1.2.2",
     "mkdocs-git-revision-date-localized-plugin>=0.10.0",
@@ -44,6 +46,7 @@ dev = [
     "mkdocs>=1.2.2",
     "mkdocs-git-revision-date-localized-plugin>=0.10.0",
     "mkdocs-material>=7.3.2",
+    "diskcache>=5.0.0",
 ]
 
 [project.urls]
@@ -66,7 +69,7 @@ upload_to_release = true
 build_command = "pip install uv && uv build"
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 line-length = 127
 
 [tool.ruff.lint]
