@@ -180,9 +180,36 @@ class TestFreq:
         assert token == "ରାମ"
 
 
+_FAKE_TRANSLATIONS = {
+    ("or", "en"): {"ନମସ୍କାର!ଭଲ ଲାଗୁଛି?": "Hello! Feeling good?"},
+    ("en", "or"): {"hello! feeling good?": "ନମସ୍କାର! ଭଲ ଲାଗୁଛି?"},
+}
+
+
+class _FakeGoogleTranslator:
+    """Offline stand-in for deep_translator.GoogleTranslator."""
+
+    def __init__(self, source: str, target: str) -> None:
+        self._pair = (source, target)
+
+    def translate(self, text: str) -> str:
+        return _FAKE_TRANSLATIONS.get(self._pair, {}).get(text, text)
+
+
+@pytest.fixture(autouse=True)
+def _offline_translator(monkeypatch: pytest.MonkeyPatch):
+    """Keep CLI translation tests off the network and start with an empty cache."""
+    from openodia import _translate, cache
+
+    cache.clear()
+    monkeypatch.setattr(_translate, "GoogleTranslator", _FakeGoogleTranslator)
+    yield
+    cache.clear()
+
+
 class TestTranslate:
     def test_odia_to_english_uses_static(self, capsys: pytest.CaptureFixture[str]) -> None:
-        # Uses a string in the static-translations table to keep tests offline.
+        # The translator is faked by ``_offline_translator`` to keep tests offline.
         code, out, _ = run(
             ["translate", "ନମସ୍କାର!ଭଲ ଲାଗୁଛି?", "--from", "or", "--to", "en"],
             capsys,
@@ -200,7 +227,6 @@ class TestTranslate:
 
     def test_universal_path(self, capsys: pytest.CaptureFixture[str]) -> None:
         # Hindi → Odia exercises the universal branch (neither src nor dst is 'en').
-        # Uses a static-table entry to stay offline.
         code, _, _ = run(
             ["translate", "क्यों", "--from", "hi", "--to", "or"],
             capsys,
