@@ -1,20 +1,24 @@
 """Open Odia language tools"""
 
-__version__ = "0.1.12"
+__version__ = "0.1.13"
 
+from . import cache
 from .common.constants import STOPWORDS
 from ._letters import Letters as alphabet
 from ._odianames import Names as name
 from ._summarization import WordFrequency
 from ._translate import odia_to_other_lang, other_lang_to_odia, universal_translation
 from ._understandData import UnderstandData as ud
+from . import numbers
 from . import syllable
+from .segment import sentences
 from .stats import FreqDist, collocations, cooccurrence, ngrams
 from .stopwords import Stopwords
 from .text import clean, normalize
 
 __all__ = [
     "alphabet",
+    "cache",
     "clean",
     "collocations",
     "cooccurrence",
@@ -22,8 +26,10 @@ __all__ = [
     "name",
     "ngrams",
     "normalize",
+    "numbers",
     "odia_to_other_lang",
     "other_lang_to_odia",
+    "sentences",
     "STOPWORDS",
     "Stopwords",
     "syllable",
