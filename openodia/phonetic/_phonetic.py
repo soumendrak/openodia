@@ -14,6 +14,21 @@ import unicodedata
 
 _HALANT = "\u0b4d"
 _NUKTA = "\u0b3c"
+# Characters that sit inside a conjunct without breaking it: halant, nukta,
+# and the rendering-only zero-width (non-)joiners.
+_CONJUNCT_MARKS = frozenset({_HALANT, _NUKTA, "\u200c", "\u200d"})
+
+
+def _canonical(word: str) -> str:
+    """NFC, then recompose ଡ଼/ଢ଼.
+
+    U+0B5C and U+0B5D are composition exclusions, so NFC decomposes them
+    to base + nukta. Recomposing keeps them distinct from plain ଡ/ଢ while
+    still treating precomposed and decomposed spellings the same.
+    """
+    word = unicodedata.normalize("NFC", word)
+    return word.replace("ଡ" + _NUKTA, "\u0b5c").replace("ଢ" + _NUKTA, "\u0b5d")
+
 
 # ----- Soundex codes -------------------------------------------------------
 
@@ -137,7 +152,7 @@ def soundex(word: str) -> str:
         return ""
     # NFC so canonically equivalent spellings (e.g. precomposed vs.
     # decomposed nukta letters) give the same key.
-    word = unicodedata.normalize("NFC", word)
+    word = _canonical(word)
 
     out: list[str] = []
     last: str = ""
@@ -152,10 +167,11 @@ def soundex(word: str) -> str:
                 if code != last:
                     out.append(code)
                     last = code
-        elif ch not in (_HALANT, _NUKTA):
+        elif ch not in _CONJUNCT_MARKS:
             # A vowel or matra breaks the duplicate-suppression chain
             # without emitting anything. Halant and nukta do not: the
-            # consonants of a conjunct (e.g. ନ୍ଦ) count as adjacent.
+            # consonants of a conjunct (e.g. ନ୍ଦ, also with ZWJ/ZWNJ) count
+            # as adjacent.
             last = ""
         if len(out) >= 4:
             break
@@ -184,7 +200,7 @@ def metaphone(word: str) -> str:
     """
     if not word:
         return ""
-    word = unicodedata.normalize("NFC", word)
+    word = _canonical(word)
 
     out: list[str] = []
     last: str | None = None

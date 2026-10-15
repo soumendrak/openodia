@@ -30,6 +30,14 @@ class TestSoundex:
         assert phonetic.soundex(precomposed) == phonetic.soundex(decomposed)
         assert phonetic.similarity(precomposed, decomposed) == 1.0
 
+    def test_nukta_letter_differs_from_plain_letter(self) -> None:
+        assert phonetic.soundex("\u0b5c\u0b3e\u0b15") != phonetic.soundex("\u0b21\u0b3e\u0b15")
+
+    def test_zero_width_joiners_do_not_break_conjuncts(self) -> None:
+        plain = "ସୋମେନ୍ଦ୍ର"
+        for joiner in ("\u200d", "\u200c"):
+            assert phonetic.soundex(plain.replace("ନ୍", "ନ୍" + joiner)) == "ସ657"
+
     def test_truncates_to_four_chars(self) -> None:
         assert len(phonetic.soundex("ଚକ୍ରପାଣିଗ୍ରାହୀ")) == 4
 
