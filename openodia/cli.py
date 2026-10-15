@@ -10,6 +10,7 @@ Python entry point in the package. New subcommands can be added in
 from __future__ import annotations
 
 import argparse
+import math
 import json
 import sys
 from collections.abc import Sequence
@@ -52,6 +53,26 @@ def _int_at_least(minimum: int):
         return value
 
     return parse
+
+
+def _unit_float(raw: str) -> float:
+    """argparse ``type`` for a finite float in [0, 1]."""
+    value = float(raw)
+    if not 0.0 <= value <= 1.0:  # also rejects NaN
+        raise argparse.ArgumentTypeError(f"must be between 0 and 1, got {raw}")
+    return value
+
+
+def _utf8_stdio() -> None:
+    """Emit UTF-8 even when a redirected stream defaults to a legacy codec."""
+    for stream in (sys.stdout, sys.stderr):
+        encoding = (getattr(stream, "encoding", None) or "").lower().replace("-", "")
+        reconfigure = getattr(stream, "reconfigure", None)
+        if encoding != "utf8" and reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8")
+            except (ValueError, OSError):  # pragma: no cover - exotic streams
+                pass
 
 
 # ---------------------------------------------------------------------------
@@ -155,7 +176,7 @@ def _cmd_summarize(args: argparse.Namespace) -> int:
     wf = WordFrequency(text=text)
     if args.threshold is None:
         print(wf.get_summary())
-    elif args.threshold <= 0:
+    elif not math.isfinite(args.threshold) or args.threshold <= 0:
         # WordFrequency treats a falsy threshold as "auto", so 0 would
         # silently act like the default; reject it instead.
         print("error: --threshold must be a positive number", file=sys.stderr)
@@ -270,7 +291,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("text", help="Inline text, file path, or '-' for stdin")
     p.add_argument(
         "--threshold",
-        type=float,
+        type=_unit_float,
         default=0.5,
         help="Confidence threshold for classifying as Odia (default: 0.5)",
     )
@@ -320,7 +341,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("text", help="Inline text, file path, or '-' for stdin")
     p.add_argument(
         "--top",
-        type=int,
+        type=_int_at_least(0),
         default=20,
         help="How many top tokens to emit (default: 20)",
     )
@@ -338,6 +359,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     Returns:
         Process exit code.
     """
+    _utf8_stdio()
     parser = build_parser()
     args = parser.parse_args(argv)
     return int(args.func(args))

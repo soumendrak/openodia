@@ -201,12 +201,13 @@ class _FakeGoogleTranslator:
 @pytest.fixture(autouse=True)
 def _offline_translator(monkeypatch: pytest.MonkeyPatch):
     """Keep CLI translation tests off the network and start with an empty cache."""
-    from openodia import _translate, cache
+    from openodia import _translate
+    from openodia.cache import _cache as cache_module
 
-    cache.clear()
+    # A fresh in-memory cache: never touch a configured OPENODIA_CACHE_DISK.
+    monkeypatch.setattr(cache_module, "_cache", cache_module.TranslationCache())
     monkeypatch.setattr(_translate, "GoogleTranslator", _FakeGoogleTranslator)
     yield
-    cache.clear()
 
 
 class TestTranslate:
@@ -278,8 +279,9 @@ class TestReviewEdgeCases:
             text=True,
             encoding="utf-8",
             check=False,
-            # Windows consoles default to cp1252, which can't print Odia.
-            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+            # No PYTHONIOENCODING: the CLI must emit UTF-8 on its own, even
+            # where a redirected stream defaults to cp1252 (Windows).
+            env={k: v for k, v in os.environ.items() if k != "PYTHONIOENCODING"},
         )
         assert r.returncode == 0, r.stderr
         assert "ରାମ" in r.stdout
@@ -309,3 +311,37 @@ class TestArgumentValidation:
             cli.main(["ngrams", "ରାମ ସୀତା", "-n", "0"])
         assert exc.value.code == 2
         assert "must be >= 1" in capsys.readouterr().err
+
+
+class TestCodexValidationRound:
+    @pytest.mark.parametrize("value", ["-1", "2", "nan"])
+    def test_detect_threshold_bounds(self, value: str, capsys: pytest.CaptureFixture[str]) -> None:
+        with pytest.raises(SystemExit) as exc:
+            cli.main(["detect-language", "hello", "--threshold", value])
+        assert exc.value.code == 2
+
+    def test_freq_rejects_negative_top(self) -> None:
+        with pytest.raises(SystemExit) as exc:
+            cli.main(["freq", "ରାମ ସୀତା", "--top", "-1"])
+        assert exc.value.code == 2
+
+    def test_summarize_rejects_nan_threshold(self, capsys: pytest.CaptureFixture[str]) -> None:
+        code, _, err = run(["summarize", "ରାମ ଆସିଲେ।", "--threshold", "nan"], capsys)
+        assert code == 2
+        assert "--threshold must be a positive number" in err
+
+    def test_utf8_stdio_reconfigures_legacy_stream(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import io
+        import sys
+
+        raw = io.BytesIO()
+        legacy = io.TextIOWrapper(raw, encoding="cp1252")
+        monkeypatch.setattr(sys, "stdout", legacy)
+        cli._utf8_stdio()
+        print("ରାମ", file=legacy)
+        legacy.flush()
+        assert raw.getvalue().decode("utf-8").strip() == "ରାମ"
+
+    def test_detect_threshold_in_range_accepted(self, capsys: pytest.CaptureFixture[str]) -> None:
+        code, _, _ = run(["detect-language", "ରାମ", "--threshold", "0.3"], capsys)
+        assert code == 0
