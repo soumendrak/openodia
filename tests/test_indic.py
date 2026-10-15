@@ -1,9 +1,11 @@
 import unicodedata
+from typing import cast
 
 import pytest
 
 from openodia import indic
 from openodia.indic import SCRIPTS
+from openodia.indic._indic import _SCRIPT_OFFSETS, Script
 
 
 class TestScriptsConstant:
@@ -25,15 +27,12 @@ class TestScriptsConstant:
 
 class TestOdiaToDevanagari:
     def test_basic_consonant(self) -> None:
-        # Odia କ (U+0B15) → Devanagari क (U+0915)
         assert indic.transliterate("କ", "odia", "devanagari") == "क"
 
     def test_basic_word(self) -> None:
-        # ଭାରତ → भारत
         assert indic.transliterate("ଭାରତ", "odia", "devanagari") == "भारत"
 
     def test_digits(self) -> None:
-        # ୦ (U+0B66) → ० (U+0966)
         assert indic.transliterate("୦୧୨", "odia", "devanagari") == "०१२"
 
 
@@ -59,7 +58,7 @@ class TestRoundTrip:
             ("devanagari", "bengali"),
         ],
     )
-    def test_round_trip(self, scripts: tuple[str, str]) -> None:
+    def test_round_trip(self, scripts: tuple[Script, Script]) -> None:
         a, b = scripts
         word = "ଭାରତ" if a == "odia" else "भारत"
         once = indic.transliterate(word, a, b)
@@ -72,7 +71,6 @@ class TestIdempotenceWhenSameScript:
         assert indic.transliterate("କ", "odia", "odia") == "କ"
 
     def test_assamese_is_bengali_block(self) -> None:
-        # They alias — transliterating from one to the other should be a no-op.
         assert indic.transliterate("কখগ", "bengali", "assamese") == indic.transliterate("কখগ", "assamese", "bengali") == "কখগ"
 
 
@@ -84,7 +82,7 @@ class TestNonIndicPassThrough:
         out = indic.transliterate("hello କ world", "odia", "devanagari")
         assert "hello" in out
         assert "world" in out
-        assert "क" in out  # Devanagari ka
+        assert "क" in out
 
     def test_whitespace_preserved(self) -> None:
         assert indic.transliterate("କ ଖ", "odia", "devanagari") == "क ख"
@@ -93,11 +91,11 @@ class TestNonIndicPassThrough:
 class TestUnknownScripts:
     def test_unknown_from_raises(self) -> None:
         with pytest.raises(ValueError, match="unknown from_script"):
-            indic.transliterate("क", "sanskrit", "odia")  # type: ignore[arg-type]
+            indic.transliterate("क", cast(Script, "sanskrit"), "odia")
 
     def test_unknown_to_raises(self) -> None:
         with pytest.raises(ValueError, match="unknown to_script"):
-            indic.transliterate("କ", "odia", "sanskrit")  # type: ignore[arg-type]
+            indic.transliterate("କ", "odia", cast(Script, "sanskrit"))
 
 
 class TestEmpty:
@@ -115,7 +113,7 @@ class TestLength:
             ("ନମସ୍କାର ଓଡ଼ିଆ", "odia", "telugu"),
         ],
     )
-    def test_length_unchanged(self, text: str, from_: str, to_: str) -> None:
+    def test_length_unchanged(self, text: str, from_: Script, to_: Script) -> None:
         assert len(indic.transliterate(text, from_, to_)) == len(text)
 
 
@@ -134,7 +132,6 @@ class TestCharacterIdentity:
         assert indic.transliterate("ൻ", from_script="malayalam", to_script="devanagari") == "न्"
 
     def test_malayalam_chillu_rr_is_ra(self) -> None:
-        # U+0D7C CHILLU RR is the chillu form of RA (U+0D30), not RRA.
         assert indic.transliterate("അവർ", from_script="malayalam", to_script="devanagari") == "अवर्"
         assert indic.transliterate("ർ", from_script="malayalam", to_script="odia") == "ର୍"
 
@@ -144,8 +141,6 @@ class TestCharacterIdentity:
     def test_odia_flap_rra_maps_to_devanagari_dddha(self) -> None:
         assert indic.transliterate("\u0b5c", from_script="odia", to_script="devanagari") == "\u095c"
         assert indic.transliterate("\u095c", from_script="devanagari", to_script="odia") == "\u0b5c"
-        # Devanagari alveolar RRA (ऱ) has no Odia letter; it is canonically
-        # र + nukta, so it maps part by part (never to the flap ଡ଼).
         assert indic.transliterate("\u0931", from_script="devanagari", to_script="odia") == "\u0b30\u0b3c"
 
     def test_odia_wa_maps_to_va(self) -> None:
@@ -187,14 +182,14 @@ class TestCodexRound3:
             ("ऑक्टोबर", "devanagari", "gujarati", "ઑક્ટોબર"),
         ],
     )
-    def test_script_specific_names(self, text: str, src: str, dst: str, expected: str) -> None:
+    def test_script_specific_names(self, text: str, src: Script, dst: Script, expected: str) -> None:
         assert indic.transliterate(text, src, dst) == expected
 
     @pytest.mark.parametrize(
         ("decomposed", "src"),
         [("କ\u0b47\u0b57", "odia"), ("ক\u09c7\u09d7", "bengali"), ("ക\u0d46\u0d57", "malayalam")],
     )
-    def test_decomposed_vowel_signs_compose(self, decomposed: str, src: str) -> None:
+    def test_decomposed_vowel_signs_compose(self, decomposed: str, src: Script) -> None:
         composed = unicodedata.normalize("NFC", decomposed)
         assert indic.transliterate(decomposed, src, "devanagari") == indic.transliterate(composed, src, "devanagari")
         assert all(0x0900 <= ord(c) < 0x0980 for c in indic.transliterate(decomposed, src, "devanagari"))
@@ -206,7 +201,7 @@ class TestCodexRound3:
         assert indic.transliterate("ੱ", "gurmukhi", "devanagari") == "ੱ"
 
     @pytest.mark.parametrize(("text", "src"), [("विश्वास", "devanagari"), ("ଵିଶ୍ୱାସ", "odia")])
-    def test_bengali_writes_va_and_wa_as_ba(self, text: str, src: str) -> None:
+    def test_bengali_writes_va_and_wa_as_ba(self, text: str, src: Script) -> None:
         assert indic.transliterate(text, src, "bengali") == "বিশ্বাস"
 
     def test_assamese_keeps_its_own_va(self) -> None:
@@ -225,28 +220,26 @@ class TestCodexRound4:
     @pytest.mark.parametrize(
         ("text", "src", "expected"),
         [
-            ("पंजाबी", "devanagari", "\u0a2a\u0a70\u0a1c\u0a3e\u0a2c\u0a40"),  # inherent a → tippi
-            ("हां", "devanagari", "\u0a39\u0a3e\u0a02"),  # aa → bindi
-            ("में", "devanagari", "\u0a2e\u0a47\u0a02"),  # ee → bindi
-            ("सिं", "devanagari", "\u0a38\u0a3f\u0a70"),  # dependent i → tippi
-            ("सीं", "devanagari", "\u0a38\u0a40\u0a02"),  # dependent ii → bindi
-            ("कुं", "devanagari", "\u0a15\u0a41\u0a70"),  # dependent u → tippi
-            ("कूं", "devanagari", "\u0a15\u0a42\u0a70"),  # dependent uu → tippi
-            ("उं", "devanagari", "\u0a09\u0a02"),  # independent u → bindi
-            ("ऊं", "devanagari", "\u0a0a\u0a02"),  # independent uu → bindi
-            ("अं", "devanagari", "\u0a05\u0a70"),  # independent a → tippi
-            ("आं", "devanagari", "\u0a06\u0a02"),  # independent aa → bindi
-            ("ं", "devanagari", "\u0a70"),  # no vowel → tippi
-            ("\u09b9\u09be\u0982", "bengali", "\u0a39\u0a3e\u0a02"),  # Bengali aa → bindi
-            ("\u0939\u093e\u093c\u0902", "devanagari", "\u0a39\u0a3e\u0a3c\u0a02"),  # nukta before the anusvara
+            ("पंजाबी", "devanagari", "\u0a2a\u0a70\u0a1c\u0a3e\u0a2c\u0a40"),
+            ("हां", "devanagari", "\u0a39\u0a3e\u0a02"),
+            ("में", "devanagari", "\u0a2e\u0a47\u0a02"),
+            ("सिं", "devanagari", "\u0a38\u0a3f\u0a70"),
+            ("सीं", "devanagari", "\u0a38\u0a40\u0a02"),
+            ("कुं", "devanagari", "\u0a15\u0a41\u0a70"),
+            ("कूं", "devanagari", "\u0a15\u0a42\u0a70"),
+            ("उं", "devanagari", "\u0a09\u0a02"),
+            ("ऊं", "devanagari", "\u0a0a\u0a02"),
+            ("अं", "devanagari", "\u0a05\u0a70"),
+            ("आं", "devanagari", "\u0a06\u0a02"),
+            ("ं", "devanagari", "\u0a70"),
+            ("\u09b9\u09be\u0982", "bengali", "\u0a39\u0a3e\u0a02"),
+            ("\u0939\u093e\u093c\u0902", "devanagari", "\u0a39\u0a3e\u0a3c\u0a02"),
         ],
     )
-    def test_gurmukhi_tippi_follows_the_vowel(self, text: str, src: str, expected: str) -> None:
+    def test_gurmukhi_tippi_follows_the_vowel(self, text: str, src: Script, expected: str) -> None:
         assert indic.transliterate(text, src, "gurmukhi") == expected
 
     def test_decomposed_gurmukhi_consonants_match_precomposed(self) -> None:
-        # U+0A36 SHA is canonically SA + nukta; U+0A33 LLA is LA + nukta.
-        # NFC does not recompose them (composition exclusions).
         assert indic.transliterate("\u0a36\u0a2c\u0a26", "gurmukhi", "devanagari") == "शबद"
         assert indic.transliterate("\u0a38\u0a3c\u0a2c\u0a26", "gurmukhi", "devanagari") == "शबद"
         assert indic.transliterate("\u0a33", "gurmukhi", "devanagari") == "ळ"
@@ -261,7 +254,6 @@ class TestCodexRound4:
         assert indic.transliterate("\u0cde", "kannada", "devanagari") == "\u0934"
         assert indic.transliterate("\u0934", "devanagari", "kannada") == "\u0cde"
         assert indic.transliterate("\u0cde", "kannada", "tamil") == "\u0bb4"
-        # Real FA stays pha + nukta, rather than the misnamed U+0CDE.
         assert indic.transliterate("\u095e", "devanagari", "kannada") == "\u0cab\u0cbc"
 
     def test_malayalam_dot_reph_is_dead_ra(self) -> None:
@@ -272,3 +264,61 @@ class TestCodexRound4:
             indic.transliterate("\u0a38\u0a3f\u0a16\u0a75\u0a3e", "gurmukhi", "devanagari")
             == "\u0938\u093f\u0916\u094d\u092f\u093e"
         )
+
+
+_ALL_PAIRS: list[tuple[Script, Script]] = [
+    (src, dst) for src in SCRIPTS for dst in SCRIPTS if _SCRIPT_OFFSETS[src] != _SCRIPT_OFFSETS[dst]
+]
+
+
+def _block_text(script: Script) -> str:
+    start = _SCRIPT_OFFSETS[script]
+    letters = [chr(cp) for cp in range(start, start + 0x80) if unicodedata.name(chr(cp), "")]
+    return " ".join(letters[0] + ch for ch in letters)
+
+
+class TestNormalization:
+    @pytest.mark.parametrize(("src", "dst"), _ALL_PAIRS)
+    def test_nfc_and_nfd_input_agree(self, src: Script, dst: Script) -> None:
+        text = _block_text(src)
+        nfc = indic.transliterate(unicodedata.normalize("NFC", text), src, dst)
+        nfd = indic.transliterate(unicodedata.normalize("NFD", text), src, dst)
+        assert nfc == nfd
+
+    def test_kannada_two_level_oo(self) -> None:
+        decomposed = unicodedata.normalize("NFD", "\u0c95\u0ccb")
+        assert indic.transliterate(decomposed, "kannada", "devanagari") == "\u0915\u094b"
+
+    def test_tamil_decomposed_au_letter(self) -> None:
+        assert indic.transliterate("\u0b92\u0bd7\u0bb5\u0bc8", "tamil", "devanagari") == "\u0914\u0935\u0948"
+
+    @pytest.mark.parametrize(("letter", "expected"), [("\u0931", "\u0bb1"), ("\u0929", "\u0ba9"), ("\u0934", "\u0bb4")])
+    def test_decomposed_devanagari_nukta_letters(self, letter: str, expected: str) -> None:
+        decomposed = unicodedata.normalize("NFD", letter)
+        assert indic.transliterate(decomposed, "devanagari", "tamil") == expected
+
+    def test_excluded_nukta_letter_recomposes(self) -> None:
+        assert indic.transliterate("\u0b21\u0b3c", "odia", "devanagari") == "\u095c"
+
+
+_DEVANAGARI_BINDI = [
+    ("\u0906", "\u0a06"),
+    ("\u0915\u093e", "\u0a15\u0a3e"),
+    ("\u0908", "\u0a08"),
+    ("\u0915\u0940", "\u0a15\u0a40"),
+    ("\u090f", "\u0a0f"),
+    ("\u0915\u0947", "\u0a15\u0a47"),
+    ("\u0910", "\u0a10"),
+    ("\u0915\u0948", "\u0a15\u0a48"),
+    ("\u0913", "\u0a13"),
+    ("\u0915\u094b", "\u0a15\u0a4b"),
+    ("\u0914", "\u0a14"),
+    ("\u0915\u094c", "\u0a15\u0a4c"),
+    ("\u0909", "\u0a09"),
+    ("\u090a", "\u0a0a"),
+]
+
+
+@pytest.mark.parametrize(("vowel", "expected"), _DEVANAGARI_BINDI)
+def test_every_bindi_vowel(vowel: str, expected: str) -> None:
+    assert indic.transliterate(vowel + "\u0902", "devanagari", "gurmukhi") == expected + "\u0a02"
