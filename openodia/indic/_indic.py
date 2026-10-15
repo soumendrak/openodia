@@ -208,6 +208,9 @@ def _map_char(ch: str, src_names: dict[str, str], dst_chars: dict[str, str]) -> 
     if base_name is None and name.startswith("LETTER CHILLU "):
         # Chillu = consonant without inherent vowel: base letter + virama.
         base_name = "LETTER " + name[len("LETTER CHILLU ") :] + "A"
+        # Unicode names U+0D7C "CHILLU RR", but it is the chillu of RA.
+        if base_name == "LETTER RRA":
+            base_name = "LETTER RA"
     if base_name is not None:
         base = dst_chars.get(base_name)
         virama = dst_chars.get("SIGN VIRAMA")

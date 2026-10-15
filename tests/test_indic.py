@@ -133,6 +133,11 @@ class TestCharacterIdentity:
     def test_malayalam_chillu_expands_to_consonant_plus_virama(self) -> None:
         assert indic.transliterate("ൻ", from_script="malayalam", to_script="devanagari") == "न्"
 
+    def test_malayalam_chillu_rr_is_ra(self) -> None:
+        # U+0D7C CHILLU RR is the chillu form of RA (U+0D30), not RRA.
+        assert indic.transliterate("അവർ", from_script="malayalam", to_script="devanagari") == "अवर्"
+        assert indic.transliterate("ർ", from_script="malayalam", to_script="odia") == "ର୍"
+
     def test_shared_danda_is_preserved(self) -> None:
         assert indic.transliterate("नमस्ते।", from_script="devanagari", to_script="odia") == "ନମସ୍ତେ।"
 
