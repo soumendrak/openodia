@@ -1,0 +1,16 @@
+# Changelog
+
+## Unreleased
+
+### Added
+
+- `openodia.roman`: Odia romanisation (`to_roman` / `from_roman`) with the
+  ISO 15919, Hunterian and ITRANS schemes.
+
+### Behaviour note
+
+- By default, `to_roman` returns non-Odia text exactly as given, so its output
+  no longer round-trips text that mixes Odia with other text (for example
+  `to_roman("କi")` gives `kai`, which `from_roman` reads as `କୈ`). Callers
+  who need an exact round trip should pass `reversible=True`
+  (`to_roman("କi", reversible=True)` gives `ka:{i:}`).

@@ -34,8 +34,10 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
         scheme: One of ``"ISO15919"``, ``"Hunterian"``, ``"ITRANS"``.
         reversible: For ``ISO15919`` and ``ITRANS`` only. When true, non-Odia
             text is escaped so :func:`from_roman` restores the input exactly:
-            a literal separator (``:`` / ``_``) is doubled, and in text that
-            a run that could be read as Roman tokens is quoted (``କi`` gives ``ka:{i:}``). Ignored for ``Hunterian``.
+            a literal separator (``:`` / ``_``) is doubled, and any non-Odia
+            run that could be read as Roman letters, or that contains
+            combining marks, is quoted (``କi`` gives ``ka:{i:}``). Ignored
+            for ``Hunterian``.
 
     Returns:
         The transliterated string. Unless ``reversible`` is true, characters
