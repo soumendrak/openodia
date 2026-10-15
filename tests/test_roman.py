@@ -1,9 +1,11 @@
 import unicodedata
+from typing import cast
 
 import pytest
 
 from openodia import roman
 from openodia.roman import SCHEMES
+from openodia.roman._roman import Scheme
 
 
 class TestSchemesConstant:
@@ -16,23 +18,18 @@ class TestToRomanISO15919:
         assert roman.to_roman("ଆ", "ISO15919") == "ā"
 
     def test_consonant_with_inherent_schwa(self) -> None:
-        # ନ → na (inherent schwa)
         assert roman.to_roman("ନ", "ISO15919") == "na"
 
     def test_consonant_with_matra(self) -> None:
-        # ନା → nā (matra replaces schwa)
         assert roman.to_roman("ନା", "ISO15919") == "nā"
 
     def test_consonant_with_halant(self) -> None:
-        # କ + halant → "k" (schwa suppressed)
         assert roman.to_roman("କ୍", "ISO15919") == "k"
 
     def test_conjunct(self) -> None:
-        # ସ୍କ + ā → "skā"
         assert roman.to_roman("ସ୍କା", "ISO15919") == "skā"
 
     def test_modifier_attaches(self) -> None:
-        # କଂ → "kaṁ"
         assert roman.to_roman("କଂ", "ISO15919") == "kaṁ"
 
     def test_basic_word(self) -> None:
@@ -41,32 +38,27 @@ class TestToRomanISO15919:
 
 class TestToRomanHunterian:
     def test_basic_word(self) -> None:
-        # ନମସ୍କାର — Hunterian keeps schwa: 'namaskara'
         assert roman.to_roman("ନମସ୍କାର", "Hunterian") == "namaskara"
 
     def test_diacritic_free(self) -> None:
         out = roman.to_roman("ସୋମେନ୍ଦ୍ର", "Hunterian")
-        # Must be ASCII (no diacritics).
         assert out.isascii()
 
 
 class TestToRomanITRANS:
     def test_basic_word(self) -> None:
-        # ITRANS is ASCII; uppercase distinguishes retroflex.
         out = roman.to_roman("ଓଡ଼ିଆ", "ITRANS")
         assert out.isascii()
-        # ଓ → "o"; ଡ଼ → ".D"; ି → "i"; ଆ → "A"
         assert out == "o.DiA"
 
     def test_consonant_no_inherent_for_aa(self) -> None:
-        # ଆ as independent vowel → "A" (capital in ITRANS)
         assert roman.to_roman("ଆ", "ITRANS") == "A"
 
 
 class TestToRomanErrors:
     def test_unknown_scheme_raises(self) -> None:
         with pytest.raises(ValueError, match="unknown scheme"):
-            roman.to_roman("ନ", "Velthuis")  # type: ignore[arg-type]
+            roman.to_roman("ନ", cast(Scheme, "Velthuis"))
 
 
 class TestToRomanEdgeCases:
@@ -89,7 +81,6 @@ class TestFromRomanRoundTrip:
     def test_iso15919_round_trip(self, word: str) -> None:
         roman_text = roman.to_roman(word, "ISO15919")
         decoded = roman.from_roman(roman_text, "ISO15919")
-        # Re-encoding the decoded string should produce the same roman.
         assert roman.to_roman(decoded, "ISO15919") == roman_text
 
     @pytest.mark.parametrize(
@@ -104,7 +95,6 @@ class TestFromRomanRoundTrip:
 
 class TestFromRomanUnknownChars:
     def test_unknown_chars_pass_through(self) -> None:
-        # Punctuation isn't in any roman table → emitted verbatim.
         out = roman.from_roman("namaskara!", "Hunterian")
         assert out.endswith("!")
 
@@ -124,7 +114,7 @@ class TestPublicAPI:
 class TestReviewFixes:
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
     @pytest.mark.parametrize("word", ["ଆ", "ନା", "ନମସ୍କାର", "ସ୍ୱାଗତ", "ଦ୍ୱିତୀୟ", "କୢ", "ମଁ", "କଇ", "କ୍ହ", "ଅଉ", "କ୍"])
-    def test_round_trip_with_vowel_context(self, scheme: str, word: str) -> None:
+    def test_round_trip_with_vowel_context(self, scheme: Scheme, word: str) -> None:
         back = roman.from_roman(roman.to_roman(word, scheme), scheme)
         assert unicodedata.normalize("NFD", back) == unicodedata.normalize("NFD", word)
 
@@ -137,7 +127,7 @@ class TestReviewFixes:
         assert roman.from_roman("ta", "Hunterian") == "ତ"
 
     @pytest.mark.parametrize("scheme", ["Hunterian", "ITRANS"])
-    def test_wa_and_vocalic_forms_are_ascii(self, scheme: str) -> None:
+    def test_wa_and_vocalic_forms_are_ascii(self, scheme: Scheme) -> None:
         out = roman.to_roman("ସ୍ୱାଗତ ଦ୍ୱିତୀୟ କୢ ୠ ୡ କୄ କୣ", scheme)
         assert out.isascii(), out
 
@@ -161,17 +151,17 @@ class TestReviewFixes:
 class TestCodexRound3:
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS", "Hunterian"])
     @pytest.mark.parametrize("text", ["plain", "ai", "kha", "hello world"])
-    def test_pass_through_latin_unchanged(self, text: str, scheme: str) -> None:
+    def test_pass_through_latin_unchanged(self, text: str, scheme: Scheme) -> None:
         assert roman.to_roman(text, scheme) == text
 
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
     @pytest.mark.parametrize("text", ["ଅ:ଇ", "ଅ_ଇ", "କ::ଖ", "ରାମ_ସୀତା"])
-    def test_literal_separator_round_trips(self, text: str, scheme: str) -> None:
+    def test_literal_separator_round_trips(self, text: str, scheme: Scheme) -> None:
         assert roman.from_roman(roman.to_roman(text, scheme, reversible=True), scheme) == text
 
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
     @pytest.mark.parametrize("text", ["କ୍ଅ", "କ୍ଆ", "ସ୍ଇ", "ନମସ୍କାର"])
-    def test_halant_before_independent_vowel_round_trips(self, text: str, scheme: str) -> None:
+    def test_halant_before_independent_vowel_round_trips(self, text: str, scheme: Scheme) -> None:
         assert roman.from_roman(roman.to_roman(text, scheme), scheme) == text
 
     def test_halant_mark_examples(self) -> None:
@@ -187,7 +177,7 @@ class TestCodexRound3:
 class TestCodexRound4:
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
     @pytest.mark.parametrize("text", ["କi", "କ୍h", "iକ", "ନମସ୍କାର hello", "ରାମ {x} ସୀତା", "କa:b", "କ{a}"])
-    def test_mixed_script_round_trips(self, text: str, scheme: str) -> None:
+    def test_mixed_script_round_trips(self, text: str, scheme: Scheme) -> None:
         assert roman.from_roman(roman.to_roman(text, scheme, reversible=True), scheme) == text
 
     def test_mixed_script_quoting_examples(self) -> None:
@@ -208,11 +198,11 @@ class TestNonOdiaRunsUnchanged:
             ("e\u0301", "ISO15919"),
         ],
     )
-    def test_pure_non_odia_unchanged(self, text: str, scheme: str) -> None:
+    def test_pure_non_odia_unchanged(self, text: str, scheme: Scheme) -> None:
         assert roman.to_roman(text, scheme) == text
 
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS", "Hunterian"])
-    def test_latin_run_in_mixed_text_unquoted(self, scheme: str) -> None:
+    def test_latin_run_in_mixed_text_unquoted(self, scheme: Scheme) -> None:
         out = roman.to_roman("ନମସ୍କାର hello 1:2 file_name e\u0301", scheme)
         assert out.endswith(" hello 1:2 file_name e\u0301")
         assert "{" not in out
@@ -222,8 +212,7 @@ class TestNonOdiaRunsUnchanged:
         assert roman.to_roman("ଅ:ଇ") == "a:i"
 
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS", "Hunterian"])
-    def test_decomposed_odia_is_nfc_normalised(self, scheme: str) -> None:
-        # U+0B47 + U+0B56 composes to AI sign U+0B48; U+0B47 + U+0B57 to AU U+0B4C.
+    def test_decomposed_odia_is_nfc_normalised(self, scheme: Scheme) -> None:
         assert roman.to_roman("କ\u0b47\u0b56", scheme) == roman.to_roman("କ\u0b48", scheme)
         assert roman.to_roman("କ\u0b47\u0b57", scheme) == roman.to_roman("କ\u0b4c", scheme)
 
@@ -231,12 +220,12 @@ class TestNonOdiaRunsUnchanged:
 class TestReversibleExact:
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
     @pytest.mark.parametrize("text", ["hello", "hello world", "1:2", "file_name", "kha", "e\u0301"])
-    def test_pure_non_odia_round_trips(self, text: str, scheme: str) -> None:
+    def test_pure_non_odia_round_trips(self, text: str, scheme: Scheme) -> None:
         assert roman.from_roman(roman.to_roman(text, scheme, reversible=True), scheme) == text
 
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
     @pytest.mark.parametrize("text", ["କt\u0323", "କ e\u0301", "t\u0323"])
-    def test_quoted_literals_are_not_normalised(self, text: str, scheme: str) -> None:
+    def test_quoted_literals_are_not_normalised(self, text: str, scheme: Scheme) -> None:
         assert roman.from_roman(roman.to_roman(text, scheme, reversible=True), scheme) == text
 
     def test_decoder_keeps_quoted_text_verbatim(self) -> None:
@@ -273,7 +262,6 @@ class TestHunterianModifiers:
         assert roman.from_roman("kaha", "Hunterian") == "କହ"
 
     def test_chandrabindu_decodes_as_anusvara(self) -> None:
-        # Both marks spell n; anusvara is the canonical reading.
         assert roman.to_roman("ଅଁ", "Hunterian") == "an"
         assert roman.from_roman("an", "Hunterian") == "ଅଂ"
 
@@ -290,3 +278,26 @@ class TestHunterianModifiers:
         assert roman.from_roman("knga", "Hunterian") == "କ୍ଙ"
         assert roman.to_roman("କଙ", "Hunterian") == "kanga"
         assert roman.from_roman("kanga", "Hunterian") == "କଂଗ"
+
+
+@pytest.mark.parametrize(
+    ("spelling", "word"),
+    [
+        ("anna", "ଅନ୍ନ"),
+        ("kanta", "କନ୍ତ"),
+        ("mandira", "ମନ୍ଦିର"),
+        ("ananda", "ଅନନ୍ଦ"),
+        ("brahma", "ବ୍ରହ୍ମ"),
+        ("chihna", "ଚିହ୍ନ"),
+        ("sangita", "ସଂଗିତ"),
+        ("duhkha", "ଦୁଃଖ"),
+        ("an", "ଅଂ"),
+        ("duh", "ଦୁଃ"),
+        ("simha", "ସିମ୍ହ"),
+        ("sinha", "ସିଂହ"),
+        ("duhpa", "ଦୁଃପ"),
+        ("an.", "ଅଂ."),
+    ],
+)
+def test_hunterian_modifier_contexts(spelling: str, word: str) -> None:
+    assert roman.from_roman(spelling, "Hunterian") == word

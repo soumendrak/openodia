@@ -4,29 +4,29 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections.abc import Iterable
 from typing import Literal
 
-from openodia.roman._tables import HUNTERIAN, ISO15919, ITRANS
+from openodia.roman._tables import HUNTERIAN, ISO15919, ITRANS, SchemeTable
 
 Scheme = Literal["ISO15919", "Hunterian", "ITRANS"]
 
-#: Available romanisation schemes.
 SCHEMES: tuple[Scheme, ...] = ("ISO15919", "Hunterian", "ITRANS")
 
-_HALANT = "୍"  # U+0B4D
+_HALANT = "୍"
 
 
-def _table(scheme: Scheme) -> dict[str, object]:
+def _table(scheme: Scheme) -> SchemeTable:
     if scheme == "ISO15919":
-        return ISO15919  # type: ignore[return-value]
+        return ISO15919
     if scheme == "Hunterian":
-        return HUNTERIAN  # type: ignore[return-value]
+        return HUNTERIAN
     if scheme == "ITRANS":
-        return ITRANS  # type: ignore[return-value]
+        return ITRANS
     raise ValueError(f"unknown scheme {scheme!r}; supported: {SCHEMES}")
 
 
-def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False) -> str:  # noqa: C901 - one flat per-character state machine
+def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False) -> str:  # noqa: C901
     """Transliterate Odia ``text`` to the Latin script.
 
     Args:
@@ -53,25 +53,20 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
         'namaskara'
     """
     table = _table(scheme)
-    vowels: dict[str, str] = table["vowels"]  # type: ignore[assignment]
-    consonants: dict[str, str] = table["consonants"]  # type: ignore[assignment]
-    matras: dict[str, str] = table["matras"]  # type: ignore[assignment]
-    modifiers: dict[str, str] = table["modifiers"]  # type: ignore[assignment]
-    schwa: str = table["schwa"]  # type: ignore[assignment]
+    vowels: dict[str, str] = table["vowels"]
+    consonants: dict[str, str] = table["consonants"]
+    matras: dict[str, str] = table["matras"]
+    modifiers: dict[str, str] = table["modifiers"]
+    schwa: str = table["schwa"]
 
-    # NFC the Odia runs only (handles common Indic composition cases), so
-    # non-Odia text is left byte-for-byte. Then do the two Odia-specific
-    # nukta compositions manually: U+0B5C and U+0B5D are on Unicode's
-    # composition-exclusion list so NFC won't compose them, but our tables
-    # key on the precomposed forms.
     text = _ODIA_RUN.sub(lambda m: unicodedata.normalize("NFC", m.group()), text)
     text = text.replace("ଡ" + chr(0x0B3C), chr(0x0B5C))
     text = text.replace("ଢ" + chr(0x0B3C), chr(0x0B5D))
 
     out: list[str] = []
-    literal: list[bool] = []  # parallel to out: True for pass-through text
-    pending_schwa = False  # last emitted token was a consonant + inherent schwa
-    after_halant = False  # last Odia char was a halant after a consonant
+    literal: list[bool] = []
+    pending_schwa = False
+    after_halant = False
     sep = _SEPARATORS.get(scheme)
     escape = reversible and sep is not None
 
@@ -95,16 +90,12 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
         elif ch in vowels:
             flush_schwa()
             if halant_before and sep is not None:
-                # Consonant + halant + independent vowel: mark it explicitly,
-                # or the decoder would read a vowel sign (କ୍ଅ ≠ କ).
                 emit(_HALANT_MARK)
             emit(vowels[ch])
         elif ch in matras:
-            # Replace the pending schwa with this matra.
             emit(matras[ch])
             pending_schwa = False
         elif ch == _HALANT:
-            # Suppress the pending schwa entirely.
             after_halant = pending_schwa
             pending_schwa = False
         elif ch in modifiers:
@@ -112,8 +103,6 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
             emit(modifiers[ch])
         else:
             flush_schwa()
-            # Pass-through text is literal. In reversible mode a literal
-            # separator is doubled so the decoder keeps it as text.
             emit(ch * 2 if escape and ch == sep else ch, is_literal=True)
 
     flush_schwa()
@@ -142,8 +131,6 @@ def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> t
     def close_run() -> None:
         if run:
             text = "".join(run)
-            # Quote anything the decoder would read as Roman tokens or that
-            # its NFC step could change (combining marks).
             needs_quote = token_chars.intersection(text) or any(unicodedata.combining(c) for c in text)
             new_tokens.append(sep + "{" + text + sep + "}" if needs_quote else text)
             new_literal.append(True)
@@ -160,16 +147,11 @@ def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> t
     return new_tokens, new_literal
 
 
-#: Runs of characters in the Odia block (U+0B00-U+0B7F).
 _ODIA_RUN = re.compile("[\u0b00-\u0b7f]+")
 
-#: Boundary marks for the reversible schemes. ISO 15919 uses ``:`` to keep
-#: e.g. ``a`` + ``i`` apart from ``ai``. ITRANS uses ``_``.
 _SEPARATORS: dict[str, str] = {"ISO15919": ":", "ITRANS": "_"}
 
 
-#: Placeholder token for "halant before an independent vowel"; rendered as
-#: the scheme's separator.
 _HALANT_MARK = "\x00halant"
 
 
@@ -182,7 +164,7 @@ def _join_tokens(tokens: list[str], scheme: Scheme, literal: list[bool] | None =
     never separated, so non-Odia input comes back unchanged.
     """
     sep = _SEPARATORS.get(scheme)
-    if sep is None:  # Hunterian is lossy by design; no separators.
+    if sep is None:
         return "".join(t for t in tokens if t != _HALANT_MARK)
     literal = literal or [False] * len(tokens)
     roman_tokens, _, _ = _build_reverse_index(scheme)
@@ -205,13 +187,6 @@ def _join_tokens(tokens: list[str], scheme: Scheme, literal: list[bool] | None =
     return "".join(out)
 
 
-# ---------------------------------------------------------------------------
-# Reverse: roman → Odia
-# ---------------------------------------------------------------------------
-
-
-#: Canonical decodings for Hunterian spellings shared by several letters
-#: (the scheme drops the dental/retroflex/nasal distinctions).
 _HUNTERIAN_PREFERRED: dict[str, str] = {
     "n": "ନ",
     "t": "ତ",
@@ -220,15 +195,13 @@ _HUNTERIAN_PREFERRED: dict[str, str] = {
     "dh": "ଧ",
 }
 
-#: Hunterian anusvara and visarga share ``n`` / ``h`` with consonants.
-#: Anusvara is the canonical modifier for ``n`` (chandrabindu uses it too).
 _HUNTERIAN_MODIFIER_PREFERRED: dict[str, str] = {
     "n": "ଂ",
     "h": "ଃ",
 }
 
 
-def _first_wins(items) -> dict[str, str]:
+def _first_wins(items: Iterable[tuple[str, str]]) -> dict[str, str]:
     """``roman -> odia``, keeping the first letter listed for each spelling."""
     out: dict[str, str] = {}
     for odia, roman in items:
@@ -253,16 +226,16 @@ def _build_reverse_index(
     """
     table = _table(scheme)
     index: dict[str, tuple[str, str]] = {}
-    modifiers = _first_wins(table["modifiers"].items())  # type: ignore[union-attr]
+    modifiers = _first_wins(table["modifiers"].items())
     if scheme == "Hunterian":
         for roman, odia in _HUNTERIAN_MODIFIER_PREFERRED.items():
-            if table["modifiers"].get(odia) == roman:  # type: ignore[union-attr]
+            if table["modifiers"].get(odia) == roman:
                 modifiers[roman] = odia
     for roman, odia in modifiers.items():
         index[roman] = ("modifier", odia)
-    for roman, odia in _first_wins(table["vowels"].items()).items():  # type: ignore[union-attr]
+    for roman, odia in _first_wins(table["vowels"].items()).items():
         index[roman] = ("vowel", odia)
-    consonants = _first_wins(table["consonants"].items())  # type: ignore[union-attr]
+    consonants = _first_wins(table["consonants"].items())
     if scheme == "Hunterian":
         consonants.update(_HUNTERIAN_PREFERRED)
     aliases: dict[str, str] = {}
@@ -300,7 +273,7 @@ def _normalize_outside_quotes(text: str, sep: str) -> str:
     return "".join(parts)
 
 
-def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - one flat tokenizer loop
+def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901
     """Reverse of :func:`to_roman`.
 
     Best-effort for ``Hunterian`` since that scheme is intentionally
@@ -339,25 +312,20 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
     """
     tokens, index, modifier_aliases = _build_reverse_index(scheme)
     table = _table(scheme)
-    schwa: str = table["schwa"]  # type: ignore[assignment]
-    matras = _first_wins(table["matras"].items())  # type: ignore[union-attr]
+    schwa: str = table["schwa"]
+    matras = _first_wins(table["matras"].items())
     if scheme == "ISO15919":
-        # The tables use precomposed letters (ṭ, ā, …); accept decomposed
-        # input such as "t\u0323" too. Combining marks that have no
-        # precomposed form (r̥, m̐) stay as they are and still match.
-        # Quoted pass-through text is kept verbatim.
         text = _normalize_outside_quotes(text, _SEPARATORS[scheme])
 
     out: list[str] = []
-    after_consonant = False  # last token was a consonant with no vowel yet
-    vowel_complete = False  # a vowel just finished, so n/h may be a modifier
+    after_consonant = False
+    vowel_complete = False
 
     sep = _SEPARATORS.get(scheme)
     prev_was_token = False
     i = 0
     while i < len(text):
         if sep is not None and text.startswith(sep * 2, i):
-            # Escaped literal separator written by to_roman.
             if after_consonant:
                 out.append(_HALANT)
                 after_consonant = False
@@ -369,7 +337,6 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
         if sep is not None and text.startswith(sep + "{", i):
             end = text.find(sep + "}", i + len(sep) + 1)
             if end != -1:
-                # Quoted pass-through text written by to_roman.
                 if after_consonant:
                     out.append(_HALANT)
                     after_consonant = False
@@ -386,10 +353,9 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
             and prev_was_token
             and any(text.startswith(t, i + len(sep)) for t in tokens)
         ):
-            i += len(sep)  # token boundary written by to_roman
+            i += len(sep)
             nxt = next(t for t in tokens if text.startswith(t, i))
             if after_consonant and index[nxt][0] == "vowel":
-                # Consonant, boundary, vowel: an explicit halant (କ୍ଅ).
                 out.append(_HALANT)
                 after_consonant = False
             continue
@@ -404,7 +370,7 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
             continue
         kind, odia = index[match]
         alias = modifier_aliases.get(match)
-        if alias is not None and vowel_complete and not _next_token_is_vowel(text, i + len(match), tokens, index):
+        if alias is not None and vowel_complete and _modifier_fits(match, text, i + len(match), tokens):
             kind, odia = "modifier", alias
         i += len(match)
         if kind == "vowel" and after_consonant:
@@ -468,10 +434,12 @@ def _modifier_hides_token(
         (name for name in modifier_aliases if len(token) > len(name) and token.startswith(name)),
         None,
     )
-    return alias is not None and not _next_token_is_vowel(text, i + len(alias), tokens, index)
+    return alias is not None and _modifier_fits(alias, text, i + len(alias), tokens)
 
 
-def _next_token_is_vowel(text: str, i: int, tokens: list[str], index: dict[str, tuple[str, str]]) -> bool:
-    """True when the longest token at ``i`` is a vowel."""
+_MODIFIER_CONTEXTS: dict[str, tuple[str, ...]] = {"n": ("k", "g", "s", "h"), "h": ("k", "p")}
+
+
+def _modifier_fits(alias: str, text: str, i: int, tokens: list[str]) -> bool:
     nxt = next((token for token in tokens if text.startswith(token, i)), None)
-    return nxt is not None and index[nxt][0] == "vowel"
+    return nxt is None or nxt.startswith(_MODIFIER_CONTEXTS.get(alias, ()))

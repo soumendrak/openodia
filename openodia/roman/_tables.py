@@ -17,12 +17,22 @@ Each scheme provides:
 
 from __future__ import annotations
 
-# Codepoints for the precomposed nukta forms (avoid editor decomposition).
-_DDDHA = chr(0x0B5C)  # ଡ଼
-_DDHHA = chr(0x0B5D)  # ଢ଼
-_YYA = chr(0x0B5F)  # ୟ
+from typing import TypedDict
 
-ISO15919: dict[str, dict[str, str]] = {
+
+class SchemeTable(TypedDict):
+    schwa: str
+    vowels: dict[str, str]
+    consonants: dict[str, str]
+    matras: dict[str, str]
+    modifiers: dict[str, str]
+
+
+_DDDHA = chr(0x0B5C)
+_DDHHA = chr(0x0B5D)
+_YYA = chr(0x0B5F)
+
+ISO15919: SchemeTable = {
     "schwa": "a",
     "vowels": {
         "ଅ": "a",
@@ -102,7 +112,7 @@ ISO15919: dict[str, dict[str, str]] = {
     },
 }
 
-HUNTERIAN: dict[str, dict[str, str]] = {
+HUNTERIAN: SchemeTable = {
     "schwa": "a",
     "vowels": {
         "ଅ": "a",
@@ -182,7 +192,7 @@ HUNTERIAN: dict[str, dict[str, str]] = {
     },
 }
 
-ITRANS: dict[str, dict[str, str]] = {
+ITRANS: SchemeTable = {
     "schwa": "a",
     "vowels": {
         "ଅ": "a",
@@ -262,7 +272,7 @@ ITRANS: dict[str, dict[str, str]] = {
     },
 }
 
-TABLES: dict[str, dict[str, dict[str, str]] | dict[str, str]] = {
+TABLES: dict[str, SchemeTable] = {
     "ISO15919": ISO15919,
     "Hunterian": HUNTERIAN,
     "ITRANS": ITRANS,
