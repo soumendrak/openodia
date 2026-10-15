@@ -167,17 +167,17 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ### :material-console: Command-line interface
 
 - Installing the package adds an `openodia` command. Each subcommand wraps a function from the library so they're scriptable from any shell.
-- Pass `-` as the text argument to read from stdin. File paths are auto-detected and read from disk.
+- Pass `-` as the text argument to read from stdin. Pass `--file` to read the text argument from a UTF-8 file; without it, an argument is always literal text, even if it matches a file name.
 
 ```sh
 openodia --help
 
 # Tokenisation
 openodia tokenize "ରାମ ଓ ସୀତା ଆସୁଛନ୍ତି"
-openodia tokenize input.txt --sentences
+openodia tokenize --file input.txt --sentences
 
 # Normalisation / cleanup
-openodia normalize input.txt --form NFC
+openodia normalize --file input.txt --form NFC
 openodia clean "  ନମ‌ସ୍କାର  ଓଡ଼ିଆ  " --latin-to-odia
 
 # Translation
@@ -191,12 +191,12 @@ openodia detect-language "ନମସ୍କାର" --json
 openodia name --kind first --count 5
 
 # Extractive summary
-openodia summarize article.txt --threshold 3
+openodia summarize --file article.txt --threshold 3
 
 # Stopword removal + corpus stats
 openodia remove-stopwords "ରାମ ଓ ସୀତା"
 openodia ngrams "ରାମ ସୀତା ଲକ୍ଷ୍ମଣ" -n 2
-openodia freq corpus.txt --top 20
+openodia freq --file corpus.txt --top 20
 ```
 
 ### :material-database-cog: Translation cache
