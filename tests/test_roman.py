@@ -256,6 +256,9 @@ class TestHunterianModifiers:
             ("ସଂସ୍କୃତ", "sanskrita"),
             ("ଏବଂ", "eban"),
             ("ଦୁଃଖ", "duhkha"),
+            ("ସଂଘ", "sangha"),
+            ("ସଂଗ୍ରହ", "sangraha"),
+            ("ବଂଗ", "banga"),
         ],
     )
     def test_modifier_round_trip(self, word: str, spelling: str) -> None:
@@ -273,3 +276,17 @@ class TestHunterianModifiers:
         # Both marks spell n; anusvara is the canonical reading.
         assert roman.to_roman("ଅଁ", "Hunterian") == "an"
         assert roman.from_roman("an", "Hunterian") == "ଅଂ"
+
+    def test_anusvara_before_g_beats_ng(self) -> None:
+        assert roman.to_roman("ସଂଗୀତ", "Hunterian") == "sangita"
+        assert roman.from_roman("sangita", "Hunterian") == "ସଂଗିତ"
+        assert roman.to_roman("ସଁଗ", "Hunterian") == "sanga"
+        assert roman.from_roman("sanga", "Hunterian") == "ସଂଗ"
+
+    def test_velar_nasal_when_n_does_not_follow_a_vowel(self) -> None:
+        assert roman.from_roman("nga", "Hunterian") == "ଙ"
+        assert roman.from_roman("ngi", "Hunterian") == "ଙି"
+        assert roman.from_roman("ngga", "Hunterian") == "ଙ୍ଗ"
+        assert roman.from_roman("knga", "Hunterian") == "କ୍ଙ"
+        assert roman.to_roman("କଙ", "Hunterian") == "kanga"
+        assert roman.from_roman("kanga", "Hunterian") == "କଂଗ"

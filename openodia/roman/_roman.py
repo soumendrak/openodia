@@ -248,7 +248,8 @@ def _build_reverse_index(
     ``modifier aliases`` keeps a Hunterian modifier that shares its spelling
     with a consonant (``n``, ``h``). The consonant stays the index entry so
     ``na`` is still ``ନ``; the alias is used when that spelling follows a
-    completed vowel and the next token is not a vowel.
+    completed vowel and the next token is not a vowel, even when a longer
+    consonant starts with the same letters (``ng``).
     """
     table = _table(scheme)
     index: dict[str, tuple[str, str]] = {}
@@ -305,7 +306,10 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
     Best-effort for ``Hunterian`` since that scheme is intentionally
     lossy (no diacritics). ``n`` and ``h`` after a finished vowel, when
     the next token is not a vowel, are anusvara and visarga (``an`` gives
-    ``ଅଂ``, ``duh`` gives ``ଦୁଃ``); before a vowel they stay consonants.
+    ``ଅଂ``, ``duh`` gives ``ଦୁଃ``). That check runs before a longer
+    consonant is accepted, so ``sangita`` is ``ସଂଗିତ`` rather than the
+    velar nasal in ``ng`` (the long vowel is still lost). Before a vowel,
+    ``n`` and ``h`` stay consonants.
     ``ISO15919`` and ``ITRANS`` round-trip correctly for text produced by
     ``to_roman`` in the same scheme; for input that also contains non-Odia
     text, use ``to_roman(..., reversible=True)``.
@@ -330,6 +334,8 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
         'ନମସ୍କାର'
         >>> from_roman("ā")
         'ଆ'
+        >>> from_roman("sangita", "Hunterian")
+        'ସଂଗିତ'
     """
     tokens, index, modifier_aliases = _build_reverse_index(scheme)
     table = _table(scheme)
@@ -372,7 +378,7 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
                 prev_was_token = False
                 vowel_complete = False
                 continue
-        match = next((t for t in tokens if text.startswith(t, i)), None)
+        match = _longest_token(text, i, tokens, index, modifier_aliases, vowel_complete=vowel_complete)
         if (
             match is None
             and sep is not None
@@ -415,6 +421,54 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
     if after_consonant:
         out.append(_HALANT)
     return "".join(out)
+
+
+def _longest_token(
+    text: str,
+    i: int,
+    tokens: list[str],
+    index: dict[str, tuple[str, str]],
+    modifier_aliases: dict[str, str],
+    *,
+    vowel_complete: bool,
+) -> str | None:
+    """Longest token at ``i``, unless a Hunterian modifier alias must win.
+
+    ``ng`` is the consonant ``ଙ``, but after a finished vowel ``n`` is
+    anusvara when the following token is not a vowel (``sangita``).
+    """
+    for token in tokens:
+        if text.startswith(token, i) and not _modifier_hides_token(
+            text,
+            i,
+            token,
+            tokens,
+            index,
+            modifier_aliases,
+            vowel_complete=vowel_complete,
+        ):
+            return token
+    return None
+
+
+def _modifier_hides_token(
+    text: str,
+    i: int,
+    token: str,
+    tokens: list[str],
+    index: dict[str, tuple[str, str]],
+    modifier_aliases: dict[str, str],
+    *,
+    vowel_complete: bool,
+) -> bool:
+    """True when ``token`` would swallow a modifier the context asks for."""
+    if not vowel_complete or index[token][0] != "consonant":
+        return False
+    alias = next(
+        (name for name in modifier_aliases if len(token) > len(name) and token.startswith(name)),
+        None,
+    )
+    return alias is not None and not _next_token_is_vowel(text, i + len(alias), tokens, index)
 
 
 def _next_token_is_vowel(text: str, i: int, tokens: list[str], index: dict[str, tuple[str, str]]) -> bool:
