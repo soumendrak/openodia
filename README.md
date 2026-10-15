@@ -50,6 +50,21 @@ uv sync  # or: pip install -e .
 
 For usage and further documentation please visit the [Documentation](https://openodia.soumendrak.com/) page. 
 
+### Command-line interface
+
+Run `openodia --help` or `python -m openodia --help` for commands, and
+`openodia --version` for the installed version.
+
+```bash
+openodia tokenize 'ରାମ ସୀତା'
+openodia tokenize --file input.txt
+cat input.txt | python -m openodia tokenize -
+```
+
+Text arguments are literal text, even when they match an existing filename.
+Use `--file` to read a UTF-8 file explicitly (implicit file detection has been
+removed). Pass `-` without `--file` to read UTF-8 text from stdin.
+
 ## License
 
 Released under the [MIT License](LICENSE).
