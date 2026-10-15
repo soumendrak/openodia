@@ -11,7 +11,7 @@
 - `openodia.roman`: Odia romanisation (`to_roman` / `from_roman`) with the
   ISO 15919, Hunterian and ITRANS schemes.
 
-- Hunterian `from_roman` reads `n` and `h` after a finished vowel as anusvara and visarga (`an` → `ଅଂ`, `duh` → `ଦୁଃ`, `sangita` → `ସଂଗିତ`) when the next token is not a vowel, before a longer consonant such as `ng`.
+- Hunterian `from_roman` always reads `n` and `h` as the consonants `ନ` and `ହ`, so `ନ୍` endings and clusters such as `ନ୍ସ` and `ଙ୍କ` round-trip; anusvara and visarga round-trip through the explicit marks of ISO 15919 and ITRANS.
 
 ### Behaviour note
 

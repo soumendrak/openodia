@@ -232,72 +232,40 @@ class TestReversibleExact:
         assert roman.from_roman("ka:{t\u0323:}") == "କt\u0323"
 
 
-class TestHunterianModifiers:
-    """n/h after a finished vowel are anusvara/visarga, not a consonant."""
-
+class TestHunterianConsonantNH:
     @pytest.mark.parametrize(
-        ("word", "spelling"),
+        ("spelling", "word"),
         [
-            ("ଅଂ", "an"),
-            ("ଦୁଃ", "duh"),
-            ("କଂ", "kan"),
-            ("ସିଂହ", "sinha"),
-            ("ସଂସ୍କୃତ", "sanskrita"),
-            ("ଏବଂ", "eban"),
-            ("ଦୁଃଖ", "duhkha"),
-            ("ସଂଘ", "sangha"),
-            ("ସଂଗ୍ରହ", "sangraha"),
-            ("ବଂଗ", "banga"),
+            ("jesan", "ଜେସନ୍"),
+            ("an", "ଅନ୍"),
+            ("duh", "ଦୁହ୍"),
+            ("anka", "ଅନ୍କ"),
+            ("ahka", "ଅହ୍କ"),
+            ("ahpa", "ଅହ୍ପ"),
+            ("ansa", "ଅନ୍ସ"),
+            ("ansha", "ଅନ୍ଶ"),
+            ("anha", "ଅନ୍ହ"),
+            ("angga", "ଅଙ୍ଗ"),
+            ("anka.", "ଅନ୍କ."),
+            ("anx", "ଅନ୍x"),
+            ("ahx", "ଅହ୍x"),
+            ("anna", "ଅନ୍ନ"),
+            ("brahma", "ବ୍ରହ୍ମ"),
+            ("kna", "କ୍ନ"),
+            ("nga", "ଙ"),
+            ("ngka", "ଙ୍କ"),
+            ("angka", "ଅଙ୍କ"),
+            ("namaskara", "ନମସ୍କର"),
         ],
     )
-    def test_modifier_round_trip(self, word: str, spelling: str) -> None:
-        assert roman.to_roman(word, "Hunterian") == spelling
+    def test_decodes_as_consonant(self, spelling: str, word: str) -> None:
         assert roman.from_roman(spelling, "Hunterian") == word
 
-    def test_n_and_h_before_a_vowel_stay_consonants(self) -> None:
-        assert roman.from_roman("namaskara", "Hunterian") == "ନମସ୍କର"
-        assert roman.from_roman("ha", "Hunterian") == "ହ"
-        assert roman.from_roman("kha", "Hunterian") == "ଖ"
-        assert roman.from_roman("kana", "Hunterian") == "କନ"
-        assert roman.from_roman("kaha", "Hunterian") == "କହ"
+    @pytest.mark.parametrize("word", ["ଜେସନ୍", "ଅନ୍କ", "ଅନ୍ସ", "ଅନ୍ଶ", "ଅନ୍ହ", "ଅଙ୍କ", "ଅଙ୍ଗ", "ଶଙ୍କର", "ମନ୍"])
+    def test_round_trip(self, word: str) -> None:
+        assert roman.from_roman(roman.to_roman(word, "Hunterian"), "Hunterian") == word
 
-    def test_chandrabindu_decodes_as_anusvara(self) -> None:
-        assert roman.to_roman("ଅଁ", "Hunterian") == "an"
-        assert roman.from_roman("an", "Hunterian") == "ଅଂ"
-
-    def test_anusvara_before_g_beats_ng(self) -> None:
-        assert roman.to_roman("ସଂଗୀତ", "Hunterian") == "sangita"
-        assert roman.from_roman("sangita", "Hunterian") == "ସଂଗିତ"
-        assert roman.to_roman("ସଁଗ", "Hunterian") == "sanga"
-        assert roman.from_roman("sanga", "Hunterian") == "ସଂଗ"
-
-    def test_velar_nasal_when_n_does_not_follow_a_vowel(self) -> None:
-        assert roman.from_roman("nga", "Hunterian") == "ଙ"
-        assert roman.from_roman("ngi", "Hunterian") == "ଙି"
-        assert roman.from_roman("ngga", "Hunterian") == "ଙ୍ଗ"
-        assert roman.from_roman("knga", "Hunterian") == "କ୍ଙ"
-        assert roman.to_roman("କଙ", "Hunterian") == "kanga"
-        assert roman.from_roman("kanga", "Hunterian") == "କଂଗ"
-
-
-@pytest.mark.parametrize(
-    ("spelling", "word"),
-    [
-        ("anna", "ଅନ୍ନ"),
-        ("kanta", "କନ୍ତ"),
-        ("mandira", "ମନ୍ଦିର"),
-        ("ananda", "ଅନନ୍ଦ"),
-        ("brahma", "ବ୍ରହ୍ମ"),
-        ("chihna", "ଚିହ୍ନ"),
-        ("sangita", "ସଂଗିତ"),
-        ("duhkha", "ଦୁଃଖ"),
-        ("an", "ଅଂ"),
-        ("duh", "ଦୁଃ"),
-        ("simha", "ସିମ୍ହ"),
-        ("sinha", "ସିଂହ"),
-        ("duhpa", "ଦୁଃପ"),
-        ("an.", "ଅଂ."),
-    ],
-)
-def test_hunterian_modifier_contexts(spelling: str, word: str) -> None:
-    assert roman.from_roman(spelling, "Hunterian") == word
+    @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
+    @pytest.mark.parametrize("word", ["ସଂସ୍କୃତ", "ଦୁଃଖ", "ଏବଂ", "ସଂଗୀତ", "ସିଂହ", "ଅଁ", "ଜେସନ୍", "ଅଙ୍କ"])
+    def test_marked_modifiers_round_trip(self, word: str, scheme: Scheme) -> None:
+        assert roman.from_roman(roman.to_roman(word, scheme), scheme) == word
