@@ -92,7 +92,7 @@ def transliterate(text: str, from_script: Script, to_script: Script) -> str:
         if not src_offset <= ord(ch) < upper or ch not in src_names:
             out.append(ch)
             continue
-        out.append(_map_char(ch, src_names[ch], dst_chars))
+        out.append(_map_char(ch, src_names, dst_chars))
     return "".join(out)
 
 
@@ -108,14 +108,32 @@ def _block_entries(start: int) -> list[tuple[str, str]]:
             # southern scripts use "RRA" for the alveolar ऱ/ற/ఱ/റ instead.
             if start in _FLAP_RRA_BLOCKS and name == "LETTER RRA":
                 name = "LETTER DDDHA"
+            # Tamil/Telugu/Kannada/Malayalam have short and long e/o and
+            # call them E/EE, O/OO. Northern scripts' E/O are the long
+            # vowels, and Devanagari names its short ones SHORT E/O. Use
+            # the northern naming throughout.
+            if start in _SHORT_LONG_EO_BLOCKS:
+                name = _SOUTH_EO.get(name, name)
             entries.append((chr(cp), name))
     return entries
 
 
 _FLAP_RRA_BLOCKS = frozenset({0x0980, 0x0A00, 0x0B00})
+_SHORT_LONG_EO_BLOCKS = frozenset({0x0B80, 0x0C00, 0x0C80, 0x0D00})
+_SOUTH_EO = {
+    f"{kind} {south}": f"{kind} {north}"
+    for kind in ("LETTER", "VOWEL SIGN")
+    for south, north in (("E", "SHORT E"), ("EE", "E"), ("O", "SHORT O"), ("OO", "O"))
+}
 
 #: Fallbacks for letters that only some scripts encode separately.
-_NAME_FALLBACKS = {"LETTER WA": "LETTER VA"}  # Odia ୱ → व / ವ / …
+_NAME_FALLBACKS = {
+    "LETTER WA": "LETTER VA",  # Odia ୱ → व / ವ / …
+    "LETTER RA WITH MIDDLE DIAGONAL": "LETTER RA",  # Assamese ৰ
+    "LETTER RA WITH LOWER DIAGONAL": "LETTER VA",  # Assamese ৱ
+}
+#: Dead-consonant letters that expand to base letter + virama.
+_DEAD_CONSONANTS = {"LETTER KHANDA TA": "LETTER TA"}  # Bengali ৎ
 
 
 @cache
@@ -128,16 +146,27 @@ def _chars_by_name(start: int) -> dict[str, str]:
     return {name: ch for ch, name in _block_entries(start)}
 
 
-def _map_char(ch: str, name: str, dst_chars: dict[str, str]) -> str:
+def _map_char(ch: str, src_names: dict[str, str], dst_chars: dict[str, str]) -> str:
+    name = src_names[ch]
     if name in dst_chars:
         return dst_chars[name]
     fallback = _NAME_FALLBACKS.get(name)
     if fallback in dst_chars:
         return dst_chars[fallback]
-    if name.startswith("LETTER CHILLU "):
+    base_name = _DEAD_CONSONANTS.get(name)
+    if base_name is None and name.startswith("LETTER CHILLU "):
         # Chillu = consonant without inherent vowel: base letter + virama.
-        base = dst_chars.get("LETTER " + name[len("LETTER CHILLU ") :] + "A")
+        base_name = "LETTER " + name[len("LETTER CHILLU ") :] + "A"
+    if base_name is not None:
+        base = dst_chars.get(base_name)
         virama = dst_chars.get("SIGN VIRAMA")
         if base and virama:
             return base + virama
+    # Precomposed letters (e.g. क़ = क + nukta) map part by part, when every
+    # part has a counterpart in the target script.
+    parts = unicodedata.normalize("NFD", ch)
+    if len(parts) > 1 and all(p in src_names for p in parts):
+        mapped = [_map_char(p, src_names, dst_chars) for p in parts]
+        if all(m != p for m, p in zip(mapped, parts)):
+            return "".join(mapped)
     return ch

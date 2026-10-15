@@ -137,11 +137,26 @@ class TestCharacterIdentity:
     def test_odia_flap_rra_maps_to_devanagari_dddha(self) -> None:
         assert indic.transliterate("\u0b5c", from_script="odia", to_script="devanagari") == "\u095c"
         assert indic.transliterate("\u095c", from_script="devanagari", to_script="odia") == "\u0b5c"
-        # Devanagari alveolar RRA (ऱ) has no Odia letter: kept as is.
-        assert indic.transliterate("\u0931", from_script="devanagari", to_script="odia") == "\u0931"
+        # Devanagari alveolar RRA (ऱ) has no Odia letter; it is canonically
+        # र + nukta, so it maps part by part (never to the flap ଡ଼).
+        assert indic.transliterate("\u0931", from_script="devanagari", to_script="odia") == "\u0b30\u0b3c"
 
     def test_odia_wa_maps_to_va(self) -> None:
         assert indic.transliterate("ସ୍ୱ", from_script="odia", to_script="devanagari") == "स्व"
 
     def test_missing_tamil_letter_is_kept_not_offset(self) -> None:
         assert indic.transliterate("खक", from_script="devanagari", to_script="tamil") == "खக"
+
+    def test_long_e_and_o_match_across_north_and_south(self) -> None:
+        assert indic.transliterate("देव", from_script="devanagari", to_script="telugu") == "దేవ"
+        assert indic.transliterate("ଓ", from_script="odia", to_script="telugu") == "ఓ"
+        assert indic.transliterate("దేవ", from_script="telugu", to_script="devanagari") == "देव"
+        assert indic.transliterate("ऎ", from_script="devanagari", to_script="kannada") == "ಎ"
+
+    def test_assamese_ra_and_wa(self) -> None:
+        assert indic.transliterate("ৰাম", from_script="assamese", to_script="devanagari") == "राम"
+        assert indic.transliterate("ৱ", from_script="assamese", to_script="devanagari") == "व"
+
+    def test_nukta_letter_and_khanda_ta_expand(self) -> None:
+        assert indic.transliterate("\u0958", from_script="devanagari", to_script="bengali") == "\u0995\u09bc"
+        assert indic.transliterate("ৎ", from_script="bengali", to_script="devanagari") == "त्"
