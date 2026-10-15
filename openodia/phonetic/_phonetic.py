@@ -184,9 +184,6 @@ def soundex(word: str) -> str:
         if len(out) >= 4:
             break
 
-    if not out:
-        return ""
-
     while len(out) < 4:
         out.append("0")
     return "".join(out[:4])
