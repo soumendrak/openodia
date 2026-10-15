@@ -217,3 +217,58 @@ class TestCodexRound3:
 
     def test_malayalam_target_keeps_precomposed_au(self) -> None:
         assert indic.transliterate("पौ", "devanagari", "malayalam") == "പൌ"
+
+
+class TestCodexRound4:
+    """Unicode edge cases cited on the transliteration review."""
+
+    @pytest.mark.parametrize(
+        ("text", "src", "expected"),
+        [
+            ("पंजाबी", "devanagari", "\u0a2a\u0a70\u0a1c\u0a3e\u0a2c\u0a40"),  # inherent a → tippi
+            ("हां", "devanagari", "\u0a39\u0a3e\u0a02"),  # aa → bindi
+            ("में", "devanagari", "\u0a2e\u0a47\u0a02"),  # ee → bindi
+            ("सिं", "devanagari", "\u0a38\u0a3f\u0a70"),  # dependent i → tippi
+            ("सीं", "devanagari", "\u0a38\u0a40\u0a02"),  # dependent ii → bindi
+            ("कुं", "devanagari", "\u0a15\u0a41\u0a70"),  # dependent u → tippi
+            ("कूं", "devanagari", "\u0a15\u0a42\u0a70"),  # dependent uu → tippi
+            ("उं", "devanagari", "\u0a09\u0a02"),  # independent u → bindi
+            ("ऊं", "devanagari", "\u0a0a\u0a02"),  # independent uu → bindi
+            ("अं", "devanagari", "\u0a05\u0a70"),  # independent a → tippi
+            ("आं", "devanagari", "\u0a06\u0a02"),  # independent aa → bindi
+            ("ं", "devanagari", "\u0a70"),  # no vowel → tippi
+            ("\u09b9\u09be\u0982", "bengali", "\u0a39\u0a3e\u0a02"),  # Bengali aa → bindi
+            ("\u0939\u093e\u093c\u0902", "devanagari", "\u0a39\u0a3e\u0a3c\u0a02"),  # nukta before the anusvara
+        ],
+    )
+    def test_gurmukhi_tippi_follows_the_vowel(self, text: str, src: str, expected: str) -> None:
+        assert indic.transliterate(text, src, "gurmukhi") == expected
+
+    def test_decomposed_gurmukhi_consonants_match_precomposed(self) -> None:
+        # U+0A36 SHA is canonically SA + nukta; U+0A33 LLA is LA + nukta.
+        # NFC does not recompose them (composition exclusions).
+        assert indic.transliterate("\u0a36\u0a2c\u0a26", "gurmukhi", "devanagari") == "शबद"
+        assert indic.transliterate("\u0a38\u0a3c\u0a2c\u0a26", "gurmukhi", "devanagari") == "शबद"
+        assert indic.transliterate("\u0a33", "gurmukhi", "devanagari") == "ळ"
+        assert indic.transliterate("\u0a32\u0a3c", "gurmukhi", "devanagari") == "ळ"
+
+    def test_tamil_aytham_is_not_visarga(self) -> None:
+        assert indic.transliterate("\u0b83", "tamil", "devanagari") == "\u0b83"
+        assert indic.transliterate("\u0903", "devanagari", "tamil") == "\u0903"
+        assert indic.transliterate("\u0915\u0903", "devanagari", "tamil") == "\u0b95\u0903"
+
+    def test_kannada_fa_name_is_llla(self) -> None:
+        assert indic.transliterate("\u0cde", "kannada", "devanagari") == "\u0934"
+        assert indic.transliterate("\u0934", "devanagari", "kannada") == "\u0cde"
+        assert indic.transliterate("\u0cde", "kannada", "tamil") == "\u0bb4"
+        # Real FA stays pha + nukta, rather than the misnamed U+0CDE.
+        assert indic.transliterate("\u095e", "devanagari", "kannada") == "\u0cab\u0cbc"
+
+    def test_malayalam_dot_reph_is_dead_ra(self) -> None:
+        assert indic.transliterate("\u0d4e\u0d15", "malayalam", "devanagari") == "\u0930\u094d\u0915"
+
+    def test_gurmukhi_yakash_is_subjoined_ya(self) -> None:
+        assert (
+            indic.transliterate("\u0a38\u0a3f\u0a16\u0a75\u0a3e", "gurmukhi", "devanagari")
+            == "\u0938\u093f\u0916\u094d\u092f\u093e"
+        )

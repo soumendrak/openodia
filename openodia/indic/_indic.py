@@ -13,6 +13,11 @@ base consonant plus virama (``ൻ`` → ``न्``). Characters with no
 counterpart in the target script are kept unchanged. That includes
 Latin, digits, punctuation, the shared danda, and e.g. Devanagari ``ख``
 when targeting Tamil, which has no aspirated consonants.
+
+Two formal Unicode names are corrected before matching, because they are
+known mistakes: Tamil U+0B83 is aytham, not visarga, and Kannada U+0CDE is
+LLLA, not FA. An anusvara aimed at Gurmukhi is written as tippi or bindi
+according to the vowel it follows.
 """
 
 from __future__ import annotations
@@ -87,21 +92,39 @@ def transliterate(text: str, from_script: Script, to_script: Script) -> str:
     src_names = _names(src_offset)
     dst_chars = _chars_by_name(to_script)
     upper = src_offset + _BLOCK_SIZE
-    # Compose canonically decomposed two-part vowel signs (Bengali ে + ৗ
-    # → ৌ). Not full NFC: that would decompose nukta letters such as ଡ଼
-    # and touch text outside the source script.
-    for decomposed, composed in _split_vowel_signs(src_offset).items():
+    # Recompose canonically decomposed vowel signs (Bengali ে + ৗ → ৌ) and
+    # Gurmukhi nukta consonants (ਸ + ਼ → ਸ਼). Not NFC: that would decompose
+    # excluded nukta letters such as ଡ଼ and rewrite text outside this script.
+    for decomposed, composed in _recompositions(src_offset).items():
         text = text.replace(decomposed, composed)
-    out: list[str] = []
-    for i, ch in enumerate(text):
-        if not src_offset <= ord(ch) < upper or ch not in src_names:
-            out.append(ch)
-            continue
-        if src_names[ch] == "ADDAK" and "ADDAK" not in dst_chars:
-            out.append(_geminate(text[i + 1 : i + 2], src_names, dst_chars) or ch)
-            continue
-        out.append(_map_char(ch, src_names, dst_chars))
-    return "".join(out)
+    return "".join(_transliterate_char(text, i, src_offset, upper, src_names, dst_chars, to_script) for i in range(len(text)))
+
+
+def _transliterate_char(
+    text: str,
+    index: int,
+    src_offset: int,
+    upper: int,
+    src_names: dict[str, str],
+    dst_chars: dict[str, str],
+    to_script: Script,
+) -> str:
+    ch = text[index]
+    if not src_offset <= ord(ch) < upper or ch not in src_names:
+        return ch
+    name = src_names[ch]
+    if name == "ADDAK" and "ADDAK" not in dst_chars:
+        return _geminate(text[index + 1 : index + 2], src_names, dst_chars) or ch
+    if to_script == "gurmukhi" and name == "SIGN ANUSVARA":
+        return _gurmukhi_nasal(text, index, src_names, dst_chars)
+    if name == "SIGN YAKASH":
+        return _subjoined_ya(dst_chars)
+    return _map_char(ch, src_names, dst_chars)
+
+
+def _subjoined_ya(dst_chars: dict[str, str]) -> str:
+    """Gurmukhi yakash is a subjoined YA, encoded as virama + YA."""
+    return dst_chars["SIGN VIRAMA"] + dst_chars["LETTER YA"]
 
 
 def _geminate(nxt: str, src_names: dict[str, str], dst_chars: dict[str, str]) -> str:
@@ -111,6 +134,41 @@ def _geminate(nxt: str, src_names: dict[str, str], dst_chars: dict[str, str]) ->
     virama = dst_chars.get("SIGN VIRAMA")
     base = _map_char(nxt, src_names, dst_chars)
     return base + virama if virama and base != nxt else ""
+
+
+# Bindi goes with dependent and independent aa, ii, ee, ai, oo, and au, and
+# with independent u and uu. Tippi is every other context (inherent a,
+# dependent i/u/uu, independent a/i). Names are the northern ones already
+# produced by _block_entries, so the long e/o are E/O, not EE/OO.
+_BINDI_VOWELS = frozenset(
+    {
+        "LETTER AA",
+        "VOWEL SIGN AA",
+        "LETTER II",
+        "VOWEL SIGN II",
+        "LETTER E",
+        "VOWEL SIGN E",
+        "LETTER AI",
+        "VOWEL SIGN AI",
+        "LETTER O",
+        "VOWEL SIGN O",
+        "LETTER AU",
+        "VOWEL SIGN AU",
+        "LETTER U",
+        "LETTER UU",
+    }
+)
+
+
+def _gurmukhi_nasal(text: str, index: int, src_names: dict[str, str], dst_chars: dict[str, str]) -> str:
+    """Choose Gurmukhi bindi or tippi from the vowel the anusvara follows."""
+    bindi = dst_chars["SIGN ANUSVARA"]
+    tippi = dst_chars["TIPPI"]
+    for j in range(index - 1, -1, -1):
+        name = src_names.get(text[j])
+        if name is None or name != "SIGN NUKTA":
+            return bindi if name in _BINDI_VOWELS else tippi
+    return tippi
 
 
 def _block_entries(start: int) -> list[tuple[str, str]]:
@@ -144,7 +202,9 @@ _SOUTH_EO = {
     for south, north in (("E", "SHORT E"), ("EE", "E"), ("O", "SHORT O"), ("OO", "O"))
 }
 
-#: Per-block names that differ from the Devanagari name of the same letter.
+#: Per-block renames onto the shared identity used for lookup.
+# Tamil U+0B83 is aytham, not visarga, and Kannada U+0CDE's formal name
+# LETTER FA is a mistake for LLLA (Unicode Standard, ch. 12).
 _BLOCK_RENAMES: dict[int, dict[str, str]] = {
     0x0A00: {  # Gurmukhi has only the long e/o, named EE/OO.
         "LETTER EE": "LETTER E",
@@ -158,6 +218,8 @@ _BLOCK_RENAMES: dict[int, dict[str, str]] = {
         "VOWEL CANDRA E": "LETTER CANDRA E",
         "VOWEL CANDRA O": "LETTER CANDRA O",
     },
+    0x0B80: {"SIGN VISARGA": "SIGN AYTHAM"},
+    0x0C80: {"LETTER FA": "LETTER LLLA"},
 }
 
 #: Fallbacks for letters that only some scripts encode separately.
@@ -176,7 +238,10 @@ _BENGALI_TARGET = {"LETTER VA": "\u09ac", "LETTER WA": "\u09ac"}
 #: table, which keeps the precomposed ൌ for VOWEL SIGN AU.
 _SOURCE_ALIASES: dict[int, dict[str, str]] = {0x0D00: {"AU LENGTH MARK": "VOWEL SIGN AU"}}
 #: Dead-consonant letters that expand to base letter + virama.
-_DEAD_CONSONANTS = {"LETTER KHANDA TA": "LETTER TA"}  # Bengali ৎ
+_DEAD_CONSONANTS = {
+    "LETTER KHANDA TA": "LETTER TA",  # Bengali ৎ
+    "LETTER DOT REPH": "LETTER RA",  # Malayalam ൎ
+}
 
 
 @cache
@@ -186,14 +251,25 @@ def _names(start: int) -> dict[str, str]:
 
 
 @cache
-def _split_vowel_signs(start: int) -> dict[str, str]:
-    """``decomposed → precomposed`` for the block's two-part vowel signs."""
+def _recompositions(start: int) -> dict[str, str]:
+    """``decomposed → precomposed`` for vowel signs and Gurmukhi nukta consonants.
+
+    Gurmukhi SHA, LLA, and the pairin-bindi letters are composition
+    exclusions, so NFC leaves SA + nukta decomposed and the name-based
+    mapper would then emit SA instead of SHA. Other blocks keep that
+    decomposed nukta spelling: Odia DDA + nukta is not the flap ଡ଼.
+    """
     out = {}
     for ch, name in _block_entries(start):
         parts = unicodedata.normalize("NFD", ch)
-        if name.startswith("VOWEL SIGN") and len(parts) > 1:
+        nukta_consonant = start == 0x0A00 and _contains_nukta(parts)
+        if len(parts) > 1 and (name.startswith("VOWEL SIGN") or nukta_consonant):
             out[parts] = ch
     return out
+
+
+def _contains_nukta(parts: str) -> bool:
+    return any(unicodedata.name(part, "").endswith("SIGN NUKTA") for part in parts)
 
 
 @cache
