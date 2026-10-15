@@ -165,6 +165,16 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 
 ### :material-music-note: Phonetic matching
 
+These are Odia-adapted variants, not classic Soundex or Metaphone.
+Soundex preserves the first Odia letter, including a leading vowel, and
+pads or truncates to four characters. Both encoders normalize NFC.
+Vowels and matras reset duplicate suppression; halant, nukta and zero-width
+joiners do not. For example, `ପାପା` gives Soundex `ପ600` and Metaphone `ପପ`.
+Nonempty input with no Odia letters raises `ValueError`, including Latin-only
+input; mixed input ignores non-Odia characters. Empty input produces empty
+keys. `similarity()` assigns 0.5 to Soundex equality and 0.5 to normalized
+Metaphone edit similarity; two empty inputs score 0.0.
+
 - Two encoders for finding spelling variants of the same name / word:
   - **Soundex** — fixed 4-character code based on place-of-articulation groups.
   - **Metaphone** — variable-length consonant skeleton, aspirated/voiced pairs collapsed.

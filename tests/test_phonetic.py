@@ -1,3 +1,7 @@
+import unicodedata
+
+import pytest
+
 from openodia import phonetic
 
 
@@ -5,9 +9,9 @@ class TestSoundex:
     def test_empty_input(self) -> None:
         assert phonetic.soundex("") == ""
 
-    def test_no_consonant_returns_empty(self) -> None:
+    def test_vowel_only_keeps_first_letter(self) -> None:
         # Only vowels and matras.
-        assert phonetic.soundex("ଆଇ") == ""
+        assert phonetic.soundex("ଆଇ") == "ଆ000"
 
     def test_first_consonant_kept_verbatim(self) -> None:
         out = phonetic.soundex("ସ")
@@ -111,19 +115,23 @@ class TestSimilarity:
             assert 0.0 <= score <= 1.0
 
     def test_empty_pair(self) -> None:
-        # No consonants on either side. Defined to be 0.0 to avoid
-        # accidentally matching everything.
+        # Two empty inputs score zero; a vowel-only input retains its
+        # Soundex initial but has the same empty Metaphone as empty input.
         assert phonetic.similarity("", "") == 0.0
-        assert phonetic.similarity("ଆ", "") == 0.0
+        assert phonetic.similarity("ଆ", "") == 0.5
 
 
 class TestNonOdiaInputs:
-    """Latin and other-script inputs degrade gracefully."""
+    @pytest.mark.parametrize("word", ["hello", "123", "ା", "   ", "हिन्दी"])
+    @pytest.mark.parametrize("encoder", [phonetic.soundex, phonetic.metaphone])
+    def test_no_odia_letters_raises(self, word, encoder) -> None:
+        with pytest.raises(ValueError, match="Odia letter"):
+            encoder(word)
 
-    def test_latin_input_returns_empty(self) -> None:
-        # No Odia consonants → empty soundex, empty metaphone.
-        assert phonetic.soundex("hello") == ""
-        assert phonetic.metaphone("hello") == ""
+    @pytest.mark.parametrize("words", [("hello", "ସ"), ("ସ", "hello")])
+    def test_similarity_rejects_non_odia(self, words) -> None:
+        with pytest.raises(ValueError, match="Odia letter"):
+            phonetic.similarity(*words)
 
     def test_mixed_input(self) -> None:
         # Should pick up Odia consonants and ignore Latin.
@@ -178,3 +186,43 @@ class TestNormalisedEditSimilarity:
 
         assert _normalised_edit_similarity("abc", "") == 0.0
         assert _normalised_edit_similarity("", "abc") == 0.0
+
+
+class TestReviewRegressions:
+    def test_four_character_truncation(self) -> None:
+        assert phonetic.soundex("କଚଟତପରସ") == "କ345"
+        assert phonetic.soundex("କଚଟତ") == "କ345"
+
+    @pytest.mark.parametrize("word", ["ପାପା", "ପଅପ"])
+    def test_vowels_reset_merge_chain(self, word) -> None:
+        assert phonetic.soundex(word) == "ପ600"
+        assert phonetic.metaphone(word) == "ପପ"
+
+    def test_leading_vowel_is_preserved(self) -> None:
+        assert phonetic.soundex("ଅମର") == "ଅ670"
+        assert phonetic.soundex("ମର") == "ମ700"
+        assert phonetic.similarity("ଅମର", "ମର") == 0.5
+
+    @pytest.mark.parametrize("letter,digit,base", [("ୱ", "7", "ର"), ("ୟ", "7", "ର"), ("ହ", "8", "ସ"), ("ଡ଼", "4", "ଟ")])
+    def test_table_entries(self, letter, digit, base) -> None:
+        assert phonetic.soundex("କ" + letter) == "କ" + digit + "00"
+        assert phonetic.metaphone(letter) == base
+
+    @pytest.mark.parametrize("encoder", [phonetic.soundex, phonetic.metaphone])
+    def test_nfc_normalisation(self, encoder) -> None:
+        word = "କୋପୌଡ଼"
+        decomposed = unicodedata.normalize("NFD", word)
+        assert decomposed != word
+        assert encoder(word) == encoder(decomposed)
+
+    def test_similarity_equal_weights(self) -> None:
+        # Different Soundex initials, identical Metaphone: half the score.
+        assert phonetic.similarity("କ", "ଖ") == 0.5
+        # Equal Soundex, Metaphone similarity 0.8: 0.5 + 0.5 * 0.8.
+        assert phonetic.soundex("କଚଟତପ") == phonetic.soundex("କଚଟତର")
+        assert phonetic.similarity("କଚଟତପ", "କଚଟତର") == pytest.approx(0.9)
+
+    @pytest.mark.parametrize("word", ["ପ୍ପ", "ପ୍\u200dପ", "ପ୍\u200cପ"])
+    def test_conjunct_marks_preserve_merge_chain(self, word) -> None:
+        assert phonetic.soundex(word) == "ପ000"
+        assert phonetic.metaphone(word) == "ପ"

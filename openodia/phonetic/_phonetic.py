@@ -1,4 +1,4 @@
-"""Soundex / Metaphone for Odia consonants.
+"""Odia-adapted variants, not classic Soundex or Metaphone.
 
 The Soundex variant maps consonants to a single-digit place-of-articulation
 code (1..8); vowels, matras, and halant are dropped from the body of the
@@ -20,12 +20,14 @@ _CONJUNCT_MARKS = frozenset({_HALANT, _NUKTA, "\u200c", "\u200d"})
 
 
 def _canonical(word: str) -> str:
-    """NFC, then recompose ଡ଼/ଢ଼.
+    """Validate Odia letters, normalise NFC, then recompose ଡ଼/ଢ଼.
 
     U+0B5C and U+0B5D are composition exclusions, so NFC decomposes them
     to base + nukta. Recomposing keeps them distinct from plain ଡ/ଢ while
     still treating precomposed and decomposed spellings the same.
     """
+    if word and not any(_is_odia_letter(ch) for ch in word):
+        raise ValueError("Input must contain at least one Odia letter")
     word = unicodedata.normalize("NFC", word)
     return word.replace("ଡ" + _NUKTA, "\u0b5c").replace("ଢ" + _NUKTA, "\u0b5d")
 
@@ -126,6 +128,10 @@ _METAPHONE_BASE: dict[str, str] = {
 }
 
 
+def _is_odia_letter(ch: str) -> bool:
+    return "\u0b00" <= ch <= "\u0b7f" and unicodedata.category(ch).startswith("L")
+
+
 def _is_consonant(ch: str) -> bool:
     return ch in _SOUNDEX_CODES
 
@@ -134,15 +140,19 @@ def _is_consonant(ch: str) -> bool:
 
 
 def soundex(word: str) -> str:
-    """Return the 4-character Odia Soundex code for ``word``.
+    """Return the 4-character Odia-adapted Soundex code (not classic Soundex) for ``word``.
 
-    The first consonant is kept verbatim. Subsequent consonants are
+    The first Odia letter, including a vowel, is kept verbatim.
+    Subsequent consonants are
     replaced by their place-of-articulation digit (``2``–``8``); adjacent
-    duplicates collapse. Vowels, matras, halant, nukta, and the modifiers
-    are dropped. The output is right-padded with ``0`` to exactly 4
+    duplicates collapse. In the body, vowels, matras, halant, nukta,
+    and modifiers are dropped. The output is right-padded with ``0`` to exactly 4
     characters and truncated if longer.
 
-    Returns an empty string for an input that contains no consonant.
+    Vowels/matras reset duplicate suppression; conjunct marks do not.
+    Thus ``ପାପା`` yields ``ପ600``. Input is NFC-normalised.
+    Empty input returns an empty string; nonempty input with no Odia
+    letters raises ValueError. Mixed input ignores non-Odia characters.
 
     Examples:
         >>> soundex("ସୋମେନ୍ଦ୍ର")
@@ -157,16 +167,14 @@ def soundex(word: str) -> str:
     out: list[str] = []
     last: str = ""
     for ch in word:
-        if _is_consonant(ch):
-            if not out:
-                # First consonant: keep verbatim.
-                out.append(ch)
-                last = _SOUNDEX_CODES[ch]
-            else:
-                code = _SOUNDEX_CODES[ch]
-                if code != last:
-                    out.append(code)
-                    last = code
+        if not out and _is_odia_letter(ch):
+            out.append(ch)
+            last = _SOUNDEX_CODES.get(ch, "")
+        elif _is_consonant(ch):
+            code = _SOUNDEX_CODES[ch]
+            if code != last:
+                out.append(code)
+                last = code
         elif ch not in _CONJUNCT_MARKS:
             # A vowel or matra breaks the duplicate-suppression chain
             # without emitting anything. Halant and nukta do not: the
@@ -185,14 +193,17 @@ def soundex(word: str) -> str:
 
 
 def metaphone(word: str) -> str:
-    """Return the Odia Metaphone code for ``word``.
+    """Return the Odia-adapted Metaphone code (not classic Metaphone) for ``word``.
 
     Each consonant collapses to its articulation-group base
     (e.g. ``ଖ`` / ``ଗ`` / ``ଘ`` → ``କ``). Adjacent duplicates collapse.
     Vowels, matras, halant, and nukta are dropped.
 
     The output length varies with the input — there is no padding or
-    truncation. Empty input yields an empty string.
+    truncation. Vowels/matras reset duplicate suppression; conjunct marks
+    do not. Thus ``ପାପା`` yields ``ପପ``. Input is NFC-normalised.
+    Empty input yields an empty string; nonempty input with no Odia
+    letters raises ValueError. Mixed input ignores non-Odia characters.
 
     Examples:
         >>> metaphone("ସୋମେନ୍ଦ୍ର")
@@ -206,6 +217,8 @@ def metaphone(word: str) -> str:
     last: str | None = None
     for ch in word:
         if not _is_consonant(ch):
+            if ch not in _CONJUNCT_MARKS:
+                last = None
             continue
         base = _METAPHONE_BASE.get(ch, ch)
         if base != last:
@@ -217,13 +230,15 @@ def metaphone(word: str) -> str:
 def similarity(a: str, b: str) -> float:
     """Symmetric phonetic similarity in ``[0.0, 1.0]``.
 
-    Combines Soundex (recall) with Metaphone (precision):
+    Combines Odia-adapted variants, not classic Soundex or Metaphone:
 
     * 0.5 weight on whether the two Soundex codes are equal.
     * 0.5 weight on a normalised edit-distance between Metaphone codes.
 
     Returns ``1.0`` when both encoders produce identical output, ``0.0``
-    when both inputs are empty or contain no consonant.
+    when both inputs are empty. Nonempty input with no Odia letters
+    raises ValueError. Both encoders use NFC normalization and reset
+    duplicate suppression at vowels/matras, but not conjunct marks.
 
     Examples:
         >>> similarity("ସୋମେନ୍ଦ୍ର", "ସୌମେନ୍ଦ୍ର") > 0.9
