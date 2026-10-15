@@ -249,3 +249,33 @@ class TestFileInputAndStdin:
         code, out, _ = run(["tokenize", "-"], capsys)
         assert code == 0
         assert "ରାମ" in out
+
+
+class TestReviewEdgeCases:
+    def test_detect_language_whitespace_only(self, capsys: pytest.CaptureFixture[str]) -> None:
+        code, out, _ = run(["detect-language", "   "], capsys)
+        assert code == 0
+        assert "(empty input)" in out
+
+    def test_prefix_count_zero(self, capsys: pytest.CaptureFixture[str]) -> None:
+        code, out, _ = run(["name", "--kind", "prefix", "--count", "0"], capsys)
+        assert code == 0
+        assert out == ""
+
+    def test_summarize_rejects_zero_threshold(self, capsys: pytest.CaptureFixture[str]) -> None:
+        code, _, err = run(["summarize", "ରାମ ଆସିଲେ।", "--threshold", "0"], capsys)
+        assert code == 2
+        assert "--threshold must be a positive number" in err
+
+    def test_python_dash_m_runs_cli(self) -> None:
+        import subprocess
+        import sys
+
+        r = subprocess.run(
+            [sys.executable, "-m", "openodia", "tokenize", "ରାମ ସୀତା"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert r.returncode == 0, r.stderr
+        assert "ରାମ" in r.stdout

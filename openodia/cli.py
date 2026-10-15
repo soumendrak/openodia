@@ -99,7 +99,8 @@ def _cmd_detect_language(args: argparse.Namespace) -> int:
     from openodia import ud
 
     text = _read_input(args.text)
-    result: dict[str, Any] = ud.detect_language(text, threshold=args.threshold)
+    # Whitespace-only input would divide by zero inside detect_language.
+    result: dict[str, Any] = ud.detect_language(text, threshold=args.threshold) if text.strip() else {}
     if args.json:
         print(json.dumps(result, ensure_ascii=False))
     else:
@@ -122,7 +123,7 @@ def _cmd_name(args: argparse.Namespace) -> int:
     elif args.kind == "surname":
         names = name.generate_surnames(args.count)
     elif args.kind == "prefix":
-        names = name.generate_prefixes(args.count) if args.count else name.generate_prefixes()
+        names = name.generate_prefixes(args.count)
     else:  # pragma: no cover  — argparse already validates ``--kind``
         raise ValueError(f"unknown name kind: {args.kind}")
     for n in names:
@@ -137,6 +138,11 @@ def _cmd_summarize(args: argparse.Namespace) -> int:
     wf = WordFrequency(text=text)
     if args.threshold is None:
         print(wf.get_summary())
+    elif args.threshold <= 0:
+        # WordFrequency treats a falsy threshold as "auto", so 0 would
+        # silently act like the default; reject it instead.
+        print("error: --threshold must be a positive number", file=sys.stderr)
+        return 2
     else:
         print(wf.get_summary(threshold=args.threshold))
     return 0

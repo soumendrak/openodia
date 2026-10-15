@@ -1,9 +1,8 @@
+"""``python -m openodia`` — same as the ``openodia`` command."""
+
 import sys
 
+from openodia.cli import main
 
-def main(args=None):
-    print("CLI building is in-progress.")
-
-
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover - exercised via subprocess
     sys.exit(main())
