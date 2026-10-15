@@ -25,7 +25,7 @@ def _table(scheme: Scheme) -> dict[str, object]:
     raise ValueError(f"unknown scheme {scheme!r}; supported: {SCHEMES}")
 
 
-def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:
+def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - one flat per-character state machine
     """Transliterate Odia ``text`` to the Latin script.
 
     Args:
@@ -61,38 +61,54 @@ def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:
     text = text.replace("ଢ" + chr(0x0B3C), chr(0x0B5D))
 
     out: list[str] = []
+    literal: list[bool] = []  # parallel to out: True for pass-through text
     pending_schwa = False  # last emitted token was a consonant + inherent schwa
+    after_halant = False  # last Odia char was a halant after a consonant
+    sep = _SEPARATORS.get(scheme)
 
     def flush_schwa() -> None:
         nonlocal pending_schwa
         if pending_schwa:
-            out.append(schwa)
+            emit(schwa)
             pending_schwa = False
 
+    def emit(token: str, is_literal: bool = False) -> None:
+        out.append(token)
+        literal.append(is_literal)
+
     for ch in text:
+        halant_before = after_halant
+        after_halant = False
         if ch in consonants:
             flush_schwa()
-            out.append(consonants[ch])
+            emit(consonants[ch])
             pending_schwa = True
         elif ch in vowels:
             flush_schwa()
-            out.append(vowels[ch])
+            if halant_before and sep is not None:
+                # Consonant + halant + independent vowel: mark it explicitly,
+                # or the decoder would read a vowel sign (କ୍ଅ ≠ କ).
+                emit(_HALANT_MARK)
+            emit(vowels[ch])
         elif ch in matras:
             # Replace the pending schwa with this matra.
-            out.append(matras[ch])
+            emit(matras[ch])
             pending_schwa = False
         elif ch == _HALANT:
             # Suppress the pending schwa entirely.
+            after_halant = pending_schwa
             pending_schwa = False
         elif ch in modifiers:
             flush_schwa()
-            out.append(modifiers[ch])
+            emit(modifiers[ch])
         else:
             flush_schwa()
-            out.append(ch)
+            # Pass-through text is literal; a literal separator is doubled
+            # so the decoder keeps it instead of reading a boundary.
+            emit(ch * 2 if ch == sep else ch, is_literal=True)
 
     flush_schwa()
-    return _join_tokens(out, scheme)
+    return _join_tokens(out, scheme, literal)
 
 
 #: Boundary marks for the reversible schemes. ISO 15919 uses ``:`` to keep
@@ -100,24 +116,40 @@ def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:
 _SEPARATORS: dict[str, str] = {"ISO15919": ":", "ITRANS": "_"}
 
 
-def _join_tokens(tokens: list[str], scheme: Scheme) -> str:
+#: Placeholder token for "halant before an independent vowel"; rendered as
+#: the scheme's separator.
+_HALANT_MARK = "\x00halant"
+
+
+def _join_tokens(tokens: list[str], scheme: Scheme, literal: list[bool] | None = None) -> str:
     """Join emitted tokens, marking boundaries a decoder would otherwise merge.
 
     Example: ``କଇ`` emits ``k``, ``a``, ``i``. Plain joining gives ``kai``,
     which decodes as ``କୈ``, so ISO writes ``ka:i``. ``କ୍ହ`` likewise gives
-    ``k:ha`` rather than ``kha`` (``ଖ``).
+    ``k:ha`` rather than ``kha`` (``ଖ``). Pass-through text (*literal*) is
+    never separated, so non-Odia input comes back unchanged.
     """
     sep = _SEPARATORS.get(scheme)
     if sep is None:  # Hunterian is lossy by design; no separators.
-        return "".join(tokens)
+        return "".join(t for t in tokens if t != _HALANT_MARK)
+    literal = literal or [False] * len(tokens)
     roman_tokens, _ = _build_reverse_index(scheme)
     out: list[str] = []
     for i, tok in enumerate(tokens):
+        if tok == _HALANT_MARK:
+            out.append(sep)
+            continue
         out.append(tok)
-        if i + 1 < len(tokens):
-            joined = tok + "".join(tokens[i + 1 : i + 3])
-            if any(len(t) > len(tok) and t.startswith(tok) and joined.startswith(t) for t in roman_tokens):
-                out.append(sep)
+        if literal[i] or i + 1 >= len(tokens) or literal[i + 1] or tokens[i + 1] == _HALANT_MARK:
+            continue
+        following = []
+        for j in range(i + 1, min(i + 3, len(tokens))):
+            if literal[j] or tokens[j] == _HALANT_MARK:
+                break
+            following.append(tokens[j])
+        joined = tok + "".join(following)
+        if any(len(t) > len(tok) and t.startswith(tok) and joined.startswith(t) for t in roman_tokens):
+            out.append(sep)
     return "".join(out)
 
 
@@ -167,7 +199,7 @@ def _build_reverse_index(scheme: Scheme) -> tuple[list[str], dict[str, tuple[str
     return tokens, index
 
 
-def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
+def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - one flat tokenizer loop
     """Reverse of :func:`to_roman`.
 
     Best-effort for ``Hunterian`` since that scheme is intentionally
@@ -212,6 +244,15 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
     prev_was_token = False
     i = 0
     while i < len(text):
+        if sep is not None and text.startswith(sep * 2, i):
+            # Escaped literal separator written by to_roman.
+            if after_consonant:
+                out.append(_HALANT)
+                after_consonant = False
+            out.append(sep)
+            i += 2 * len(sep)
+            prev_was_token = False
+            continue
         match = next((t for t in tokens if text.startswith(t, i)), None)
         if (
             match is None
@@ -221,6 +262,11 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
             and any(text.startswith(t, i + len(sep)) for t in tokens)
         ):
             i += len(sep)  # token boundary written by to_roman
+            nxt = next(t for t in tokens if text.startswith(t, i))
+            if after_consonant and index[nxt][0] == "vowel":
+                # Consonant, boundary, vowel: an explicit halant (କ୍ଅ).
+                out.append(_HALANT)
+                after_consonant = False
             continue
         prev_was_token = match is not None
         if match is None:

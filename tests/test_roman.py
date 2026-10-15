@@ -156,3 +156,29 @@ class TestReviewFixes:
 
     def test_plain_punctuation_is_kept(self) -> None:
         assert roman.from_roman("k-a: b") == "କ୍-ଅ: ବ୍"
+
+
+class TestCodexRound3:
+    @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS", "Hunterian"])
+    @pytest.mark.parametrize("text", ["plain", "ai", "kha", "hello world"])
+    def test_pass_through_latin_unchanged(self, text: str, scheme: str) -> None:
+        assert roman.to_roman(text, scheme) == text
+
+    @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
+    @pytest.mark.parametrize("text", ["ଅ:ଇ", "ଅ_ଇ", "କ::ଖ", "ରାମ_ସୀତା"])
+    def test_literal_separator_round_trips(self, text: str, scheme: str) -> None:
+        assert roman.from_roman(roman.to_roman(text, scheme), scheme) == text
+
+    @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
+    @pytest.mark.parametrize("text", ["କ୍ଅ", "କ୍ଆ", "ସ୍ଇ", "ନମସ୍କାର"])
+    def test_halant_before_independent_vowel_round_trips(self, text: str, scheme: str) -> None:
+        assert roman.from_roman(roman.to_roman(text, scheme), scheme) == text
+
+    def test_halant_mark_examples(self) -> None:
+        assert roman.to_roman("କ୍ଅ") == "k:a"
+        assert roman.to_roman("କ୍ଅ", "ITRANS") == "k_a"
+        assert roman.to_roman("କ୍ଅ", "Hunterian") == "ka"
+        assert roman.to_roman("ଅ:ଇ") == "a::i"
+
+    def test_escaped_separator_after_bare_consonant(self) -> None:
+        assert roman.from_roman("k::a") == "କ୍:ଅ"
