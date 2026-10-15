@@ -123,7 +123,7 @@ class TestPublicAPI:
 
 class TestReviewFixes:
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
-    @pytest.mark.parametrize("word", ["ଆ", "ନା", "ନମସ୍କାର", "ସ୍ୱାଗତ", "ଦ୍ୱିତୀୟ", "କୢ", "ମଁ"])
+    @pytest.mark.parametrize("word", ["ଆ", "ନା", "ନମସ୍କାର", "ସ୍ୱାଗତ", "ଦ୍ୱିତୀୟ", "କୢ", "ମଁ", "କଇ", "କ୍ହ", "ଅଉ", "କ୍"])
     def test_round_trip_with_vowel_context(self, scheme: str, word: str) -> None:
         back = roman.from_roman(roman.to_roman(word, scheme), scheme)
         assert unicodedata.normalize("NFD", back) == unicodedata.normalize("NFD", word)
@@ -147,3 +147,12 @@ class TestReviewFixes:
     def test_documented_examples(self) -> None:
         assert roman.to_roman("ଓଡ଼ିଆ", "ISO15919") == "ōṛiā"
         assert roman.to_roman("ଓଡ଼ିଆ", "Hunterian") == "oria"
+
+    def test_boundary_separators(self) -> None:
+        assert roman.to_roman("କଇ") == "ka:i"
+        assert roman.to_roman("କ୍ହ") == "k:ha"
+        assert roman.to_roman("କଇ", "ITRANS") == "ka_i"
+        assert roman.to_roman("କଇ", "Hunterian") == "kai"
+
+    def test_plain_punctuation_is_kept(self) -> None:
+        assert roman.from_roman("k-a: b") == "କ୍-ଅ: ବ୍"

@@ -92,6 +92,32 @@ def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:
             out.append(ch)
 
     flush_schwa()
+    return _join_tokens(out, scheme)
+
+
+#: Boundary marks for the reversible schemes. ISO 15919 uses ``:`` to keep
+#: e.g. ``a`` + ``i`` apart from ``ai``. ITRANS uses ``_``.
+_SEPARATORS: dict[str, str] = {"ISO15919": ":", "ITRANS": "_"}
+
+
+def _join_tokens(tokens: list[str], scheme: Scheme) -> str:
+    """Join emitted tokens, marking boundaries a decoder would otherwise merge.
+
+    Example: ``କଇ`` emits ``k``, ``a``, ``i``. Plain joining gives ``kai``,
+    which decodes as ``କୈ``, so ISO writes ``ka:i``. ``କ୍ହ`` likewise gives
+    ``k:ha`` rather than ``kha`` (``ଖ``).
+    """
+    sep = _SEPARATORS.get(scheme)
+    if sep is None:  # Hunterian is lossy by design; no separators.
+        return "".join(tokens)
+    roman_tokens, _ = _build_reverse_index(scheme)
+    out: list[str] = []
+    for i, tok in enumerate(tokens):
+        out.append(tok)
+        if i + 1 < len(tokens):
+            joined = tok + "".join(tokens[i + 1 : i + 3])
+            if any(len(t) > len(tok) and t.startswith(tok) and joined.startswith(t) for t in roman_tokens):
+                out.append(sep)
     return "".join(out)
 
 
@@ -182,9 +208,21 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
     out: list[str] = []
     after_consonant = False  # last token was a consonant with no vowel yet
 
+    sep = _SEPARATORS.get(scheme)
+    prev_was_token = False
     i = 0
     while i < len(text):
         match = next((t for t in tokens if text.startswith(t, i)), None)
+        if (
+            match is None
+            and sep is not None
+            and text.startswith(sep, i)
+            and prev_was_token
+            and any(text.startswith(t, i + len(sep)) for t in tokens)
+        ):
+            i += len(sep)  # token boundary written by to_roman
+            continue
+        prev_was_token = match is not None
         if match is None:
             if after_consonant:
                 out.append(_HALANT)

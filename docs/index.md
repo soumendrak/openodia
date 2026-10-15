@@ -184,6 +184,8 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
 ??? note "Round-trip"
     `to_roman` + `from_roman` round-trip exactly for `ISO15919` and
     `ITRANS`. `Hunterian` is intentionally lossy; decoding is best-effort.
+    Where two tokens would otherwise merge, a boundary mark is written
+    (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS).
 
 ### :material-database-cog: Translation cache
 
