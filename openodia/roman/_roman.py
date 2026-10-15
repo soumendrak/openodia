@@ -108,7 +108,43 @@ def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - one
             emit(ch * 2 if ch == sep else ch, is_literal=True)
 
     flush_schwa()
+    if sep is not None and not all(literal):
+        out, literal = _quote_literals(out, literal, scheme)
     return _join_tokens(out, scheme, literal)
+
+
+def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> tuple[list[str], list[bool]]:
+    """Quote pass-through runs that the decoder would read as Roman tokens.
+
+    Only used when the text also contains transliterated Odia: ``କi`` would
+    otherwise give ``kai`` (``କୈ``). Each maximal run of literal characters
+    other than whitespace and escaped separators is written as
+    ``<sep>{run<sep>}`` when it contains a character used in Roman tokens,
+    e.g. ``ka:{i:}``. Pure non-Odia input is never quoted.
+    """
+    sep = _SEPARATORS[scheme]
+    roman_tokens, _ = _build_reverse_index(scheme)
+    token_chars = set("".join(roman_tokens))
+    new_tokens: list[str] = []
+    new_literal: list[bool] = []
+    run: list[str] = []
+
+    def close_run() -> None:
+        if run:
+            text = "".join(run)
+            new_tokens.append(sep + "{" + text + sep + "}" if token_chars.intersection(text) else text)
+            new_literal.append(True)
+            run.clear()
+
+    for tok, is_lit in zip(tokens, literal):
+        if is_lit and len(tok) == 1 and tok != sep and not tok.isspace():
+            run.append(tok)
+            continue
+        close_run()
+        new_tokens.append(tok)
+        new_literal.append(is_lit)
+    close_run()
+    return new_tokens, new_literal
 
 
 #: Boundary marks for the reversible schemes. ISO 15919 uses ``:`` to keep
@@ -253,6 +289,17 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
             i += 2 * len(sep)
             prev_was_token = False
             continue
+        if sep is not None and text.startswith(sep + "{", i):
+            end = text.find(sep + "}", i + len(sep) + 1)
+            if end != -1:
+                # Quoted pass-through text written by to_roman.
+                if after_consonant:
+                    out.append(_HALANT)
+                    after_consonant = False
+                out.append(text[i + len(sep) + 1 : end])
+                i = end + len(sep) + 1
+                prev_was_token = False
+                continue
         match = next((t for t in tokens if text.startswith(t, i)), None)
         if (
             match is None

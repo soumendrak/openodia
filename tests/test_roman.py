@@ -182,3 +182,15 @@ class TestCodexRound3:
 
     def test_escaped_separator_after_bare_consonant(self) -> None:
         assert roman.from_roman("k::a") == "କ୍:ଅ"
+
+
+class TestCodexRound4:
+    @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
+    @pytest.mark.parametrize("text", ["କi", "କ୍h", "iକ", "ନମସ୍କାର hello", "ରାମ {x} ସୀତା", "କa:b", "କ{a}"])
+    def test_mixed_script_round_trips(self, text: str, scheme: str) -> None:
+        assert roman.from_roman(roman.to_roman(text, scheme), scheme) == text
+
+    def test_mixed_script_quoting_examples(self) -> None:
+        assert roman.to_roman("କi") == "ka:{i:}"
+        assert roman.to_roman("କ୍h", "ITRANS") == "k_{h_}"
+        assert roman.to_roman("ନମସ୍କାର hello") == "namaskāra :{hello:}"
