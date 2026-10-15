@@ -182,10 +182,12 @@ indic.SCRIPTS  # ('devanagari', 'bengali', 'assamese', 'gurmukhi', 'gujarati', '
 ```
 
 ??? note "Tamil caveat"
-    Tamil's encoding has only one consonant per articulation group. Inputs
-    with Devanagari/Odia aspirated or voiced consonants will land on
-    unassigned Tamil codepoints (rendered as placeholder boxes). This is
-    surfaced rather than silently collapsed.
+    Tamil's encoding has only one consonant per articulation group.
+    Devanagari/Odia aspirated or voiced consonants have no Tamil letter, so
+    they are kept in the source script rather than silently collapsed.
+    Characters are mapped by Unicode identity, not by block offset: Malayalam
+    chillus become consonant + virama, and shared marks such as the danda
+    (`।`) are kept.
 
 
 ### :material-database-cog: Translation cache

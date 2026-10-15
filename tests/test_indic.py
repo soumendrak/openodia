@@ -123,3 +123,25 @@ class TestPublicAPI:
 
         assert openodia.indic is indic
         assert callable(openodia.indic.transliterate)
+
+
+class TestCharacterIdentity:
+    """Characters outside the parallel core must not be offset blindly."""
+
+    def test_malayalam_chillu_expands_to_consonant_plus_virama(self) -> None:
+        assert indic.transliterate("ൻ", from_script="malayalam", to_script="devanagari") == "न्"
+
+    def test_shared_danda_is_preserved(self) -> None:
+        assert indic.transliterate("नमस्ते।", from_script="devanagari", to_script="odia") == "ନମସ୍ତେ।"
+
+    def test_odia_flap_rra_maps_to_devanagari_dddha(self) -> None:
+        assert indic.transliterate("\u0b5c", from_script="odia", to_script="devanagari") == "\u095c"
+        assert indic.transliterate("\u095c", from_script="devanagari", to_script="odia") == "\u0b5c"
+        # Devanagari alveolar RRA (ऱ) has no Odia letter: kept as is.
+        assert indic.transliterate("\u0931", from_script="devanagari", to_script="odia") == "\u0931"
+
+    def test_odia_wa_maps_to_va(self) -> None:
+        assert indic.transliterate("ସ୍ୱ", from_script="odia", to_script="devanagari") == "स्व"
+
+    def test_missing_tamil_letter_is_kept_not_offset(self) -> None:
+        assert indic.transliterate("खक", from_script="devanagari", to_script="tamil") == "खக"

@@ -1,22 +1,24 @@
-"""Brahmic-block offset transliteration.
+"""Brahmic-script transliteration by Unicode character identity.
 
 The Indic Unicode blocks (Devanagari, Bengali, Gurmukhi, Gujarati, Odia,
-Tamil, Telugu, Kannada, Malayalam) share a parallel layout: characters
-at the same offset within their block represent the same phonetic value.
-Transliterating between two scripts is therefore a single offset
-addition per codepoint that falls inside the source block. Characters
-outside the source block (Latin letters, digits, whitespace,
-punctuation, characters in other Indic blocks) pass through unchanged.
+Tamil, Telugu, Kannada, Malayalam) mostly share a parallel layout, but
+not completely: some scripts have letters the others lack (Malayalam
+chillus, Odia WA), and shared marks such as the danda live only in the
+Devanagari block. A blanket block offset would turn those into unrelated
+or unassigned codepoints.
 
-Tamil caveat: Tamil's encoding has only one consonant per articulation
-group (no aspirated / voiced contrasts). Devanagari ``ख`` (U+0916,
-offset 0x16) maps to U+0B96 in the Tamil block — which is unassigned.
-That codepoint still appears in the output and most renderers will show
-a placeholder box; we surface this rather than guessing a collapse.
+So each character is mapped by its Unicode name instead: ``DEVANAGARI
+LETTER KA`` becomes ``ORIYA LETTER KA``. Malayalam chillus expand to the
+base consonant plus virama (``ൻ`` → ``न्``). Characters with no
+counterpart in the target script are kept unchanged. That includes
+Latin, digits, punctuation, the shared danda, and e.g. Devanagari ``ख``
+when targeting Tamil, which has no aspirated consonants.
 """
 
 from __future__ import annotations
 
+import unicodedata
+from functools import cache
 from typing import Literal
 
 Script = Literal[
@@ -39,7 +41,7 @@ _SCRIPT_OFFSETS: dict[Script, int] = {
     "assamese": 0x0980,  # Assamese shares the Bengali block.
     "gurmukhi": 0x0A00,
     "gujarati": 0x0A80,
-    "odia": 0x0B00,
+    "odia": 0x0B00,  # Unicode names this block "ORIYA".
     "tamil": 0x0B80,
     "telugu": 0x0C00,
     "kannada": 0x0C80,
@@ -65,7 +67,8 @@ def transliterate(text: str, from_script: Script, to_script: Script) -> str:
         to_script: Name of the destination script.
 
     Returns:
-        The transliterated string. Same length as ``text``.
+        The transliterated string. Characters without a counterpart in
+        ``to_script`` are kept as they are.
 
     Raises:
         ValueError: If either script name is unknown.
@@ -81,13 +84,60 @@ def transliterate(text: str, from_script: Script, to_script: Script) -> str:
         # No-op: same block (or aliased — e.g. Assamese ↔ Bengali).
         return text
 
-    delta = dst_offset - src_offset
-    out: list[str] = []
+    src_names = _names(src_offset)
+    dst_chars = _chars_by_name(dst_offset)
     upper = src_offset + _BLOCK_SIZE
+    out: list[str] = []
     for ch in text:
-        cp = ord(ch)
-        if src_offset <= cp < upper:
-            out.append(chr(cp + delta))
-        else:
+        if not src_offset <= ord(ch) < upper or ch not in src_names:
             out.append(ch)
+            continue
+        out.append(_map_char(ch, src_names[ch], dst_chars))
     return "".join(out)
+
+
+def _block_entries(start: int) -> list[tuple[str, str]]:
+    """``(char, name without the script prefix)`` for assigned codepoints."""
+    entries = []
+    for cp in range(start, start + _BLOCK_SIZE):
+        name = unicodedata.name(chr(cp), "")
+        if name:
+            name = name.split(" ", 1)[1]
+            # Bengali/Gurmukhi/Odia "LETTER RRA" (ড়, ੜ, ଡ଼) is the flapped
+            # retroflex that Devanagari calls DDDHA (ड़); Devanagari and the
+            # southern scripts use "RRA" for the alveolar ऱ/ற/ఱ/റ instead.
+            if start in _FLAP_RRA_BLOCKS and name == "LETTER RRA":
+                name = "LETTER DDDHA"
+            entries.append((chr(cp), name))
+    return entries
+
+
+_FLAP_RRA_BLOCKS = frozenset({0x0980, 0x0A00, 0x0B00})
+
+#: Fallbacks for letters that only some scripts encode separately.
+_NAME_FALLBACKS = {"LETTER WA": "LETTER VA"}  # Odia ୱ → व / ವ / …
+
+
+@cache
+def _names(start: int) -> dict[str, str]:
+    return dict(_block_entries(start))
+
+
+@cache
+def _chars_by_name(start: int) -> dict[str, str]:
+    return {name: ch for ch, name in _block_entries(start)}
+
+
+def _map_char(ch: str, name: str, dst_chars: dict[str, str]) -> str:
+    if name in dst_chars:
+        return dst_chars[name]
+    fallback = _NAME_FALLBACKS.get(name)
+    if fallback in dst_chars:
+        return dst_chars[fallback]
+    if name.startswith("LETTER CHILLU "):
+        # Chillu = consonant without inherent vowel: base letter + virama.
+        base = dst_chars.get("LETTER " + name[len("LETTER CHILLU ") :] + "A")
+        virama = dst_chars.get("SIGN VIRAMA")
+        if base and virama:
+            return base + virama
+    return ch
