@@ -1,4 +1,5 @@
 import io
+import os
 import json
 from pathlib import Path
 
@@ -275,7 +276,36 @@ class TestReviewEdgeCases:
             [sys.executable, "-m", "openodia", "tokenize", "ରାମ ସୀତା"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
+            # Windows consoles default to cp1252, which can't print Odia.
+            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
         )
         assert r.returncode == 0, r.stderr
         assert "ରାମ" in r.stdout
+
+
+class TestArgumentValidation:
+    def test_long_inline_text_is_not_statted_as_path(self, capsys: pytest.CaptureFixture[str]) -> None:
+        text = "ରାମ " * 100  # > 255 bytes in one "path component"
+        code, out, _ = run(["tokenize", text], capsys)
+        assert code == 0
+        assert "ରାମ" in out
+
+    def test_digit_flags_are_mutually_exclusive(self, capsys: pytest.CaptureFixture[str]) -> None:
+        with pytest.raises(SystemExit) as exc:
+            cli.main(["clean", "x", "--latin-to-odia", "--odia-to-latin"])
+        assert exc.value.code == 2
+        assert "not allowed with argument" in capsys.readouterr().err
+
+    def test_negative_count_rejected(self, capsys: pytest.CaptureFixture[str]) -> None:
+        with pytest.raises(SystemExit) as exc:
+            cli.main(["name", "--kind", "first", "--count", "-1"])
+        assert exc.value.code == 2
+        assert "must be >= 0" in capsys.readouterr().err
+
+    def test_ngram_size_must_be_positive(self, capsys: pytest.CaptureFixture[str]) -> None:
+        with pytest.raises(SystemExit) as exc:
+            cli.main(["ngrams", "ରାମ ସୀତା", "-n", "0"])
+        assert exc.value.code == 2
+        assert "must be >= 1" in capsys.readouterr().err

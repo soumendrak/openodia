@@ -31,10 +31,27 @@ def _read_input(value: str) -> str:
     """
     if value == "-":
         return sys.stdin.read()
-    path = Path(value)
-    if path.is_file():
-        return path.read_text(encoding="utf-8")
+    try:
+        is_file = Path(value).is_file()
+    except (OSError, ValueError):
+        # e.g. a long inline passage: "File name too long" (ENAMETOOLONG),
+        # or an embedded NUL byte. Either way it is text, not a path.
+        is_file = False
+    if is_file:
+        return Path(value).read_text(encoding="utf-8")
     return value
+
+
+def _int_at_least(minimum: int):
+    """argparse ``type`` for integers >= ``minimum``."""
+
+    def parse(raw: str) -> int:
+        value = int(raw)
+        if value < minimum:
+            raise argparse.ArgumentTypeError(f"must be >= {minimum}, got {value}")
+        return value
+
+    return parse
 
 
 # ---------------------------------------------------------------------------
@@ -228,12 +245,13 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Do not collapse internal whitespace",
     )
-    p.add_argument(
+    digits = p.add_mutually_exclusive_group()
+    digits.add_argument(
         "--latin-to-odia",
         action="store_true",
         help="Convert ASCII digits to Odia digits",
     )
-    p.add_argument(
+    digits.add_argument(
         "--odia-to-latin",
         action="store_true",
         help="Convert Odia digits to ASCII digits",
@@ -267,7 +285,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="full",
         help="Which name part to generate (default: full)",
     )
-    p.add_argument("--count", type=int, default=10, help="Number of names to generate (default: 10)")
+    p.add_argument("--count", type=_int_at_least(0), default=10, help="Number of names to generate (default: 10)")
     p.set_defaults(func=_cmd_name)
 
     # summarize
@@ -294,7 +312,7 @@ def build_parser() -> argparse.ArgumentParser:
     # ngrams
     p = sub.add_parser("ngrams", help="Emit overlapping n-grams")
     p.add_argument("text", help="Inline text, file path, or '-' for stdin")
-    p.add_argument("-n", type=int, default=2, help="N-gram size (default: 2)")
+    p.add_argument("-n", type=_int_at_least(1), default=2, help="N-gram size (default: 2)")
     p.set_defaults(func=_cmd_ngrams)
 
     # freq
