@@ -10,6 +10,11 @@ than Soundex.
 
 from __future__ import annotations
 
+import unicodedata
+
+_HALANT = "\u0b4d"
+_NUKTA = "\u0b3c"
+
 # ----- Soundex codes -------------------------------------------------------
 
 # Place of articulation → single digit.
@@ -126,10 +131,13 @@ def soundex(word: str) -> str:
 
     Examples:
         >>> soundex("ସୋମେନ୍ଦ୍ର")
-        'ସ೫೫೭'
+        'ସ657'
     """
     if not word:
         return ""
+    # NFC so canonically equivalent spellings (e.g. precomposed vs.
+    # decomposed nukta letters) give the same key.
+    word = unicodedata.normalize("NFC", word)
 
     out: list[str] = []
     last: str = ""
@@ -144,9 +152,10 @@ def soundex(word: str) -> str:
                 if code != last:
                     out.append(code)
                     last = code
-        else:
-            # Vowel/matra/halant breaks the duplicate-suppression chain
-            # without emitting anything.
+        elif ch not in (_HALANT, _NUKTA):
+            # A vowel or matra breaks the duplicate-suppression chain
+            # without emitting anything. Halant and nukta do not: the
+            # consonants of a conjunct (e.g. ନ୍ଦ) count as adjacent.
             last = ""
         if len(out) >= 4:
             break
@@ -175,6 +184,7 @@ def metaphone(word: str) -> str:
     """
     if not word:
         return ""
+    word = unicodedata.normalize("NFC", word)
 
     out: list[str] = []
     last: str | None = None

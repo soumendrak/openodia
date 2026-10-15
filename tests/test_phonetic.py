@@ -22,7 +22,13 @@ class TestSoundex:
         # ସୋମେନ୍ଦ୍ର → ସ (verbatim) + ମ(6) + ନ(5) + ଦ(5)→same as ନ, skipped → ର(7)
         # → "ସ657"
         out = phonetic.soundex("ସୋମେନ୍ଦ୍ର")
-        assert len(out) == 4
+        assert out == "ସ657"
+
+    def test_nukta_forms_are_equivalent(self) -> None:
+        precomposed = "\u0b5c\u0b3e\u0b15"  # ଡ଼ (U+0B5C) + ା + କ
+        decomposed = "\u0b21\u0b3c\u0b3e\u0b15"  # ଡ + nukta + ା + କ
+        assert phonetic.soundex(precomposed) == phonetic.soundex(decomposed)
+        assert phonetic.similarity(precomposed, decomposed) == 1.0
 
     def test_truncates_to_four_chars(self) -> None:
         assert len(phonetic.soundex("ଚକ୍ରପାଣିଗ୍ରାହୀ")) == 4

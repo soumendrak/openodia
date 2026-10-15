@@ -173,7 +173,7 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ```python
 from openodia import phonetic
 
-phonetic.soundex("ସୋମେନ୍ଦ୍ର")             # 'ସ653'  (4 chars)
+phonetic.soundex("ସୋମେନ୍ଦ୍ର")             # 'ସ657'  (4 chars)
 phonetic.soundex("ସୋମେନ୍ଦ୍ର") == phonetic.soundex("ସୌମେନ୍ଦ୍ର")  # True
 
 phonetic.metaphone("ସୋମେନ୍ଦ୍ର")           # 'ସପତର'
