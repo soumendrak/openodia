@@ -190,9 +190,10 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     written (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS). The same mark
     after a consonant means a halant before a vowel (`k:a` for `କ୍ଅ`).
 
-    For text that mixes Odia with other text, pass `reversible=True`: a
-    literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that
-    could be read as Roman letters is quoted (`roman.to_roman("କi",
+    For text that contains anything other than Odia, pass `reversible=True`:
+    a literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that
+    could be read as Roman letters (or that has combining marks) is quoted
+    and kept verbatim by `from_roman` (`roman.to_roman("କi",
     reversible=True)` gives `ka:{i:}`), so `from_roman` restores the input.
 
 ### :material-database-cog: Translation cache

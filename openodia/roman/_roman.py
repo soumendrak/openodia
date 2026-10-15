@@ -35,8 +35,7 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
         reversible: For ``ISO15919`` and ``ITRANS`` only. When true, non-Odia
             text is escaped so :func:`from_roman` restores the input exactly:
             a literal separator (``:`` / ``_``) is doubled, and in text that
-            also contains Odia, a run that could be read as Roman tokens is
-            quoted (``କi`` gives ``ka:{i:}``). Ignored for ``Hunterian``.
+            a run that could be read as Roman tokens is quoted (``କi`` gives ``ka:{i:}``). Ignored for ``Hunterian``.
 
     Returns:
         The transliterated string. Unless ``reversible`` is true, characters
@@ -116,7 +115,7 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
             emit(ch * 2 if escape and ch == sep else ch, is_literal=True)
 
     flush_schwa()
-    if escape and not all(literal):
+    if escape:
         out, literal = _quote_literals(out, literal, scheme)
     return _join_tokens(out, scheme, literal)
 
@@ -124,11 +123,12 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
 def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> tuple[list[str], list[bool]]:
     """Quote pass-through runs that the decoder would read as Roman tokens.
 
-    Only used when the text also contains transliterated Odia: ``କi`` would
-    otherwise give ``kai`` (``କୈ``). Each maximal run of literal characters
+    Only used with ``reversible=True``: ``କi`` would otherwise give ``kai``
+    (``କୈ``), and ``hello`` would decode as Odia. Each maximal run of literal characters
     other than whitespace and escaped separators is written as
-    ``<sep>{run<sep>}`` when it contains a character used in Roman tokens,
-    e.g. ``ka:{i:}``. Pure non-Odia input is never quoted.
+    ``<sep>{run<sep>}`` when it contains a character used in Roman tokens or
+    a combining mark,
+    e.g. ``ka:{i:}``.
     """
     sep = _SEPARATORS[scheme]
     roman_tokens, _ = _build_reverse_index(scheme)
@@ -140,7 +140,10 @@ def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> t
     def close_run() -> None:
         if run:
             text = "".join(run)
-            new_tokens.append(sep + "{" + text + sep + "}" if token_chars.intersection(text) else text)
+            # Quote anything the decoder would read as Roman tokens or that
+            # its NFC step could change (combining marks).
+            needs_quote = token_chars.intersection(text) or any(unicodedata.combining(c) for c in text)
+            new_tokens.append(sep + "{" + text + sep + "}" if needs_quote else text)
             new_literal.append(True)
             run.clear()
 
@@ -246,6 +249,31 @@ def _build_reverse_index(scheme: Scheme) -> tuple[list[str], dict[str, tuple[str
     return tokens, index
 
 
+def _normalize_outside_quotes(text: str, sep: str) -> str:
+    """NFC *text* except for ``<sep>{...<sep>}`` spans written by to_roman.
+
+    Scans with the decoder's precedence: an escaped ``<sep><sep>`` is plain
+    text, so it cannot open a quote.
+    """
+    parts: list[str] = []
+    plain_start = i = 0
+    while i < len(text):
+        if text.startswith(sep * 2, i):
+            i += 2 * len(sep)
+            continue
+        if text.startswith(sep + "{", i):
+            end = text.find(sep + "}", i + len(sep) + 1)
+            if end != -1:
+                parts.append(unicodedata.normalize("NFC", text[plain_start:i]))
+                plain_start = end + len(sep) + 1
+                parts.append(text[i:plain_start])
+                i = plain_start
+                continue
+        i += 1
+    parts.append(unicodedata.normalize("NFC", text[plain_start:]))
+    return "".join(parts)
+
+
 def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - one flat tokenizer loop
     """Reverse of :func:`to_roman`.
 
@@ -284,7 +312,8 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
         # The tables use precomposed letters (ṭ, ā, …); accept decomposed
         # input such as "t\u0323" too. Combining marks that have no
         # precomposed form (r̥, m̐) stay as they are and still match.
-        text = unicodedata.normalize("NFC", text)
+        # Quoted pass-through text is kept verbatim.
+        text = _normalize_outside_quotes(text, _SEPARATORS[scheme])
 
     out: list[str] = []
     after_consonant = False  # last token was a consonant with no vowel yet

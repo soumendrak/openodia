@@ -226,3 +226,18 @@ class TestNonOdiaRunsUnchanged:
         # U+0B47 + U+0B56 composes to AI sign U+0B48; U+0B47 + U+0B57 to AU U+0B4C.
         assert roman.to_roman("କ\u0b47\u0b56", scheme) == roman.to_roman("କ\u0b48", scheme)
         assert roman.to_roman("କ\u0b47\u0b57", scheme) == roman.to_roman("କ\u0b4c", scheme)
+
+
+class TestReversibleExact:
+    @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
+    @pytest.mark.parametrize("text", ["hello", "hello world", "1:2", "file_name", "kha", "e\u0301"])
+    def test_pure_non_odia_round_trips(self, text: str, scheme: str) -> None:
+        assert roman.from_roman(roman.to_roman(text, scheme, reversible=True), scheme) == text
+
+    @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
+    @pytest.mark.parametrize("text", ["କt\u0323", "କ e\u0301", "t\u0323"])
+    def test_quoted_literals_are_not_normalised(self, text: str, scheme: str) -> None:
+        assert roman.from_roman(roman.to_roman(text, scheme, reversible=True), scheme) == text
+
+    def test_decoder_keeps_quoted_text_verbatim(self) -> None:
+        assert roman.from_roman("ka:{t\u0323:}") == "କt\u0323"
