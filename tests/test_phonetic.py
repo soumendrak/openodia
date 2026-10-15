@@ -128,10 +128,27 @@ class TestNonOdiaInputs:
         with pytest.raises(ValueError, match="Odia letter"):
             encoder(word)
 
-    @pytest.mark.parametrize("words", [("hello", "ସ"), ("ସ", "hello")])
-    def test_similarity_rejects_non_odia(self, words) -> None:
-        with pytest.raises(ValueError, match="Odia letter"):
-            phonetic.similarity(*words)
+    @pytest.mark.parametrize(
+        "words",
+        [
+            ("hello", "ସ"),
+            ("ସ", "hello"),
+            ("hello", "hello"),
+            (None, "ସ"),
+            ("ସ", None),
+            (None, None),
+            ("   ", "ସ"),
+            ("ସ", "\t\n"),
+            ("   ", "   "),
+        ],
+    )
+    def test_similarity_scores_non_odia_as_zero(self, words) -> None:
+        assert phonetic.similarity(*words) == 0.0
+
+    def test_non_odia_resets_duplicate_suppression_like_vowels(self) -> None:
+        # x between two ପ-group consonants behaves like the vowel in ପାପ.
+        assert phonetic.metaphone("ପxପ") == phonetic.metaphone("ପାପ") == "ପପ"
+        assert phonetic.soundex("ପxପ") == phonetic.soundex("ପାପ") == "ପ600"
 
     def test_mixed_input(self) -> None:
         # Should pick up Odia consonants and ignore Latin.

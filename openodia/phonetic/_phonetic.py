@@ -132,6 +132,11 @@ def _is_odia_letter(ch: str) -> bool:
     return "\u0b00" <= ch <= "\u0b7f" and unicodedata.category(ch).startswith("L")
 
 
+def _scorable(word: object) -> bool:
+    """True for ``""`` or a string with an Odia letter; False otherwise."""
+    return isinstance(word, str) and (not word or any(map(_is_odia_letter, word)))
+
+
 def _is_consonant(ch: str) -> bool:
     return ch in _SOUNDEX_CODES
 
@@ -152,7 +157,8 @@ def soundex(word: str) -> str:
     Vowels/matras reset duplicate suppression; conjunct marks do not.
     Thus ``ପାପା`` yields ``ପ600``. Input is NFC-normalised.
     Empty input returns an empty string; nonempty input with no Odia
-    letters raises ValueError. Mixed input ignores non-Odia characters.
+    letters raises ValueError. In mixed input, non-Odia characters emit
+    nothing but reset duplicate suppression, like vowels.
 
     Examples:
         >>> soundex("ସୋମେନ୍ଦ୍ର")
@@ -200,7 +206,8 @@ def metaphone(word: str) -> str:
     truncation. Vowels/matras reset duplicate suppression; conjunct marks
     do not. Thus ``ପାପା`` yields ``ପପ``. Input is NFC-normalised.
     Empty input yields an empty string; nonempty input with no Odia
-    letters raises ValueError. Mixed input ignores non-Odia characters.
+    letters raises ValueError. In mixed input, non-Odia characters emit
+    nothing but reset duplicate suppression, like vowels.
 
     Examples:
         >>> metaphone("ସୋମେନ୍ଦ୍ର")
@@ -224,7 +231,7 @@ def metaphone(word: str) -> str:
     return "".join(out)
 
 
-def similarity(a: str, b: str) -> float:
+def similarity(a: str | None, b: str | None) -> float:
     """Symmetric phonetic similarity in ``[0.0, 1.0]``.
 
     Combines Odia-adapted variants, not classic Soundex or Metaphone:
@@ -232,15 +239,17 @@ def similarity(a: str, b: str) -> float:
     * 0.5 weight on whether the two Soundex codes are equal.
     * 0.5 weight on a normalised edit-distance between Metaphone codes.
 
-    Returns ``1.0`` when both encoders produce identical output, ``0.0``
-    when both inputs are empty. Nonempty input with no Odia letters
-    raises ValueError. Both encoders use NFC normalization and reset
+    Returns ``1.0`` when both encoders produce identical output, and
+    ``0.0`` when either input is ``None`` or nonempty with no Odia letters
+    (Latin or whitespace-only) rather than raising. Both encoders use NFC normalization and reset
     duplicate suppression at vowels/matras, but not conjunct marks.
 
     Examples:
         >>> similarity("ସୋମେନ୍ଦ୍ର", "ସୌମେନ୍ଦ୍ର") > 0.9
         True
     """
+    if not (_scorable(a) and _scorable(b)):
+        return 0.0
     sa, sb = soundex(a), soundex(b)
     ma, mb = metaphone(a), metaphone(b)
 
