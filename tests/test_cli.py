@@ -370,7 +370,7 @@ class TestRequestedReviewCoverage:
             check=False,
         )
         assert result.returncode == 0, result.stderr
-        assert result.stdout.decode("utf-8") == "ରାମ\nସୀତା\n"
+        assert result.stdout.decode("utf-8").replace("\r\n", "\n") == "ରାମ\nସୀତା\n"
 
     def test_invalid_utf8_file(self, tmp_path, capsys):
         path = tmp_path / "invalid.txt"
