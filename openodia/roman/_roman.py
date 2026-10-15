@@ -133,7 +133,7 @@ def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> t
     e.g. ``ka:{i:}``.
     """
     sep = _SEPARATORS[scheme]
-    roman_tokens, _ = _build_reverse_index(scheme)
+    roman_tokens, _, _ = _build_reverse_index(scheme)
     token_chars = set("".join(roman_tokens))
     new_tokens: list[str] = []
     new_literal: list[bool] = []
@@ -185,7 +185,7 @@ def _join_tokens(tokens: list[str], scheme: Scheme, literal: list[bool] | None =
     if sep is None:  # Hunterian is lossy by design; no separators.
         return "".join(t for t in tokens if t != _HALANT_MARK)
     literal = literal or [False] * len(tokens)
-    roman_tokens, _ = _build_reverse_index(scheme)
+    roman_tokens, _, _ = _build_reverse_index(scheme)
     out: list[str] = []
     for i, tok in enumerate(tokens):
         if tok == _HALANT_MARK:
@@ -220,6 +220,13 @@ _HUNTERIAN_PREFERRED: dict[str, str] = {
     "dh": "ଧ",
 }
 
+#: Hunterian anusvara and visarga share ``n`` / ``h`` with consonants.
+#: Anusvara is the canonical modifier for ``n`` (chandrabindu uses it too).
+_HUNTERIAN_MODIFIER_PREFERRED: dict[str, str] = {
+    "n": "ଂ",
+    "h": "ଃ",
+}
+
 
 def _first_wins(items) -> dict[str, str]:
     """``roman -> odia``, keeping the first letter listed for each spelling."""
@@ -229,26 +236,42 @@ def _first_wins(items) -> dict[str, str]:
     return out
 
 
-def _build_reverse_index(scheme: Scheme) -> tuple[list[str], dict[str, tuple[str, str]]]:
-    """Return ``(tokens longest-first, roman -> (kind, odia))``.
+def _build_reverse_index(
+    scheme: Scheme,
+) -> tuple[list[str], dict[str, tuple[str, str]], dict[str, str]]:
+    """Return ``(tokens longest-first, roman -> (kind, odia), modifier aliases)``.
 
     ``kind`` is ``"consonant"``, ``"vowel"`` or ``"modifier"``. For vowels
     ``odia`` is the independent letter; the matching vowel sign is looked
     up separately so the decoder can choose by context.
+
+    ``modifier aliases`` keeps a Hunterian modifier that shares its spelling
+    with a consonant (``n``, ``h``). The consonant stays the index entry so
+    ``na`` is still ``ନ``; the alias is used when that spelling follows a
+    completed vowel and the next token is not a vowel.
     """
     table = _table(scheme)
     index: dict[str, tuple[str, str]] = {}
-    for roman, odia in _first_wins(table["modifiers"].items()).items():  # type: ignore[union-attr]
+    modifiers = _first_wins(table["modifiers"].items())  # type: ignore[union-attr]
+    if scheme == "Hunterian":
+        for roman, odia in _HUNTERIAN_MODIFIER_PREFERRED.items():
+            if table["modifiers"].get(odia) == roman:  # type: ignore[union-attr]
+                modifiers[roman] = odia
+    for roman, odia in modifiers.items():
         index[roman] = ("modifier", odia)
     for roman, odia in _first_wins(table["vowels"].items()).items():  # type: ignore[union-attr]
         index[roman] = ("vowel", odia)
     consonants = _first_wins(table["consonants"].items())  # type: ignore[union-attr]
     if scheme == "Hunterian":
         consonants.update(_HUNTERIAN_PREFERRED)
+    aliases: dict[str, str] = {}
     for roman, odia in consonants.items():
+        previous = index.get(roman)
+        if previous is not None and previous[0] == "modifier":
+            aliases[roman] = previous[1]
         index[roman] = ("consonant", odia)
     tokens = sorted(index, key=len, reverse=True)
-    return tokens, index
+    return tokens, index, aliases
 
 
 def _normalize_outside_quotes(text: str, sep: str) -> str:
@@ -280,10 +303,12 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
     """Reverse of :func:`to_roman`.
 
     Best-effort for ``Hunterian`` since that scheme is intentionally
-    lossy (no diacritics). ``ISO15919`` and ``ITRANS`` round-trip
-    correctly for text produced by ``to_roman`` in the same scheme; for
-    input that also contains non-Odia text, use ``to_roman(...,
-    reversible=True)``.
+    lossy (no diacritics). ``n`` and ``h`` after a finished vowel, when
+    the next token is not a vowel, are anusvara and visarga (``an`` gives
+    ``ଅଂ``, ``duh`` gives ``ଦୁଃ``); before a vowel they stay consonants.
+    ``ISO15919`` and ``ITRANS`` round-trip correctly for text produced by
+    ``to_roman`` in the same scheme; for input that also contains non-Odia
+    text, use ``to_roman(..., reversible=True)``.
 
     The decoder tracks context: a vowel straight after a consonant becomes
     a vowel sign (``ā`` after ``n`` gives ``ନା``), the inherent ``a`` adds
@@ -306,7 +331,7 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
         >>> from_roman("ā")
         'ଆ'
     """
-    tokens, index = _build_reverse_index(scheme)
+    tokens, index, modifier_aliases = _build_reverse_index(scheme)
     table = _table(scheme)
     schwa: str = table["schwa"]  # type: ignore[assignment]
     matras = _first_wins(table["matras"].items())  # type: ignore[union-attr]
@@ -319,6 +344,7 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
 
     out: list[str] = []
     after_consonant = False  # last token was a consonant with no vowel yet
+    vowel_complete = False  # a vowel just finished, so n/h may be a modifier
 
     sep = _SEPARATORS.get(scheme)
     prev_was_token = False
@@ -332,6 +358,7 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
             out.append(sep)
             i += 2 * len(sep)
             prev_was_token = False
+            vowel_complete = False
             continue
         if sep is not None and text.startswith(sep + "{", i):
             end = text.find(sep + "}", i + len(sep) + 1)
@@ -343,6 +370,7 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
                 out.append(text[i + len(sep) + 1 : end])
                 i = end + len(sep) + 1
                 prev_was_token = False
+                vowel_complete = False
                 continue
         match = next((t for t in tokens if text.startswith(t, i)), None)
         if (
@@ -366,18 +394,30 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
                 after_consonant = False
             out.append(text[i])
             i += 1
+            vowel_complete = False
             continue
         kind, odia = index[match]
+        alias = modifier_aliases.get(match)
+        if alias is not None and vowel_complete and not _next_token_is_vowel(text, i + len(match), tokens, index):
+            kind, odia = "modifier", alias
         i += len(match)
         if kind == "vowel" and after_consonant:
             if match != schwa:
                 out.append(matras.get(match, odia))
             after_consonant = False
+            vowel_complete = True
             continue
         if after_consonant:
             out.append(_HALANT)
         out.append(odia)
         after_consonant = kind == "consonant"
+        vowel_complete = kind in {"vowel", "modifier"}
     if after_consonant:
         out.append(_HALANT)
     return "".join(out)
+
+
+def _next_token_is_vowel(text: str, i: int, tokens: list[str], index: dict[str, tuple[str, str]]) -> bool:
+    """True when the longest token at ``i`` is a vowel."""
+    nxt = next((token for token in tokens if text.startswith(token, i)), None)
+    return nxt is not None and index[nxt][0] == "vowel"

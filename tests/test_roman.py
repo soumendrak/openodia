@@ -241,3 +241,35 @@ class TestReversibleExact:
 
     def test_decoder_keeps_quoted_text_verbatim(self) -> None:
         assert roman.from_roman("ka:{t\u0323:}") == "କt\u0323"
+
+
+class TestHunterianModifiers:
+    """n/h after a finished vowel are anusvara/visarga, not a consonant."""
+
+    @pytest.mark.parametrize(
+        ("word", "spelling"),
+        [
+            ("ଅଂ", "an"),
+            ("ଦୁଃ", "duh"),
+            ("କଂ", "kan"),
+            ("ସିଂହ", "sinha"),
+            ("ସଂସ୍କୃତ", "sanskrita"),
+            ("ଏବଂ", "eban"),
+            ("ଦୁଃଖ", "duhkha"),
+        ],
+    )
+    def test_modifier_round_trip(self, word: str, spelling: str) -> None:
+        assert roman.to_roman(word, "Hunterian") == spelling
+        assert roman.from_roman(spelling, "Hunterian") == word
+
+    def test_n_and_h_before_a_vowel_stay_consonants(self) -> None:
+        assert roman.from_roman("namaskara", "Hunterian") == "ନମସ୍କର"
+        assert roman.from_roman("ha", "Hunterian") == "ହ"
+        assert roman.from_roman("kha", "Hunterian") == "ଖ"
+        assert roman.from_roman("kana", "Hunterian") == "କନ"
+        assert roman.from_roman("kaha", "Hunterian") == "କହ"
+
+    def test_chandrabindu_decodes_as_anusvara(self) -> None:
+        # Both marks spell n; anusvara is the canonical reading.
+        assert roman.to_roman("ଅଁ", "Hunterian") == "an"
+        assert roman.from_roman("an", "Hunterian") == "ଅଂ"

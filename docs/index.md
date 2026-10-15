@@ -187,7 +187,10 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     (`to_roman("file_name ନମସ୍କାର", "ITRANS")` keeps `file_name`).
     `to_roman` + `from_roman` round-trip exactly for Odia text in
     `ISO15919` and `ITRANS`. `Hunterian` is intentionally lossy; decoding is
-    best-effort. Where two tokens would otherwise merge, a boundary mark is
+    best-effort. After a finished vowel, `n` and `h` are anusvara and visarga
+    when the next token is not a vowel (`an` gives `ଅଂ`, `duh` gives `ଦୁଃ`);
+    before a vowel they stay consonants (`na` gives `ନ`). Where two tokens
+    would otherwise merge, a boundary mark is
     written (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS). The same mark
     after a consonant means a halant before a vowel (`k:a` for `କ୍ଅ`).
 
