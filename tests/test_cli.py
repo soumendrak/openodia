@@ -47,7 +47,7 @@ class TestReadInput:
     def test_file_path(self, tmp_path: Path) -> None:
         f = tmp_path / "in.txt"
         f.write_text("from file", encoding="utf-8")
-        assert cli._read_input(str(f)) == "from file"
+        assert cli._read_input(str(f), file=True) == "from file"
 
     def test_stdin(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr("sys.stdin", io.StringIO("piped"))
@@ -91,7 +91,7 @@ class TestTokenize:
     def test_sentence_tokenize(self, capsys: pytest.CaptureFixture[str]) -> None:
         code, out, _ = run(["tokenize", "ରାମ ଗଲା । ସୀତା ଆସିଲା ।", "--sentences"], capsys)
         assert code == 0
-        assert out.strip()  # non-empty
+        assert out == "ରାମ ଗଲା\n ସୀତା ଆସିଲା\n\n"
 
 
 class TestDetectLanguage:
@@ -242,7 +242,7 @@ class TestFileInputAndStdin:
     def test_file_input(self, capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
         f = tmp_path / "in.txt"
         f.write_text("ରାମ ଓ ସୀତା", encoding="utf-8")
-        code, out, _ = run(["remove-stopwords", str(f), "--get-str"], capsys)
+        code, out, _ = run(["remove-stopwords", str(f), "--file", "--get-str"], capsys)
         assert code == 0
         assert "ରାମ" in out
 
@@ -345,3 +345,104 @@ class TestCodexValidationRound:
     def test_detect_threshold_in_range_accepted(self, capsys: pytest.CaptureFixture[str]) -> None:
         code, _, _ = run(["detect-language", "ରାମ", "--threshold", "0.3"], capsys)
         assert code == 0
+
+
+class TestRequestedReviewCoverage:
+    def test_version(self, capsys):
+        from openodia import __version__
+
+        with pytest.raises(SystemExit) as exc:
+            cli.main(["--version"])
+        assert exc.value.code == 0
+        assert capsys.readouterr().out == f"openodia {__version__}\n"
+
+    def test_stdin_utf8_in_c_locale(self):
+        import subprocess
+        import sys
+
+        env = {k: v for k, v in os.environ.items() if k != "PYTHONIOENCODING"}
+        env.update(LC_ALL="C", PYTHONCOERCECLOCALE="0", PYTHONUTF8="0")
+        result = subprocess.run(
+            [sys.executable, "-m", "openodia", "tokenize", "-"],
+            input="ରାମ ସୀତା".encode(),
+            capture_output=True,
+            env=env,
+            check=False,
+        )
+        assert result.returncode == 0, result.stderr
+        assert result.stdout.decode("utf-8") == "ରାମ\nସୀତା\n"
+
+    def test_invalid_utf8_file(self, tmp_path, capsys):
+        path = tmp_path / "invalid.txt"
+        path.write_bytes(b"\xff")
+        code, out, err = run(["normalize", "--file", str(path)], capsys)
+        assert code != 0
+        assert out == ""
+        assert err.startswith("openodia: error: ")
+        assert "decode" in err
+        assert "Traceback" not in err
+
+    def test_missing_file(self, tmp_path, capsys):
+        code, out, err = run(["normalize", "--file", str(tmp_path / "missing")], capsys)
+        assert code != 0
+        assert out == ""
+        assert err.startswith("openodia: error: ")
+        assert "Traceback" not in err
+
+    def test_file_flag_and_literal_existing_path(self, tmp_path, capsys):
+        path = tmp_path / "input.txt"
+        path.write_text("ରାମ", encoding="utf-8")
+        assert run(["normalize", str(path)], capsys) == (0, f"{path}\n", "")
+        assert run(["normalize", "--file", str(path)], capsys) == (0, "ରାମ\n", "")
+
+    @pytest.mark.parametrize(
+        ("flag", "text", "default", "kept"),
+        [
+            ("--keep-zwj", "ରା\u200dମ", "ରାମ", "ରା\u200dମ"),
+            ("--keep-zwnj", "ରା\u200cମ", "ରାମ", "ରା\u200cମ"),
+            ("--keep-whitespace", "ରାମ   ସୀତା", "ରାମ ସୀତା", "ରାମ   ସୀତା"),
+        ],
+    )
+    def test_clean_keep_flags(self, flag, text, default, kept, capsys):
+        assert run(["clean", text], capsys) == (0, default + "\n", "")
+        assert run(["clean", text, flag], capsys) == (0, kept + "\n", "")
+
+    @pytest.mark.parametrize(
+        ("source", "target", "expected"),
+        [("or", "en", "from Odia"), ("en", "or", "to Odia"), ("hi", "en", "universal")],
+    )
+    def test_translate_routing(self, source, target, expected, monkeypatch, capsys):
+        def from_odia(text, *, dest_language_code):
+            assert (text, dest_language_code) == ("input", target)
+            return "from Odia"
+
+        def to_odia(text, *, source_language_code):
+            assert (text, source_language_code) == ("input", source)
+            return "to Odia"
+
+        def universal(text, *, source_language_code, dest_language_code):
+            assert (text, source_language_code, dest_language_code) == ("input", source, target)
+            return "universal"
+
+        monkeypatch.setattr("openodia.odia_to_other_lang", from_odia)
+        monkeypatch.setattr("openodia.other_lang_to_odia", to_odia)
+        monkeypatch.setattr("openodia.universal_translation", universal)
+        assert run(["translate", "input", "--from", source, "--to", target], capsys) == (0, expected + "\n", "")
+
+    def test_json_preserves_odia(self, monkeypatch, capsys):
+        monkeypatch.setattr("openodia.ud.detect_language", lambda text, threshold: {"language": "ଓଡ଼ିଆ"})
+        assert run(["detect-language", "ରାମ", "--json"], capsys) == (0, '{"language": "ଓଡ଼ିଆ"}\n', "")
+
+    @pytest.mark.parametrize("kind", ["prefix", "middle"])
+    def test_name_kind_content(self, kind, monkeypatch, capsys):
+        def generate(count):
+            assert count == 2
+            return ["ଶ୍ରୀ", "କୁମାର"]
+
+        method = "generate_prefixes" if kind == "prefix" else "generate_middlenames"
+        monkeypatch.setattr(f"openodia.name.{method}", generate)
+        assert run(["name", "--kind", kind, "--count", "2"], capsys) == (0, "ଶ୍ରୀ\nକୁମାର\n", "")
+
+    @pytest.mark.parametrize(("top", "expected"), [("0", ""), ("1", "3\tରାମ\n"), ("2", "3\tରାମ\n2\tସୀତା\n")])
+    def test_top_limits_output(self, top, expected, capsys):
+        assert run(["freq", "ରାମ ସୀତା ରାମ ଲକ୍ଷ୍ମଣ ସୀତା ରାମ", "--top", top], capsys) == (0, expected, "")

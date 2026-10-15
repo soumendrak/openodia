@@ -23,23 +23,12 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 
-def _read_input(value: str) -> str:
-    """Return text from one of:
-
-    * ``"-"`` → stdin
-    * an existing file path → file contents
-    * anything else → the literal string
-    """
+def _read_input(value: str, *, file: bool = False) -> str:
+    """Read an explicit UTF-8 file, stdin (``-``), or literal text."""
+    if file:
+        return Path(value).read_text(encoding="utf-8")
     if value == "-":
         return sys.stdin.read()
-    try:
-        is_file = Path(value).is_file()
-    except (OSError, ValueError):
-        # e.g. a long inline passage: "File name too long" (ENAMETOOLONG),
-        # or an embedded NUL byte. Either way it is text, not a path.
-        is_file = False
-    if is_file:
-        return Path(value).read_text(encoding="utf-8")
     return value
 
 
@@ -64,8 +53,8 @@ def _unit_float(raw: str) -> float:
 
 
 def _utf8_stdio() -> None:
-    """Emit UTF-8 even when a redirected stream defaults to a legacy codec."""
-    for stream in (sys.stdout, sys.stderr):
+    """Use UTF-8 even when a redirected stream defaults to a legacy codec."""
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
         encoding = (getattr(stream, "encoding", None) or "").lower().replace("-", "")
         reconfigure = getattr(stream, "reconfigure", None)
         if encoding != "utf8" and reconfigure is not None:
@@ -83,7 +72,7 @@ def _utf8_stdio() -> None:
 def _cmd_tokenize(args: argparse.Namespace) -> int:
     from openodia import ud
 
-    text = _read_input(args.text)
+    text = _read_input(args.text, file=args.file)
     tokens = ud.sentence_tokenizer(text) if args.sentences else ud.word_tokenizer(text)
     for token in tokens:
         print(token)
@@ -93,7 +82,7 @@ def _cmd_tokenize(args: argparse.Namespace) -> int:
 def _cmd_normalize(args: argparse.Namespace) -> int:
     from openodia import normalize
 
-    text = _read_input(args.text)
+    text = _read_input(args.text, file=args.file)
     print(normalize(text, form=args.form))
     return 0
 
@@ -102,7 +91,7 @@ def _cmd_clean(args: argparse.Namespace) -> int:
     from openodia import clean
     from openodia.text import CleanOptions
 
-    text = _read_input(args.text)
+    text = _read_input(args.text, file=args.file)
     options = CleanOptions(
         strip_zwj=not args.keep_zwj,
         strip_zwnj=not args.keep_zwnj,
@@ -117,7 +106,7 @@ def _cmd_clean(args: argparse.Namespace) -> int:
 def _cmd_translate(args: argparse.Namespace) -> int:
     from openodia import odia_to_other_lang, other_lang_to_odia, universal_translation
 
-    text = _read_input(args.text)
+    text = _read_input(args.text, file=args.file)
     if args.from_lang == "or":
         print(odia_to_other_lang(text, dest_language_code=args.to))
     elif args.to == "or":
@@ -136,7 +125,7 @@ def _cmd_translate(args: argparse.Namespace) -> int:
 def _cmd_detect_language(args: argparse.Namespace) -> int:
     from openodia import ud
 
-    text = _read_input(args.text)
+    text = _read_input(args.text, file=args.file)
     # Whitespace-only input would divide by zero inside detect_language.
     result: dict[str, Any] = ud.detect_language(text, threshold=args.threshold) if text.strip() else {}
     if args.json:
@@ -172,7 +161,7 @@ def _cmd_name(args: argparse.Namespace) -> int:
 def _cmd_summarize(args: argparse.Namespace) -> int:
     from openodia import WordFrequency
 
-    text = _read_input(args.text)
+    text = _read_input(args.text, file=args.file)
     wf = WordFrequency(text=text)
     if args.threshold is None:
         print(wf.get_summary())
@@ -189,7 +178,7 @@ def _cmd_summarize(args: argparse.Namespace) -> int:
 def _cmd_remove_stopwords(args: argparse.Namespace) -> int:
     from openodia import ud
 
-    text = _read_input(args.text)
+    text = _read_input(args.text, file=args.file)
     result = ud.remove_stopwords(text, get_str=args.get_str)
     if isinstance(result, list):
         for token in result:
@@ -202,7 +191,7 @@ def _cmd_remove_stopwords(args: argparse.Namespace) -> int:
 def _cmd_ngrams(args: argparse.Namespace) -> int:
     from openodia import ngrams
 
-    text = _read_input(args.text)
+    text = _read_input(args.text, file=args.file)
     for tup in ngrams(text, args.n):
         print(" ".join(tup))
     return 0
@@ -211,7 +200,7 @@ def _cmd_ngrams(args: argparse.Namespace) -> int:
 def _cmd_freq(args: argparse.Namespace) -> int:
     from openodia import FreqDist
 
-    text = _read_input(args.text)
+    text = _read_input(args.text, file=args.file)
     fd = FreqDist(text)
     for token, count in fd.most_common(args.top):
         print(f"{count}\t{token}")
@@ -233,11 +222,15 @@ def build_parser() -> argparse.ArgumentParser:
             'Pass "-" as the text argument to read from stdin.'
         ),
     )
+    from openodia import __version__
+
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command", required=True, metavar="COMMAND")
 
     # tokenize
     p = sub.add_parser("tokenize", help="Word or sentence tokenisation")
-    p.add_argument("text", help="Inline text, file path, or '-' for stdin")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
     p.add_argument(
         "--sentences",
         action="store_true",
@@ -247,7 +240,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # normalize
     p = sub.add_parser("normalize", help="Unicode normalisation (NFC by default)")
-    p.add_argument("text", help="Inline text, file path, or '-' for stdin")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
     p.add_argument(
         "--form",
         choices=["NFC", "NFD", "NFKC", "NFKD"],
@@ -258,7 +252,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # clean
     p = sub.add_parser("clean", help="Strip ZWJ/ZWNJ and normalise whitespace")
-    p.add_argument("text", help="Inline text, file path, or '-' for stdin")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
     p.add_argument("--keep-zwj", action="store_true", help="Do not strip ZWJ")
     p.add_argument("--keep-zwnj", action="store_true", help="Do not strip ZWNJ")
     p.add_argument(
@@ -281,14 +276,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     # translate
     p = sub.add_parser("translate", help="Translate between Odia and another language")
-    p.add_argument("text", help="Inline text, file path, or '-' for stdin")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
     p.add_argument("--from", dest="from_lang", default="en", help="Source language code (default: en)")
     p.add_argument("--to", default="or", help="Destination language code (default: or)")
     p.set_defaults(func=_cmd_translate)
 
     # detect-language
     p = sub.add_parser("detect-language", help="Detect whether input is Odia")
-    p.add_argument("text", help="Inline text, file path, or '-' for stdin")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
     p.add_argument(
         "--threshold",
         type=_unit_float,
@@ -311,7 +308,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # summarize
     p = sub.add_parser("summarize", help="Extractive summary of Odia text")
-    p.add_argument("text", help="Inline text, file path, or '-' for stdin")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
     p.add_argument(
         "--threshold",
         type=float,
@@ -322,7 +320,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # remove-stopwords
     p = sub.add_parser("remove-stopwords", help="Strip stopwords from input")
-    p.add_argument("text", help="Inline text, file path, or '-' for stdin")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
     p.add_argument(
         "--get-str",
         action="store_true",
@@ -332,13 +331,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     # ngrams
     p = sub.add_parser("ngrams", help="Emit overlapping n-grams")
-    p.add_argument("text", help="Inline text, file path, or '-' for stdin")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
     p.add_argument("-n", type=_int_at_least(1), default=2, help="N-gram size (default: 2)")
     p.set_defaults(func=_cmd_ngrams)
 
     # freq
     p = sub.add_parser("freq", help="Frequency distribution of tokens")
-    p.add_argument("text", help="Inline text, file path, or '-' for stdin")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
     p.add_argument(
         "--top",
         type=_int_at_least(0),
@@ -362,7 +363,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     _utf8_stdio()
     parser = build_parser()
     args = parser.parse_args(argv)
-    return int(args.func(args))
+    try:
+        return int(args.func(args))
+    except (OSError, UnicodeError) as exc:
+        print(f"openodia: error: {exc}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":  # pragma: no cover
