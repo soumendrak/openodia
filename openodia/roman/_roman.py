@@ -221,7 +221,7 @@ def _build_reverse_index(
     ``modifier aliases`` keeps a Hunterian modifier that shares its spelling
     with a consonant (``n``, ``h``). The consonant stays the index entry so
     ``na`` is still ``ନ``; the alias is used when that spelling follows a
-    completed vowel and the next token is not a vowel, even when a longer
+    completed vowel in a context from ``_MODIFIER_CONTEXTS``, even when a longer
     consonant starts with the same letters (``ng``).
     """
     table = _table(scheme)
@@ -277,8 +277,8 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901
     """Reverse of :func:`to_roman`.
 
     Best-effort for ``Hunterian`` since that scheme is intentionally
-    lossy (no diacritics). ``n`` and ``h`` after a finished vowel, when
-    the next token is not a vowel, are anusvara and visarga (``an`` gives
+    lossy (no diacritics). After a finished vowel, ``n`` before k/g/s/h and
+    ``h`` before k/p, or either at word end, are anusvara and visarga (``an`` gives
     ``ଅଂ``, ``duh`` gives ``ଦୁଃ``). That check runs before a longer
     consonant is accepted, so ``sangita`` is ``ସଂଗିତ`` rather than the
     velar nasal in ``ng`` (the long vowel is still lost). Before a vowel,
@@ -401,7 +401,7 @@ def _longest_token(
     """Longest token at ``i``, unless a Hunterian modifier alias must win.
 
     ``ng`` is the consonant ``ଙ``, but after a finished vowel ``n`` is
-    anusvara when the following token is not a vowel (``sangita``).
+    anusvara before ``g`` (``sangita``).
     """
     for token in tokens:
         if text.startswith(token, i) and not _modifier_hides_token(
