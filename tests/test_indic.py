@@ -1,3 +1,5 @@
+import unicodedata
+
 import pytest
 
 from openodia import indic
@@ -160,3 +162,40 @@ class TestCharacterIdentity:
     def test_nukta_letter_and_khanda_ta_expand(self) -> None:
         assert indic.transliterate("\u0958", from_script="devanagari", to_script="bengali") == "\u0995\u09bc"
         assert indic.transliterate("ৎ", from_script="bengali", to_script="devanagari") == "त्"
+
+
+class TestCodexRound3:
+    @pytest.mark.parametrize(
+        ("text", "src", "dst", "expected"),
+        [
+            ("ਮੇਰਾ", "gurmukhi", "devanagari", "मेरा"),
+            ("देव", "devanagari", "gurmukhi", "ਦੇਵ"),
+            ("ਸੋਨਾ", "gurmukhi", "devanagari", "सोना"),
+            ("ਪੰਜਾਬੀ", "gurmukhi", "devanagari", "पंजाबी"),
+            ("ਹਾਂ", "gurmukhi", "devanagari", "हां"),
+            ("ਪੱਤਾ", "gurmukhi", "devanagari", "पत्ता"),
+            ("ਪੱਤਾ", "gurmukhi", "odia", "ପତ୍ତା"),
+            ("राम", "devanagari", "assamese", "ৰাম"),
+            ("वाणी", "devanagari", "assamese", "ৱাণী"),
+            ("राम", "devanagari", "bengali", "রাম"),
+            ("ઑક્ટોબર", "gujarati", "devanagari", "ऑक्टोबर"),
+            ("ऑक्टोबर", "devanagari", "gujarati", "ઑક્ટોબર"),
+        ],
+    )
+    def test_script_specific_names(self, text: str, src: str, dst: str, expected: str) -> None:
+        assert indic.transliterate(text, src, dst) == expected
+
+    @pytest.mark.parametrize(
+        ("decomposed", "src"),
+        [("କ\u0b47\u0b57", "odia"), ("ক\u09c7\u09d7", "bengali"), ("ക\u0d46\u0d57", "malayalam")],
+    )
+    def test_decomposed_vowel_signs_compose(self, decomposed: str, src: str) -> None:
+        composed = unicodedata.normalize("NFC", decomposed)
+        assert indic.transliterate(decomposed, src, "devanagari") == indic.transliterate(composed, src, "devanagari")
+        assert all(0x0900 <= ord(c) < 0x0980 for c in indic.transliterate(decomposed, src, "devanagari"))
+
+    def test_non_source_text_is_not_normalized(self) -> None:
+        assert indic.transliterate("e\u0301 କ", "odia", "devanagari") == "e\u0301 क"
+
+    def test_addak_without_following_consonant_is_kept(self) -> None:
+        assert indic.transliterate("ੱ", "gurmukhi", "devanagari") == "ੱ"

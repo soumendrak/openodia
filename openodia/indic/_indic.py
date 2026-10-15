@@ -85,15 +85,32 @@ def transliterate(text: str, from_script: Script, to_script: Script) -> str:
         return text
 
     src_names = _names(src_offset)
-    dst_chars = _chars_by_name(dst_offset)
+    dst_chars = _chars_by_name(to_script)
     upper = src_offset + _BLOCK_SIZE
+    # Compose canonically decomposed two-part vowel signs (Bengali ে + ৗ
+    # → ৌ). Not full NFC: that would decompose nukta letters such as ଡ଼
+    # and touch text outside the source script.
+    for decomposed, composed in _split_vowel_signs(src_offset).items():
+        text = text.replace(decomposed, composed)
     out: list[str] = []
-    for ch in text:
+    for i, ch in enumerate(text):
         if not src_offset <= ord(ch) < upper or ch not in src_names:
             out.append(ch)
             continue
+        if src_names[ch] == "ADDAK" and "ADDAK" not in dst_chars:
+            out.append(_geminate(text[i + 1 : i + 2], src_names, dst_chars) or ch)
+            continue
         out.append(_map_char(ch, src_names, dst_chars))
     return "".join(out)
+
+
+def _geminate(nxt: str, src_names: dict[str, str], dst_chars: dict[str, str]) -> str:
+    """Gurmukhi addak doubles the next consonant: emit it + virama."""
+    if not nxt or not src_names.get(nxt, "").startswith("LETTER "):
+        return ""
+    virama = dst_chars.get("SIGN VIRAMA")
+    base = _map_char(nxt, src_names, dst_chars)
+    return base + virama if virama and base != nxt else ""
 
 
 def _block_entries(start: int) -> list[tuple[str, str]]:
@@ -114,6 +131,7 @@ def _block_entries(start: int) -> list[tuple[str, str]]:
             # the northern naming throughout.
             if start in _SHORT_LONG_EO_BLOCKS:
                 name = _SOUTH_EO.get(name, name)
+            name = _BLOCK_RENAMES.get(start, {}).get(name, name)
             entries.append((chr(cp), name))
     return entries
 
@@ -126,12 +144,31 @@ _SOUTH_EO = {
     for south, north in (("E", "SHORT E"), ("EE", "E"), ("O", "SHORT O"), ("OO", "O"))
 }
 
+#: Per-block names that differ from the Devanagari name of the same letter.
+_BLOCK_RENAMES: dict[int, dict[str, str]] = {
+    0x0A00: {  # Gurmukhi has only the long e/o, named EE/OO.
+        "LETTER EE": "LETTER E",
+        "VOWEL SIGN EE": "VOWEL SIGN E",
+        "LETTER OO": "LETTER O",
+        "VOWEL SIGN OO": "VOWEL SIGN O",
+        "SIGN BINDI": "SIGN ANUSVARA",
+        "SIGN ADAK BINDI": "SIGN CANDRABINDU",
+    },
+    0x0A80: {  # Gujarati calls its independent candra vowels VOWEL.
+        "VOWEL CANDRA E": "LETTER CANDRA E",
+        "VOWEL CANDRA O": "LETTER CANDRA O",
+    },
+}
+
 #: Fallbacks for letters that only some scripts encode separately.
 _NAME_FALLBACKS = {
     "LETTER WA": "LETTER VA",  # Odia ୱ → व / ವ / …
     "LETTER RA WITH MIDDLE DIAGONAL": "LETTER RA",  # Assamese ৰ
     "LETTER RA WITH LOWER DIAGONAL": "LETTER VA",  # Assamese ৱ
+    "TIPPI": "SIGN ANUSVARA",  # Gurmukhi ੰ (nasal, like bindi)
 }
+#: Assamese writes RA and VA/WA with its own letters in the Bengali block.
+_ASSAMESE_TARGET = {"LETTER RA": "\u09f0", "LETTER VA": "\u09f1", "LETTER WA": "\u09f1"}
 #: Dead-consonant letters that expand to base letter + virama.
 _DEAD_CONSONANTS = {"LETTER KHANDA TA": "LETTER TA"}  # Bengali ৎ
 
@@ -142,8 +179,22 @@ def _names(start: int) -> dict[str, str]:
 
 
 @cache
-def _chars_by_name(start: int) -> dict[str, str]:
-    return {name: ch for ch, name in _block_entries(start)}
+def _split_vowel_signs(start: int) -> dict[str, str]:
+    """``decomposed → precomposed`` for the block's two-part vowel signs."""
+    out = {}
+    for ch, name in _block_entries(start):
+        parts = unicodedata.normalize("NFD", ch)
+        if name.startswith("VOWEL SIGN") and len(parts) > 1:
+            out[parts] = ch
+    return out
+
+
+@cache
+def _chars_by_name(script: Script) -> dict[str, str]:
+    table = {name: ch for ch, name in _block_entries(_SCRIPT_OFFSETS[script])}
+    if script == "assamese":
+        table.update(_ASSAMESE_TARGET)
+    return table
 
 
 def _map_char(ch: str, src_names: dict[str, str], dst_chars: dict[str, str]) -> str:
