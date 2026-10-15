@@ -41,7 +41,7 @@ def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:
 
     Examples:
         >>> to_roman("ଓଡ଼ିଆ", "ISO15919")
-        'ōḍiā'
+        'ōṛiā'
         >>> to_roman("ନମସ୍କାର", "Hunterian")
         'namaskara'
     """
@@ -100,37 +100,45 @@ def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:
 # ---------------------------------------------------------------------------
 
 
-def _build_reverse_index(scheme: Scheme) -> list[tuple[str, str]]:
-    """Build a longest-match-first list of ``(roman, odia)`` pairs.
+#: Canonical decodings for Hunterian spellings shared by several letters
+#: (the scheme drops the dental/retroflex/nasal distinctions).
+_HUNTERIAN_PREFERRED: dict[str, str] = {
+    "n": "ନ",
+    "t": "ତ",
+    "th": "ଥ",
+    "d": "ଦ",
+    "dh": "ଧ",
+}
 
-    Tokens listed earlier win when prefixes overlap (e.g. ``"kh"`` must
-    win over ``"k"``).
+
+def _first_wins(items) -> dict[str, str]:
+    """``roman -> odia``, keeping the first letter listed for each spelling."""
+    out: dict[str, str] = {}
+    for odia, roman in items:
+        out.setdefault(roman, odia)
+    return out
+
+
+def _build_reverse_index(scheme: Scheme) -> tuple[list[str], dict[str, tuple[str, str]]]:
+    """Return ``(tokens longest-first, roman -> (kind, odia))``.
+
+    ``kind`` is ``"consonant"``, ``"vowel"`` or ``"modifier"``. For vowels
+    ``odia`` is the independent letter; the matching vowel sign is looked
+    up separately so the decoder can choose by context.
     """
     table = _table(scheme)
-    pairs: list[tuple[str, str]] = []
-
-    # Consonants come with the inherent schwa attached because that's the
-    # canonical surface form of a bare consonant.
-    schwa = table["schwa"]  # type: ignore[assignment]
-    for odia, roman in table["consonants"].items():  # type: ignore[union-attr]
-        pairs.append((roman + schwa, odia))  # type: ignore[operator]
-        pairs.append((roman, odia + _HALANT))  # bare consonant → with halant
-
-    # Matras must be matched WITH a consonant before them. We handle that
-    # via the consonant-then-matra logic in the decoder, so we just need
-    # the matra entries here for post-consonant matching.
-    for odia, roman in table["matras"].items():  # type: ignore[union-attr]
-        pairs.append((roman, odia))
-
-    for odia, roman in table["vowels"].items():  # type: ignore[union-attr]
-        pairs.append((roman, odia))
-
-    for odia, roman in table["modifiers"].items():  # type: ignore[union-attr]
-        pairs.append((roman, odia))
-
-    # Longest first so prefixes don't shadow longer matches.
-    pairs.sort(key=lambda p: len(p[0]), reverse=True)
-    return pairs
+    index: dict[str, tuple[str, str]] = {}
+    for roman, odia in _first_wins(table["modifiers"].items()).items():  # type: ignore[union-attr]
+        index[roman] = ("modifier", odia)
+    for roman, odia in _first_wins(table["vowels"].items()).items():  # type: ignore[union-attr]
+        index[roman] = ("vowel", odia)
+    consonants = _first_wins(table["consonants"].items())  # type: ignore[union-attr]
+    if scheme == "Hunterian":
+        consonants.update(_HUNTERIAN_PREFERRED)
+    for roman, odia in consonants.items():
+        index[roman] = ("consonant", odia)
+    tokens = sorted(index, key=len, reverse=True)
+    return tokens, index
 
 
 def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
@@ -139,6 +147,11 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
     Best-effort for ``Hunterian`` since that scheme is intentionally
     lossy (no diacritics). ``ISO15919`` and ``ITRANS`` round-trip
     correctly for text produced by ``to_roman`` in the same scheme.
+
+    The decoder tracks context: a vowel straight after a consonant becomes
+    a vowel sign (``ā`` after ``n`` gives ``ନା``), the inherent ``a`` adds
+    nothing, and a consonant with no vowel after it gets a halant.
+    Elsewhere a vowel is written as the independent letter (``ଆ``).
 
     Args:
         text: Roman-script input.
@@ -149,18 +162,47 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
 
     Raises:
         ValueError: If ``scheme`` is not recognised.
+
+    Examples:
+        >>> from_roman("namaskāra")
+        'ନମସ୍କାର'
+        >>> from_roman("ā")
+        'ଆ'
     """
-    pairs = _build_reverse_index(scheme)
+    tokens, index = _build_reverse_index(scheme)
+    table = _table(scheme)
+    schwa: str = table["schwa"]  # type: ignore[assignment]
+    matras = _first_wins(table["matras"].items())  # type: ignore[union-attr]
+    if scheme == "ISO15919":
+        # The tables use precomposed letters (ṭ, ā, …); accept decomposed
+        # input such as "t\u0323" too. Combining marks that have no
+        # precomposed form (r̥, m̐) stay as they are and still match.
+        text = unicodedata.normalize("NFC", text)
 
     out: list[str] = []
+    after_consonant = False  # last token was a consonant with no vowel yet
+
     i = 0
     while i < len(text):
-        for roman, odia in pairs:
-            if text.startswith(roman, i):
-                out.append(odia)
-                i += len(roman)
-                break
-        else:
+        match = next((t for t in tokens if text.startswith(t, i)), None)
+        if match is None:
+            if after_consonant:
+                out.append(_HALANT)
+                after_consonant = False
             out.append(text[i])
             i += 1
+            continue
+        kind, odia = index[match]
+        i += len(match)
+        if kind == "vowel" and after_consonant:
+            if match != schwa:
+                out.append(matras.get(match, odia))
+            after_consonant = False
+            continue
+        if after_consonant:
+            out.append(_HALANT)
+        out.append(odia)
+        after_consonant = kind == "consonant"
+    if after_consonant:
+        out.append(_HALANT)
     return "".join(out)

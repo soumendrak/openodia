@@ -1,3 +1,5 @@
+import unicodedata
+
 import pytest
 
 from openodia import roman
@@ -117,3 +119,31 @@ class TestPublicAPI:
         assert openodia.roman is roman
         assert callable(openodia.roman.to_roman)
         assert callable(openodia.roman.from_roman)
+
+
+class TestReviewFixes:
+    @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
+    @pytest.mark.parametrize("word", ["ଆ", "ନା", "ନମସ୍କାର", "ସ୍ୱାଗତ", "ଦ୍ୱିତୀୟ", "କୢ", "ମଁ"])
+    def test_round_trip_with_vowel_context(self, scheme: str, word: str) -> None:
+        back = roman.from_roman(roman.to_roman(word, scheme), scheme)
+        assert unicodedata.normalize("NFD", back) == unicodedata.normalize("NFD", word)
+
+    def test_independent_vowel_vs_matra(self) -> None:
+        assert roman.from_roman("ā") == "ଆ"
+        assert roman.from_roman("nā") == "ନା"
+
+    def test_hunterian_prefers_common_letters(self) -> None:
+        assert roman.from_roman("namaskara", "Hunterian") == "ନମସ୍କର"
+        assert roman.from_roman("ta", "Hunterian") == "ତ"
+
+    @pytest.mark.parametrize("scheme", ["Hunterian", "ITRANS"])
+    def test_wa_and_vocalic_forms_are_ascii(self, scheme: str) -> None:
+        out = roman.to_roman("ସ୍ୱାଗତ ଦ୍ୱିତୀୟ କୢ ୠ ୡ କୄ କୣ", scheme)
+        assert out.isascii(), out
+
+    def test_iso_accepts_decomposed_input(self) -> None:
+        assert roman.from_roman("t\u0323a") == roman.from_roman("ṭa") == "ଟ"
+
+    def test_documented_examples(self) -> None:
+        assert roman.to_roman("ଓଡ଼ିଆ", "ISO15919") == "ōṛiā"
+        assert roman.to_roman("ଓଡ଼ିଆ", "Hunterian") == "oria"

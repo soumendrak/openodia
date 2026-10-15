@@ -174,11 +174,11 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ```python
 from openodia import roman
 
-roman.to_roman("ଓଡ଼ିଆ", "ISO15919")   # 'ōḍiā'
-roman.to_roman("ଓଡ଼ିଆ", "Hunterian")  # 'odia'
+roman.to_roman("ଓଡ଼ିଆ", "ISO15919")   # 'ōṛiā'
+roman.to_roman("ଓଡ଼ିଆ", "Hunterian")  # 'oria'
 roman.to_roman("ଓଡ଼ିଆ", "ITRANS")     # 'o.DiA'
 
-roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କାର' (best-effort)
+roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort: Hunterian drops ā)
 ```
 
 ??? note "Round-trip"

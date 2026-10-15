@@ -3,9 +3,9 @@
 Examples:
     >>> from openodia import roman
     >>> roman.to_roman("ଓଡ଼ିଆ", scheme="ISO15919")
-    'ōḍiā'
+    'ōṛiā'
     >>> roman.to_roman("ଓଡ଼ିଆ", scheme="Hunterian")
-    'odia'
+    'oria'
     >>> roman.to_roman("ଓଡ଼ିଆ", scheme="ITRANS")
     'o.DiA'
 """
