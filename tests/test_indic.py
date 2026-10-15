@@ -204,3 +204,16 @@ class TestCodexRound3:
 
     def test_addak_without_following_consonant_is_kept(self) -> None:
         assert indic.transliterate("ੱ", "gurmukhi", "devanagari") == "ੱ"
+
+    @pytest.mark.parametrize(("text", "src"), [("विश्वास", "devanagari"), ("ଵିଶ୍ୱାସ", "odia")])
+    def test_bengali_writes_va_and_wa_as_ba(self, text: str, src: str) -> None:
+        assert indic.transliterate(text, src, "bengali") == "বিশ্বাস"
+
+    def test_assamese_keeps_its_own_va(self) -> None:
+        assert indic.transliterate("विश्वास", "devanagari", "assamese") == "ৱিশ্ৱাস"
+
+    def test_malayalam_au_length_mark_is_the_au_sign(self) -> None:
+        assert indic.transliterate("പൗരൻ", "malayalam", "devanagari") == "पौरन्"
+
+    def test_malayalam_target_keeps_precomposed_au(self) -> None:
+        assert indic.transliterate("पौ", "devanagari", "malayalam") == "പൌ"

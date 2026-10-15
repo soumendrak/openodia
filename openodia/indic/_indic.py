@@ -169,13 +169,20 @@ _NAME_FALLBACKS = {
 }
 #: Assamese writes RA and VA/WA with its own letters in the Bengali block.
 _ASSAMESE_TARGET = {"LETTER RA": "\u09f0", "LETTER VA": "\u09f1", "LETTER WA": "\u09f1"}
+#: Bengali has no separate VA/WA; BA serves for both (বিশ্বাস).
+_BENGALI_TARGET = {"LETTER VA": "\u09ac", "LETTER WA": "\u09ac"}
+#: Source-only aliases: modern Malayalam writes /au/ with the AU length
+#: mark alone (പൗ), so read it as the vowel sign. Not applied to the target
+#: table, which keeps the precomposed ൌ for VOWEL SIGN AU.
+_SOURCE_ALIASES: dict[int, dict[str, str]] = {0x0D00: {"AU LENGTH MARK": "VOWEL SIGN AU"}}
 #: Dead-consonant letters that expand to base letter + virama.
 _DEAD_CONSONANTS = {"LETTER KHANDA TA": "LETTER TA"}  # Bengali ৎ
 
 
 @cache
 def _names(start: int) -> dict[str, str]:
-    return dict(_block_entries(start))
+    aliases = _SOURCE_ALIASES.get(start, {})
+    return {ch: aliases.get(name, name) for ch, name in _block_entries(start)}
 
 
 @cache
@@ -194,6 +201,8 @@ def _chars_by_name(script: Script) -> dict[str, str]:
     table = {name: ch for ch, name in _block_entries(_SCRIPT_OFFSETS[script])}
     if script == "assamese":
         table.update(_ASSAMESE_TARGET)
+    elif script == "bengali":
+        table.update(_BENGALI_TARGET)
     return table
 
 
