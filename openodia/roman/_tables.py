@@ -1,0 +1,279 @@
+"""Mapping tables for the three romanisation schemes.
+
+Schemes:
+
+* ISO 15919 — academic / library transliteration with diacritics. Reversible.
+* Hunterian — Govt-of-India transliteration, no diacritics, lossy.
+* ITRANS    — ASCII-only, designed for keyboard input. Reversible.
+
+Each scheme provides:
+
+* ``vowels``: independent-vowel codepoint → roman.
+* ``consonants``: bare consonant (no schwa) → roman.
+* ``matras``: vowel-sign → roman (replaces the inherent schwa).
+* ``modifiers``: anusvara / chandrabindu / visarga → roman.
+* ``schwa``: the romanised inherent schwa (usually ``"a"``).
+"""
+
+from __future__ import annotations
+
+from typing import TypedDict
+
+
+class SchemeTable(TypedDict):
+    schwa: str
+    vowels: dict[str, str]
+    consonants: dict[str, str]
+    matras: dict[str, str]
+    modifiers: dict[str, str]
+
+
+_DDDHA = chr(0x0B5C)
+_DDHHA = chr(0x0B5D)
+_YYA = chr(0x0B5F)
+
+ISO15919: SchemeTable = {
+    "schwa": "a",
+    "vowels": {
+        "ଅ": "a",
+        "ଆ": "ā",
+        "ଇ": "i",
+        "ଈ": "ī",
+        "ଉ": "u",
+        "ଊ": "ū",
+        "ଋ": "r̥",
+        "ଌ": "l̥",
+        "ୠ": "r̥̄",
+        "ୡ": "l̥̄",
+        "ଏ": "ē",
+        "ଐ": "ai",
+        "ଓ": "ō",
+        "ଔ": "au",
+    },
+    "consonants": {
+        "କ": "k",
+        "ଖ": "kh",
+        "ଗ": "g",
+        "ଘ": "gh",
+        "ଙ": "ṅ",
+        "ଚ": "c",
+        "ଛ": "ch",
+        "ଜ": "j",
+        "ଝ": "jh",
+        "ଞ": "ñ",
+        "ଟ": "ṭ",
+        "ଠ": "ṭh",
+        "ଡ": "ḍ",
+        "ଢ": "ḍh",
+        "ଣ": "ṇ",
+        "ତ": "t",
+        "ଥ": "th",
+        "ଦ": "d",
+        "ଧ": "dh",
+        "ନ": "n",
+        "ପ": "p",
+        "ଫ": "ph",
+        "ବ": "b",
+        "ଭ": "bh",
+        "ମ": "m",
+        "ଯ": "y",
+        "ର": "r",
+        "ଲ": "l",
+        "ଳ": "ḷ",
+        "ଵ": "v",
+        "ୱ": "w",
+        "ଶ": "ś",
+        "ଷ": "ṣ",
+        "ସ": "s",
+        "ହ": "h",
+        _DDDHA: "ṛ",
+        _DDHHA: "ṛh",
+        _YYA: "ẏ",
+    },
+    "matras": {
+        "ା": "ā",
+        "ି": "i",
+        "ୀ": "ī",
+        "ୁ": "u",
+        "ୂ": "ū",
+        "ୃ": "r̥",
+        "ୄ": "r̥̄",
+        "ୢ": "l̥",
+        "ୣ": "l̥̄",
+        "େ": "ē",
+        "ୈ": "ai",
+        "ୋ": "ō",
+        "ୌ": "au",
+    },
+    "modifiers": {
+        "ଁ": "m̐",
+        "ଂ": "ṁ",
+        "ଃ": "ḥ",
+    },
+}
+
+HUNTERIAN: SchemeTable = {
+    "schwa": "a",
+    "vowels": {
+        "ଅ": "a",
+        "ଆ": "a",
+        "ଇ": "i",
+        "ଈ": "i",
+        "ଉ": "u",
+        "ଊ": "u",
+        "ଋ": "ri",
+        "ଌ": "li",
+        "ୠ": "ri",
+        "ୡ": "li",
+        "ଏ": "e",
+        "ଐ": "ai",
+        "ଓ": "o",
+        "ଔ": "au",
+    },
+    "consonants": {
+        "କ": "k",
+        "ଖ": "kh",
+        "ଗ": "g",
+        "ଘ": "gh",
+        "ଙ": "ng",
+        "ଚ": "ch",
+        "ଛ": "chh",
+        "ଜ": "j",
+        "ଝ": "jh",
+        "ଞ": "n",
+        "ଟ": "t",
+        "ଠ": "th",
+        "ଡ": "d",
+        "ଢ": "dh",
+        "ଣ": "n",
+        "ତ": "t",
+        "ଥ": "th",
+        "ଦ": "d",
+        "ଧ": "dh",
+        "ନ": "n",
+        "ପ": "p",
+        "ଫ": "ph",
+        "ବ": "b",
+        "ଭ": "bh",
+        "ମ": "m",
+        "ଯ": "y",
+        "ର": "r",
+        "ଲ": "l",
+        "ଳ": "l",
+        "ଵ": "v",
+        "ୱ": "w",
+        "ଶ": "sh",
+        "ଷ": "sh",
+        "ସ": "s",
+        "ହ": "h",
+        _DDDHA: "r",
+        _DDHHA: "rh",
+        _YYA: "y",
+    },
+    "matras": {
+        "ା": "a",
+        "ି": "i",
+        "ୀ": "i",
+        "ୁ": "u",
+        "ୂ": "u",
+        "ୃ": "ri",
+        "ୄ": "ri",
+        "ୢ": "li",
+        "ୣ": "li",
+        "େ": "e",
+        "ୈ": "ai",
+        "ୋ": "o",
+        "ୌ": "au",
+    },
+    "modifiers": {
+        "ଁ": "n",
+        "ଂ": "n",
+        "ଃ": "h",
+    },
+}
+
+ITRANS: SchemeTable = {
+    "schwa": "a",
+    "vowels": {
+        "ଅ": "a",
+        "ଆ": "A",
+        "ଇ": "i",
+        "ଈ": "I",
+        "ଉ": "u",
+        "ଊ": "U",
+        "ଋ": "RRi",
+        "ଌ": "LLi",
+        "ୠ": "RRI",
+        "ୡ": "LLI",
+        "ଏ": "e",
+        "ଐ": "ai",
+        "ଓ": "o",
+        "ଔ": "au",
+    },
+    "consonants": {
+        "କ": "k",
+        "ଖ": "kh",
+        "ଗ": "g",
+        "ଘ": "gh",
+        "ଙ": "~N",
+        "ଚ": "ch",
+        "ଛ": "Ch",
+        "ଜ": "j",
+        "ଝ": "jh",
+        "ଞ": "~n",
+        "ଟ": "T",
+        "ଠ": "Th",
+        "ଡ": "D",
+        "ଢ": "Dh",
+        "ଣ": "N",
+        "ତ": "t",
+        "ଥ": "th",
+        "ଦ": "d",
+        "ଧ": "dh",
+        "ନ": "n",
+        "ପ": "p",
+        "ଫ": "ph",
+        "ବ": "b",
+        "ଭ": "bh",
+        "ମ": "m",
+        "ଯ": "y",
+        "ର": "r",
+        "ଲ": "l",
+        "ଳ": "L",
+        "ଵ": "v",
+        "ୱ": "w",
+        "ଶ": "sh",
+        "ଷ": "Sh",
+        "ସ": "s",
+        "ହ": "h",
+        _DDDHA: ".D",
+        _DDHHA: ".Dh",
+        _YYA: "Y",
+    },
+    "matras": {
+        "ା": "A",
+        "ି": "i",
+        "ୀ": "I",
+        "ୁ": "u",
+        "ୂ": "U",
+        "ୃ": "RRi",
+        "ୄ": "RRI",
+        "ୢ": "LLi",
+        "ୣ": "LLI",
+        "େ": "e",
+        "ୈ": "ai",
+        "ୋ": "o",
+        "ୌ": "au",
+    },
+    "modifiers": {
+        "ଁ": ".N",
+        "ଂ": "M",
+        "ଃ": "H",
+    },
+}
+
+TABLES: dict[str, SchemeTable] = {
+    "ISO15919": ISO15919,
+    "Hunterian": HUNTERIAN,
+    "ITRANS": ITRANS,
+}

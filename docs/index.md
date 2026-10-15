@@ -70,6 +70,7 @@ The tools are available in Odia language.
 - [x] [Unicode normalization & clean](#unicode-normalization)
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
+- [x] [Romanisation](#romanisation)
 - [x] [Command-line interface](#command-line-interface)
 - [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
@@ -163,6 +164,40 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
     `"".join(syllable.split(word)) == word` for any input — the splitter
     is a strict tokeniser, never modifying or normalising characters.
 
+
+### :material-alphabetical-variant: Romanisation
+
+- Three schemes — pick by use case:
+  - **ISO 15919** — academic / library transliteration, reversible, uses diacritics.
+  - **Hunterian** — Govt-of-India transliteration, ASCII, lossy (no diacritics).
+  - **ITRANS** — ASCII-only, keyboard-friendly, reversible.
+
+```python
+from openodia import roman
+
+roman.to_roman("ଓଡ଼ିଆ", "ISO15919")   # 'ōṛiā'
+roman.to_roman("ଓଡ଼ିଆ", "Hunterian")  # 'oria'
+roman.to_roman("ଓଡ଼ିଆ", "ITRANS")     # 'o.DiA'
+
+roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort: Hunterian drops ā)
+```
+
+??? note "Round-trip"
+    By default, non-Odia text comes back exactly as given
+    (`to_roman("file_name ନମସ୍କାର", "ITRANS")` keeps `file_name`).
+    `to_roman` + `from_roman` round-trip exactly for Odia text in
+    `ISO15919` and `ITRANS`. `Hunterian` is intentionally lossy; decoding is
+    best-effort. Its `n` and `h` always decode as consonants (`jesan` gives
+    `ଜେସନ୍`, `anka` gives `ଅନ୍କ`); use `ISO15919` or `ITRANS` to keep
+    anusvara and visarga. Where two tokens would otherwise merge, a boundary mark is
+    written (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS). The same mark
+    after a consonant means a halant before a vowel (`k:a` for `କ୍ଅ`).
+
+    For text that contains anything other than Odia, pass `reversible=True`:
+    a literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that
+    could be read as Roman letters (or that has combining marks) is quoted
+    and kept verbatim by `from_roman` (`roman.to_roman("କi",
+    reversible=True)` gives `ka:{i:}`), so `from_roman` restores the input.
 
 ### :material-console: Command-line interface
 
