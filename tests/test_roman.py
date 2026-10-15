@@ -167,7 +167,7 @@ class TestCodexRound3:
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
     @pytest.mark.parametrize("text", ["ଅ:ଇ", "ଅ_ଇ", "କ::ଖ", "ରାମ_ସୀତା"])
     def test_literal_separator_round_trips(self, text: str, scheme: str) -> None:
-        assert roman.from_roman(roman.to_roman(text, scheme), scheme) == text
+        assert roman.from_roman(roman.to_roman(text, scheme, reversible=True), scheme) == text
 
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
     @pytest.mark.parametrize("text", ["କ୍ଅ", "କ୍ଆ", "ସ୍ଇ", "ନମସ୍କାର"])
@@ -178,7 +178,7 @@ class TestCodexRound3:
         assert roman.to_roman("କ୍ଅ") == "k:a"
         assert roman.to_roman("କ୍ଅ", "ITRANS") == "k_a"
         assert roman.to_roman("କ୍ଅ", "Hunterian") == "ka"
-        assert roman.to_roman("ଅ:ଇ") == "a::i"
+        assert roman.to_roman("ଅ:ଇ", reversible=True) == "a::i"
 
     def test_escaped_separator_after_bare_consonant(self) -> None:
         assert roman.from_roman("k::a") == "କ୍:ଅ"
@@ -188,9 +188,41 @@ class TestCodexRound4:
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
     @pytest.mark.parametrize("text", ["କi", "କ୍h", "iକ", "ନମସ୍କାର hello", "ରାମ {x} ସୀତା", "କa:b", "କ{a}"])
     def test_mixed_script_round_trips(self, text: str, scheme: str) -> None:
-        assert roman.from_roman(roman.to_roman(text, scheme), scheme) == text
+        assert roman.from_roman(roman.to_roman(text, scheme, reversible=True), scheme) == text
 
     def test_mixed_script_quoting_examples(self) -> None:
-        assert roman.to_roman("କi") == "ka:{i:}"
-        assert roman.to_roman("କ୍h", "ITRANS") == "k_{h_}"
-        assert roman.to_roman("ନମସ୍କାର hello") == "namaskāra :{hello:}"
+        assert roman.to_roman("କi", reversible=True) == "ka:{i:}"
+        assert roman.to_roman("କ୍h", "ITRANS", reversible=True) == "k_{h_}"
+        assert roman.to_roman("ନମସ୍କାର hello", reversible=True) == "namaskāra :{hello:}"
+
+
+class TestNonOdiaRunsUnchanged:
+    """Non-Odia runs come back exactly as given unless reversible=True."""
+
+    @pytest.mark.parametrize(
+        ("text", "scheme"),
+        [
+            ("https://example.test", "ISO15919"),
+            ("1:2", "ISO15919"),
+            ("file_name", "ITRANS"),
+            ("e\u0301", "ISO15919"),
+        ],
+    )
+    def test_pure_non_odia_unchanged(self, text: str, scheme: str) -> None:
+        assert roman.to_roman(text, scheme) == text
+
+    @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS", "Hunterian"])
+    def test_latin_run_in_mixed_text_unquoted(self, scheme: str) -> None:
+        out = roman.to_roman("ନମସ୍କାର hello 1:2 file_name e\u0301", scheme)
+        assert out.endswith(" hello 1:2 file_name e\u0301")
+        assert "{" not in out
+
+    def test_mixed_text_default_examples(self) -> None:
+        assert roman.to_roman("କi") == "kai"
+        assert roman.to_roman("ଅ:ଇ") == "a:i"
+
+    @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS", "Hunterian"])
+    def test_decomposed_odia_is_nfc_normalised(self, scheme: str) -> None:
+        # U+0B47 + U+0B56 composes to AI sign U+0B48; U+0B47 + U+0B57 to AU U+0B4C.
+        assert roman.to_roman("କ\u0b47\u0b56", scheme) == roman.to_roman("କ\u0b48", scheme)
+        assert roman.to_roman("କ\u0b47\u0b57", scheme) == roman.to_roman("କ\u0b4c", scheme)

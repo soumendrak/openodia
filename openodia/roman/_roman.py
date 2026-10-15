@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from typing import Literal
 
@@ -25,16 +26,21 @@ def _table(scheme: Scheme) -> dict[str, object]:
     raise ValueError(f"unknown scheme {scheme!r}; supported: {SCHEMES}")
 
 
-def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - one flat per-character state machine
+def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False) -> str:  # noqa: C901 - one flat per-character state machine
     """Transliterate Odia ``text`` to the Latin script.
 
     Args:
         text: Source Odia string.
         scheme: One of ``"ISO15919"``, ``"Hunterian"``, ``"ITRANS"``.
+        reversible: For ``ISO15919`` and ``ITRANS`` only. When true, non-Odia
+            text is escaped so :func:`from_roman` restores the input exactly:
+            a literal separator (``:`` / ``_``) is doubled, and in text that
+            also contains Odia, a run that could be read as Roman tokens is
+            quoted (``କi`` gives ``ka:{i:}``). Ignored for ``Hunterian``.
 
     Returns:
-        The transliterated string. Characters outside the Odia block pass
-        through unchanged.
+        The transliterated string. Unless ``reversible`` is true, characters
+        outside the Odia block come back exactly as given.
 
     Raises:
         ValueError: If ``scheme`` is not recognised.
@@ -52,11 +58,12 @@ def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - one
     modifiers: dict[str, str] = table["modifiers"]  # type: ignore[assignment]
     schwa: str = table["schwa"]  # type: ignore[assignment]
 
-    # NFC first (handles common Indic composition cases). Then do the
-    # two Odia-specific nukta compositions manually: U+0B5C and U+0B5D
-    # are on Unicode's composition-exclusion list so NFC won't compose
-    # them, but our tables key on the precomposed forms.
-    text = unicodedata.normalize("NFC", text)
+    # NFC the Odia runs only (handles common Indic composition cases), so
+    # non-Odia text is left byte-for-byte. Then do the two Odia-specific
+    # nukta compositions manually: U+0B5C and U+0B5D are on Unicode's
+    # composition-exclusion list so NFC won't compose them, but our tables
+    # key on the precomposed forms.
+    text = _ODIA_RUN.sub(lambda m: unicodedata.normalize("NFC", m.group()), text)
     text = text.replace("ଡ" + chr(0x0B3C), chr(0x0B5C))
     text = text.replace("ଢ" + chr(0x0B3C), chr(0x0B5D))
 
@@ -65,6 +72,7 @@ def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - one
     pending_schwa = False  # last emitted token was a consonant + inherent schwa
     after_halant = False  # last Odia char was a halant after a consonant
     sep = _SEPARATORS.get(scheme)
+    escape = reversible and sep is not None
 
     def flush_schwa() -> None:
         nonlocal pending_schwa
@@ -103,12 +111,12 @@ def to_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - one
             emit(modifiers[ch])
         else:
             flush_schwa()
-            # Pass-through text is literal; a literal separator is doubled
-            # so the decoder keeps it instead of reading a boundary.
-            emit(ch * 2 if ch == sep else ch, is_literal=True)
+            # Pass-through text is literal. In reversible mode a literal
+            # separator is doubled so the decoder keeps it as text.
+            emit(ch * 2 if escape and ch == sep else ch, is_literal=True)
 
     flush_schwa()
-    if sep is not None and not all(literal):
+    if escape and not all(literal):
         out, literal = _quote_literals(out, literal, scheme)
     return _join_tokens(out, scheme, literal)
 
@@ -146,6 +154,9 @@ def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> t
     close_run()
     return new_tokens, new_literal
 
+
+#: Runs of characters in the Odia block (U+0B00-U+0B7F).
+_ODIA_RUN = re.compile("[\u0b00-\u0b7f]+")
 
 #: Boundary marks for the reversible schemes. ISO 15919 uses ``:`` to keep
 #: e.g. ``a`` + ``i`` apart from ``ai``. ITRANS uses ``_``.
@@ -240,7 +251,9 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901 - o
 
     Best-effort for ``Hunterian`` since that scheme is intentionally
     lossy (no diacritics). ``ISO15919`` and ``ITRANS`` round-trip
-    correctly for text produced by ``to_roman`` in the same scheme.
+    correctly for text produced by ``to_roman`` in the same scheme; for
+    input that also contains non-Odia text, use ``to_roman(...,
+    reversible=True)``.
 
     The decoder tracks context: a vowel straight after a consonant becomes
     a vowel sign (``ā`` after ``n`` gives ``ନା``), the inherent ``a`` adds
