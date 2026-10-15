@@ -71,6 +71,7 @@ The tools are available in Odia language.
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
 - [x] [Indic-to-Indic transliteration](#indic-transliteration)
+- [x] [Command-line interface](#command-line-interface)
 - [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
 - [x] [Sentence segmenter](#sentence-segmenter)
@@ -189,6 +190,41 @@ indic.SCRIPTS  # ('devanagari', 'bengali', 'assamese', 'gurmukhi', 'gujarati', '
     chillus become consonant + virama, and shared marks such as the danda
     (`।`) are kept.
 
+
+### :material-console: Command-line interface
+
+- Installing the package adds an `openodia` command. Each subcommand wraps a function from the library so they're scriptable from any shell.
+- Pass `-` as the text argument to read from stdin. Pass `--file` to read the text argument from a UTF-8 file; without it, an argument is always literal text, even if it matches a file name.
+
+```sh
+openodia --help
+
+# Tokenisation
+openodia tokenize "ରାମ ଓ ସୀତା ଆସୁଛନ୍ତି"
+openodia tokenize --file input.txt --sentences
+
+# Normalisation / cleanup
+openodia normalize --file input.txt --form NFC
+openodia clean "  ନମ‌ସ୍କାର  ଓଡ଼ିଆ  " --latin-to-odia
+
+# Translation
+openodia translate "ନମସ୍କାର!ଭଲ ଲାଗୁଛି?" --from or --to en
+echo "hello! feeling good?" | openodia translate - --from en --to or
+
+# Language detection
+openodia detect-language "ନମସ୍କାର" --json
+
+# Random Odia names
+openodia name --kind first --count 5
+
+# Extractive summary
+openodia summarize --file article.txt --threshold 3
+
+# Stopword removal + corpus stats
+openodia remove-stopwords "ରାମ ଓ ସୀତା"
+openodia ngrams "ରାମ ସୀତା ଲକ୍ଷ୍ମଣ" -n 2
+openodia freq --file corpus.txt --top 20
+```
 
 ### :material-database-cog: Translation cache
 
