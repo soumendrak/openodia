@@ -132,9 +132,14 @@ def _is_odia_letter(ch: str) -> bool:
     return "\u0b00" <= ch <= "\u0b7f" and unicodedata.category(ch).startswith("L")
 
 
-def _scorable(word: object) -> bool:
+def _require_str(word: object) -> None:
+    if not isinstance(word, str):
+        raise TypeError(f"expected str, got {type(word).__name__}")
+
+
+def _scorable(word: str | None) -> bool:
     """True for ``""`` or a string with an Odia letter; False otherwise."""
-    return isinstance(word, str) and (not word or any(map(_is_odia_letter, word)))
+    return word is not None and (not word or any(map(_is_odia_letter, word)))
 
 
 def _is_consonant(ch: str) -> bool:
@@ -145,7 +150,9 @@ def _is_consonant(ch: str) -> bool:
 
 
 def soundex(word: str) -> str:
-    """Return the 4-character Odia-adapted Soundex code (not classic Soundex) for ``word``.
+    """Return the 4-character Odia-adapted Soundex code for ``word``.
+
+    This is an Odia-adapted variant, not classic Soundex.
 
     The first Odia letter, including a vowel, is kept verbatim.
     Subsequent consonants are
@@ -157,13 +164,15 @@ def soundex(word: str) -> str:
     Vowels/matras reset duplicate suppression; conjunct marks do not.
     Thus ``ପାପା`` yields ``ପ600``. Input is NFC-normalised.
     Empty input returns an empty string; nonempty input with no Odia
-    letters raises ValueError. In mixed input, non-Odia characters emit
+    letters raises ValueError; a non-str (including ``None``) raises
+    TypeError. In mixed input, non-Odia characters emit
     nothing but reset duplicate suppression, like vowels.
 
     Examples:
         >>> soundex("ସୋମେନ୍ଦ୍ର")
         'ସ657'
     """
+    _require_str(word)
     if not word:
         return ""
     # NFC so canonically equivalent spellings (e.g. precomposed vs.
@@ -206,13 +215,15 @@ def metaphone(word: str) -> str:
     truncation. Vowels/matras reset duplicate suppression; conjunct marks
     do not. Thus ``ପାପା`` yields ``ପପ``. Input is NFC-normalised.
     Empty input yields an empty string; nonempty input with no Odia
-    letters raises ValueError. In mixed input, non-Odia characters emit
+    letters raises ValueError; a non-str (including ``None``) raises
+    TypeError. In mixed input, non-Odia characters emit
     nothing but reset duplicate suppression, like vowels.
 
     Examples:
         >>> metaphone("ସୋମେନ୍ଦ୍ର")
         'ସପତର'
     """
+    _require_str(word)
     if not word:
         return ""
     word = _canonical(word)
@@ -239,15 +250,23 @@ def similarity(a: str | None, b: str | None) -> float:
     * 0.5 weight on whether the two Soundex codes are equal.
     * 0.5 weight on a normalised edit-distance between Metaphone codes.
 
-    Returns ``1.0`` when both encoders produce identical output, and
-    ``0.0`` when either input is ``None`` or nonempty with no Odia letters
-    (Latin or whitespace-only) rather than raising. Both encoders use NFC normalization and reset
-    duplicate suppression at vowels/matras, but not conjunct marks.
+    Returns ``1.0`` when both encoders produce identical output. Returns
+    ``0.0``, rather than raising, when either input is ``None`` or is
+    nonempty with no Odia letters (Latin or whitespace-only), and when
+    both inputs are empty (``similarity("", "") == 0.0``). An empty input
+    is otherwise scored normally: ``similarity("ଆ", "") == 0.5`` because
+    both Metaphone codes are empty. Any other type (``int``, ``bytes``,
+    ``list``, ...) raises TypeError. Both encoders use NFC normalization
+    and reset duplicate suppression at vowels/matras, but not conjunct
+    marks.
 
     Examples:
         >>> similarity("ସୋମେନ୍ଦ୍ର", "ସୌମେନ୍ଦ୍ର") > 0.9
         True
     """
+    for word in (a, b):
+        if word is not None:
+            _require_str(word)
     if not (_scorable(a) and _scorable(b)):
         return 0.0
     sa, sb = soundex(a), soundex(b)

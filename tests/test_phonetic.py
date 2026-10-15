@@ -142,7 +142,7 @@ class TestNonOdiaInputs:
             ("   ", "   "),
         ],
     )
-    def test_similarity_scores_non_odia_as_zero(self, words) -> None:
+    def test_similarity_returns_zero_for_none_latin_or_whitespace(self, words) -> None:
         assert phonetic.similarity(*words) == 0.0
 
     def test_non_odia_resets_duplicate_suppression_like_vowels(self) -> None:
@@ -151,10 +151,9 @@ class TestNonOdiaInputs:
         assert phonetic.soundex("ପxପ") == phonetic.soundex("ପାପ") == "ପ600"
 
     def test_mixed_input(self) -> None:
-        # Should pick up Odia consonants and ignore Latin.
-        # Just check it returns a non-empty 4-char Soundex.
-        out = phonetic.soundex("ସୋ hello")
-        assert len(out) == 4
+        # Latin emits nothing; the Odia part is still encoded.
+        assert phonetic.soundex("ସୋ hello") == "ସ000"
+        assert phonetic.metaphone("ସୋ hello") == "ସ"
 
 
 class TestPublicAPI:
@@ -243,3 +242,49 @@ class TestReviewRegressions:
     def test_conjunct_marks_preserve_merge_chain(self, word) -> None:
         assert phonetic.soundex(word) == "ପ000"
         assert phonetic.metaphone(word) == "ପ"
+
+
+class TestTypesAndEmptyInput:
+    @pytest.mark.parametrize("bad", [1, b"\xe0\xac\x95", ["କ"], 1.5])
+    def test_similarity_rejects_non_str(self, bad) -> None:
+        # N1/N4: a non-str on either side must raise, not score 0.0.
+        with pytest.raises(TypeError, match="expected str"):
+            phonetic.similarity(bad, "କ")
+        with pytest.raises(TypeError, match="expected str"):
+            phonetic.similarity("କ", bad)
+        with pytest.raises(TypeError, match="expected str"):
+            phonetic.similarity(None, bad)
+
+    @pytest.mark.parametrize("encoder", [phonetic.soundex, phonetic.metaphone])
+    @pytest.mark.parametrize("bad", [None, 0, b"", []])
+    def test_encoders_reject_non_str(self, encoder, bad) -> None:
+        # N14: None (and other falsy non-str) must not return "".
+        with pytest.raises(TypeError, match="expected str"):
+            encoder(bad)
+
+    def test_empty_input(self) -> None:
+        assert phonetic.soundex("") == ""
+        assert phonetic.metaphone("") == ""
+        assert phonetic.similarity("", "") == 0.0
+        assert phonetic.similarity("ଆ", "") == 0.5
+        assert phonetic.similarity("", "କ") == 0.0
+
+
+class TestNfcAndTable:
+    def test_decomposed_input_that_nfc_changes(self) -> None:
+        # P2: କ + େ + ା is the decomposed spelling of କୋ (U+0B4B); NFC
+        # recomposes it, so both spellings give the same keys.
+        import unicodedata
+
+        decomposed = "କ\u0b47\u0b3eଶଲ"
+        composed = unicodedata.normalize("NFC", decomposed)
+        assert composed == "କ\u0b4bଶଲ" != decomposed
+        assert phonetic.soundex(decomposed) == phonetic.soundex(composed) == "କ870"
+        assert phonetic.metaphone(decomposed) == phonetic.metaphone(composed)
+        assert phonetic.similarity(decomposed, composed) == 1.0
+
+    def test_nya_mapping(self) -> None:
+        # P21: ଞ is palatal: Soundex digit 3, Metaphone base ଚ.
+        assert phonetic.soundex("କଞ") == "କ300"
+        assert phonetic.metaphone("ଞ") == "ଚ"
+        assert phonetic.metaphone("ଚଞ") == "ଚ"

@@ -171,11 +171,14 @@ pads or truncates to four characters. Both encoders normalize NFC.
 Vowels and matras reset duplicate suppression; halant, nukta and zero-width
 joiners do not. For example, `ପାପା` gives Soundex `ପ600` and Metaphone `ପପ`.
 Nonempty input with no Odia letters raises `ValueError`, including Latin-only
-input. In mixed input, non-Odia characters emit nothing but reset duplicate
+input, and `soundex()`/`metaphone()` raise `TypeError` for a non-str such as
+`None`. In mixed input, non-Odia characters emit nothing but reset duplicate
 suppression, like vowels. Empty input produces empty keys. `similarity()`
-does not raise: it returns 0.0 when either side is `None` or has no Odia
-letters (Latin or whitespace-only). It assigns 0.5 to Soundex equality and
-0.5 to normalized Metaphone edit similarity; two empty inputs score 0.0.
+does not raise for non-Odia input: it returns 0.0 when either side is `None`
+or has no Odia letters (Latin or whitespace-only), and `similarity("", "")`
+is 0.0. Any other type (`int`, `bytes`, `list`) raises `TypeError`. It
+assigns 0.5 to Soundex equality and 0.5 to normalized Metaphone edit
+similarity.
 
 - Two encoders for finding spelling variants of the same name / word:
   - **Soundex** — fixed 4-character code based on place-of-articulation groups.
