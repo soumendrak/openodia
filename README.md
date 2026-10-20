@@ -65,6 +65,10 @@ Text arguments are literal text, even when they match an existing filename.
 Use `--file` to read a UTF-8 file explicitly (implicit file detection has been
 removed). Pass `-` without `--file` to read UTF-8 text from stdin.
 
+## Sponsor
+
+If this project helps you, consider [sponsoring my work on GitHub](https://github.com/sponsors/soumendrak). Your support helps fund maintenance, documentation, and continued development.
+
 ## License
 
 Released under the [MIT License](LICENSE).
