@@ -50,6 +50,23 @@ uv sync  # or: pip install -e .
 
 For usage and further documentation please visit the [Documentation](https://openodia.soumendrak.com/) page. 
 
+### Phonetic matching
+
+These are Odia-adapted variants, not classic Soundex or Metaphone.
+Soundex preserves the first Odia letter, including a leading vowel, and
+pads or truncates to four characters. Both encoders normalize NFC.
+Vowels and matras reset duplicate suppression; halant, nukta and zero-width
+joiners do not. For example, `ପାପା` gives Soundex `ପ600` and Metaphone `ପପ`.
+Nonempty input with no Odia letters raises `ValueError`, including Latin-only
+input, and `soundex()`/`metaphone()` raise `TypeError` for a non-str such as
+`None`. In mixed input, non-Odia characters emit nothing but reset duplicate
+suppression, like vowels. Empty input produces empty keys. `similarity()`
+does not raise for non-Odia input: it returns 0.0 when either side is `None`
+or has no Odia letters (Latin or whitespace-only), and `similarity("", "")`
+is 0.0. Any other type (`int`, `bytes`, `list`) raises `TypeError`. It
+assigns 0.5 to Soundex equality and 0.5 to normalized Metaphone edit
+similarity.
+
 ### Command-line interface
 
 Run `openodia --help` or `python -m openodia --help` for commands, and
