@@ -193,6 +193,12 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     written (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS). The same mark
     after a consonant means a halant before a vowel (`k:a` for `କ୍ଅ`).
 
+    The avagraha `ଽ` is written `’` in ISO 15919, `'` in Hunterian and `.a` in
+    ITRANS. `from_roman` in ITRANS also reads the common spellings `aa`, `ii`,
+    `uu`, `R^i`, `R^I`, `L^i` and `L^I`; `to_roman` keeps writing `A`, `I`,
+    `U` and `RRi`. `from_roman` in Hunterian reads `ri` and `li` as consonant
+    plus vowel sign (`oria` gives `ଓରିଅ`), never as the vocalic `ଋ` or `ଌ`.
+
     For text that contains anything other than Odia, pass `reversible=True`:
     a literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that
     could be read as Roman letters (or that has combining marks) is quoted
