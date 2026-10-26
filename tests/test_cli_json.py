@@ -254,3 +254,53 @@ def test_json_strict_stdin_in_process(monkeypatch, capsys) -> None:
     captured = capsys.readouterr()
     assert captured.out == ""
     assert captured.err.startswith("openodia: error: 'utf-8' codec can't decode byte 0xff")
+
+
+def test_json_rejects_non_utf8_text_argument(capsys) -> None:
+    assert cli.main(["normalize", "\udcff", "--json"]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == "openodia: error: text argument is not valid UTF-8\n"
+
+
+def test_json_accepts_any_file_path_argument(tmp_path, capsys) -> None:
+    path = tmp_path / "input.txt"
+    path.write_text("ରାମ", encoding="utf-8")
+    assert cli.main(["tokenize", "--file", str(path), "--json"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"tokens": ["ରାମ"]}
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="raw argv bytes need POSIX")
+@pytest.mark.parametrize("command", ["normalize", "tokenize"])
+def test_json_rejects_invalid_utf8_argv_bytes(command) -> None:
+    done = subprocess.run(
+        [sys.executable.encode(), b"-m", b"openodia", command.encode(), b"\xff", b"--json"], capture_output=True, timeout=60
+    )
+    assert (done.returncode, done.stdout) == (1, b"")
+    assert done.stderr == b"openodia: error: text argument is not valid UTF-8\n"
+
+
+def test_json_closed_stdin_is_a_clean_error(monkeypatch, capsys) -> None:
+    stdin = io.TextIOWrapper(io.BytesIO(b""), encoding="utf-8")
+    stdin.close()
+    monkeypatch.setattr("sys.stdin", stdin)
+    assert cli.main(["normalize", "hello", "--json"]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err.startswith("openodia: error: ")
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="closed-pipe status is 141 on POSIX")
+def test_json_into_closed_reader_exits_141(tmp_path) -> None:
+    source = tmp_path / "big.txt"
+    source.write_text("ରାମ " * 300_000, encoding="utf-8")
+    with source.open("rb") as stdin:
+        proc = subprocess.Popen(
+            [sys.executable, "-m", "openodia", "tokenize", "-", "--json"],
+            stdin=stdin,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        proc.stdout.close()
+        assert proc.stderr.read() == b""
+        assert proc.wait(timeout=60) == 141
