@@ -50,7 +50,7 @@ class SummarizationBaseMethod(ABC):
             return 1.0
         return self._number_of_words_in_text() / unique_words
 
-    def words_having_higher_threshold(self, threshold_value: float = 1.0) -> set[str]:
+    def words_having_higher_threshold(self, threshold_value: float | None = 1.0) -> set[str]:
         """Get the list of tokens having higher threshold value
         That means the words which are significant for the given text
         """
@@ -63,15 +63,14 @@ class SummarizationBaseMethod(ABC):
 
     def get_sentence_having_frequent_words(self, frequent_token_list: set[str]) -> str:
         """Get the sentences having the frequent words"""
-        summarized_text = []
+        summarized_sentences: list[str] = []
         for sentence in self.sentence_list:
             for token in frequent_token_list:
                 if token in sentence:
-                    summarized_text.append(sentence)
+                    summarized_sentences.append(sentence)
                     break
-        LOGGER.debug(f"{len(summarized_text)} number of sentences found in summarized text.")
-        summarized_text = " ".join(summarized_text)
-        return summarized_text
+        LOGGER.debug(f"{len(summarized_sentences)} number of sentences found in summarized text.")
+        return " ".join(summarized_sentences)
 
     @abstractmethod
     def get_summary(self) -> str:
@@ -83,7 +82,7 @@ class SummarizationBaseMethod(ABC):
 class WordFrequency(SummarizationBaseMethod):
     """Get summarized text based on word frequency method"""
 
-    def get_summary(self, threshold: float = None) -> str:
+    def get_summary(self, threshold: float | None = None) -> str:
         """Main function to orchestrate the summarization
         :param threshold: The more the value the lesser the summary text
         """

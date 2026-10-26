@@ -58,6 +58,10 @@ jobs:
       run: |
         uv run ruff format --check
     
+    - name: Type check with mypy
+      run: |
+        uv run mypy
+
     - name: Security Analysis with bandit
       run: |
         mkdir ci-logs
