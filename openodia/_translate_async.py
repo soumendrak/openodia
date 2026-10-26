@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import threading
 from collections.abc import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
@@ -37,6 +38,22 @@ def _translator_for(source: str, to: str) -> Callable[[str], str]:
     return partial(universal_translation, source_language_code=source, dest_language_code=to)
 
 
+def _unless_stopped(
+    translate: Callable[[str], str], stopped: threading.Event, retries: int, return_exceptions: bool
+) -> Callable[[str, int], str]:
+    def run(text: str, attempt: int) -> str:
+        if stopped.is_set():
+            return ""
+        try:
+            return translate(text)
+        except Exception as exc:
+            if not return_exceptions and not (isinstance(exc, _TRANSIENT_ERRORS) and attempt < retries):
+                stopped.set()
+            raise
+
+    return run
+
+
 def _require(name: str, value: float, minimum: float) -> None:
     if value < minimum:
         raise ValueError(f"{name} must be >= {minimum}, got {value}")
@@ -64,7 +81,7 @@ async def translate_batch(
     ``retries`` times, sleeping ``backoff * 2**attempt`` seconds between attempts. Other errors,
     such as an unsupported language code, are never retried.
 
-    By default the first failure is raised, queued texts are never started, and requests already
+    By default the first failure is raised, texts not yet started are skipped, and requests already
     running finish in the background. With ``return_exceptions=True`` every text gets an entry, either
     its translation or the exception it failed with. Cancelling the call stops queued texts the same
     way. A translation is cached only once it has succeeded, so neither case leaves a partial entry.
@@ -81,12 +98,14 @@ async def translate_batch(
     translate = _translator_for(source, to)
     loop = asyncio.get_running_loop()
     pool = ThreadPoolExecutor(max_workers=min(concurrency, len(distinct)))
+    stopped = threading.Event()
+    run_unless_stopped = _unless_stopped(translate, stopped, retries, return_exceptions)
 
     async def translate_with_retries(text: str) -> str:
         attempt = 0
         while True:
             try:
-                return await loop.run_in_executor(pool, translate, text)
+                return await loop.run_in_executor(pool, run_unless_stopped, text, attempt)
             except _TRANSIENT_ERRORS:
                 if attempt == retries:
                     raise
@@ -97,6 +116,7 @@ async def translate_batch(
     try:
         outcomes = await asyncio.gather(*tasks, return_exceptions=return_exceptions)
     finally:
+        stopped.set()
         for task in tasks:
             task.cancel()
         pool.shutdown(wait=False, cancel_futures=True)

@@ -7,7 +7,7 @@ import pytest
 from deep_translator.exceptions import LanguageNotSupportedException, TooManyRequests
 
 import openodia
-from openodia import _translate, cache
+from openodia import _translate, _translate_async, cache
 
 DICTIONARY = {"watch": "ଦେଖନ୍ତୁ"}
 
@@ -195,3 +195,12 @@ def test_cancelling_a_batch_stops_queued_work_and_leaves_the_cache_usable(servic
     service.gate = lambda text: None
     assert openodia.odia_to_other_lang("a", "en") == "a:or>en"
     assert openodia.odia_to_other_lang("b", "en") == "b:or>en"
+
+
+def test_stopped_worker_skips_the_network_call() -> None:
+    stopped = threading.Event()
+    stopped.set()
+    calls: list[str] = []
+    run = _translate_async._unless_stopped(calls.append, stopped, 0, False)
+    assert run("a", 0) == ""
+    assert calls == []
