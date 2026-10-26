@@ -131,3 +131,36 @@ def test_pii_docs_say_what_stdin_does_to_offsets_and_how_far_mask_can_be_trusted
     assert "`HTTPS://` and `WWW.`" in text
     assert "turns CRLF and a lone CR into LF" in text
     assert "``. _ % + - ! # $ & ' * / = ? ^ ` { | } ~``" in text
+
+
+@pytest.mark.parametrize("doc", ["AGENTS.md", "docs/index.md"])
+def test_pii_docs_qualify_the_masking_guarantee_and_name_the_email_limits(doc: str) -> None:
+    text = (ROOT / doc).read_text(encoding="utf-8")
+    assert "for every detected value" in text
+    assert "see the limits below" in text
+    assert "never leaves half of a value visible" not in text
+    assert "no part of a value stays visible" not in text
+    assert "`ଅଭିa@x.com`" in text
+    assert "deliberate limit" in text
+    assert "quadratic" not in text
+
+
+def test_pii_docs_and_changelog_and_docstring_do_not_overclaim_masking() -> None:
+    from openodia.pii import detect
+
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert "never leaves part of a value visible" not in changelog
+    assert "for every detected value" in changelog
+    assert "see the limits below" in changelog
+    assert detect.__doc__ is not None
+    assert "no part of a value is left visible" not in detect.__doc__
+    assert "for every detected value" in detect.__doc__
+    assert "see the limits below" in detect.__doc__
+
+
+def test_pii_index_documents_the_over_masking_of_leading_delimiters() -> None:
+    text = (ROOT / "docs/index.md").read_text(encoding="utf-8")
+    assert "`key=val@host.com`" in text
+    assert "`ssh://git@host`" in text
+    assert "`www.x.com/a@b.com`" in text
+    assert "nothing leaks" in text

@@ -97,9 +97,12 @@ def detect(text: str, types: Iterable[str] | None = None, min_confidence: float 
 
     Odia and ASCII digits are both recognised. ``types`` limits the search to some of
     :data:`PII_TYPES`; ``min_confidence`` (0 to 1) drops weaker matches first. Matches that
-    overlap are merged into one entity spanning all of them, so no part of a value is left
-    visible. Its type and confidence come from the longest match; on a tie the earlier of EMAIL,
-    URL, AADHAAR, PAN, PHONE, PINCODE wins.
+    overlap are merged into one entity spanning all of them, so for every detected value no
+    part of it is left visible; see the limits below. Its type and confidence come from the
+    longest match; on a tie the earlier of EMAIL, URL, AADHAAR, PAN, PHONE, PINCODE wins.
+
+    Limits: an email local part over 64 characters is not found, and one with punctuation keeps
+    its earlier part visible; one that starts with non-ASCII letters keeps those letters visible.
 
     Raises:
         TypeError: ``text`` is not a ``str``, or ``types`` is a bare string.

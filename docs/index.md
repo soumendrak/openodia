@@ -315,7 +315,7 @@ sentences("Hello. World!", keep_terminators=False)
 
 - `openodia.pii` finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there.
 - Odia digits (`୦`-`୯`) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: `--file` drops a leading BOM and turns CRLF and a lone CR into LF. `-` (stdin) drops a leading BOM only and keeps any `\r`: a Linux or macOS pipe delivers `\r\n` unchanged, so offsets from `-` can differ from `--file` by one per line break.
-- Matches that overlap merge into one span typed by the longest match, so no part of a value stays visible. A tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`. `min_confidence` is applied before merging.
+- Matches that overlap merge into one span typed by the longest match, so for every detected value no part of it stays visible; see the limits below. A tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`. `min_confidence` is applied before merging.
 - `openodia pii --json` puts the raw matched `text` in every entity, so it contains the PII. Use `--mask --json` for output that holds only the masked text.
 
 ```python
@@ -333,11 +333,13 @@ pii.detect(text, min_confidence=0.9)
 | Type | What it matches | Confidence |
 | --- | --- | --- |
 | `PHONE` | 10-digit Indian mobile starting 6-9, optional `+91`, `(+91)`, `0091`, `91` followed by a space or `-`, or `0`; optional space or `-` after the fifth digit | 0.9 |
-| `EMAIL` | `local@domain.tld`; the local part is up to 64 characters of letters, digits and ``. _ % + - ! # $ & ' * / = ? ^ ` { | } ~`` (RFC 5322 atext), top-level domain of two or more letters. A longer local part is not found, and if it contains punctuation only its last 64 characters may be masked, so the earlier part stays visible | 0.95 |
+| `EMAIL` | `local@domain.tld`; the local part is up to 64 characters of letters, digits and ``. _ % + - ! # $ & ' * / = ? ^ ` { | } ~`` (RFC 5322 atext), top-level domain of two or more letters. A longer local part is not found, and if it contains punctuation only its last 64 characters may be masked, so the earlier part stays visible; this is a deliberate limit left for a follow-up. A local part that starts with non-ASCII letters, such as `ଅଭିa@x.com`, is masked only from the first ASCII character, so `ଅଭି` stays visible | 0.95 |
 | `URL` | `http://`, `https://` or `www.` in any letter case, so `HTTPS://` and `WWW.` are found (not glued to a letter, digit, `@`, `.` or `-` before it) up to whitespace; trailing `. , ; : ! ? )` and `।` are left out | 0.9 |
 | `AADHAAR` | 12 digits starting 2-9, contiguous or grouped 4-4-4 by one space or `-`. 0.95 when the Verhoeff checksum passes, 0.5 when it fails | 0.95 / 0.5 |
 | `PAN` | `AAAPA1234A`: uppercase, fourth letter one of `PCHFATBLJG` | 0.95 |
 | `PINCODE` | 6 digits, first 1-9, directly after `PIN`, `Pincode`, `PIN code` or `ପିନ` | 0.8 |
+
+The wider local-part class can mask more than the address: leading delimiters can be swallowed, so `key=val@host.com`, `?q=a@b.com`, `path/to/a@c.com` and `price$5@x.com` lose their prefix, `` `a@b.com` ``, `'a@b.com'` and `**a@b.com**` swallow only the leading delimiter, `ssh://git@host` loses `//`, and `www.x.com/a@b.com` becomes `<EMAIL>` instead of `<URL>`; nothing leaks.
 
 Confidence ranks how specific a pattern is; it is not a probability.
 

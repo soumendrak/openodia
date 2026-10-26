@@ -401,3 +401,27 @@ def test_a_local_part_over_64_characters_is_not_found_and_a_punctuated_one_is_ma
     assert pii.mask("a" * 70 + "@x.com") == "a" * 70 + "@x.com"
     punctuated = "a." * 40 + "@x.com"
     assert pii.mask(punctuated) == punctuated[:16] + "<EMAIL>"
+
+
+@pytest.mark.parametrize(
+    ("text", "masked"),
+    [
+        ("a" * 64 + "@x.com", "<EMAIL>"),
+        ("a" * 65 + "@x.com", "a" * 65 + "@x.com"),
+        ("1" * 64 + "@x.com", "<EMAIL>"),
+        ("1" * 65 + "@x.com", "1" * 65 + "@x.com"),
+        ("a" * 70 + "@x.com", "a" * 70 + "@x.com"),
+        ("a@" + "b" * 63 + ".com", "<EMAIL>"),
+        ("a@" + "b" * 64 + ".com", "a@" + "b" * 64 + ".com"),
+        ("a@x." + "b" * 63 + ".com", "<EMAIL>"),
+    ],
+)
+def test_email_length_limits_are_exactly_64_local_and_63_per_domain_label(text: str, masked: str) -> None:
+    assert pii.mask(text) == masked
+
+
+@pytest.mark.parametrize("neighbour", ["a", "Z", "0", "9"])
+def test_an_email_never_starts_inside_a_run_of_ascii_letters_or_digits(neighbour: str) -> None:
+    glued = neighbour * 65 + "@x.com"
+    assert pii.mask(glued) == glued
+    assert kinds(neighbour + "@x.com") == [("EMAIL", neighbour + "@x.com")]
