@@ -288,3 +288,21 @@ class TestNfcAndTable:
         assert phonetic.soundex("କଞ") == "କ300"
         assert phonetic.metaphone("ଞ") == "ଚ"
         assert phonetic.metaphone("ଚଞ") == "ଚ"
+
+
+class TestAvagraha:
+    @pytest.mark.parametrize("encoder", [phonetic.soundex, phonetic.metaphone])
+    def test_avagraha_alone_raises(self, encoder) -> None:
+        with pytest.raises(ValueError, match="Odia letter"):
+            encoder("ଽ")
+
+    def test_avagraha_is_not_the_first_letter(self) -> None:
+        assert phonetic.soundex("ଽକ") == "କ000"
+        assert phonetic.metaphone("ଽକ") == "କ"
+
+    def test_avagraha_after_a_letter_resets_duplicate_suppression(self) -> None:
+        assert phonetic.soundex("କଽଖ") == "କ200"
+        assert phonetic.metaphone("କଽଖ") == "କକ"
+
+    def test_avagraha_only_input_scores_zero(self) -> None:
+        assert phonetic.similarity("ଽ", "ସ") == 0.0

@@ -17,6 +17,7 @@ _NUKTA = "\u0b3c"
 # Characters that sit inside a conjunct without breaking it: halant, nukta,
 # and the rendering-only zero-width (non-)joiners.
 _CONJUNCT_MARKS = frozenset({_HALANT, _NUKTA, "\u200c", "\u200d"})
+_AVAGRAHA = "\u0b3d"
 
 
 def _canonical(word: str) -> str:
@@ -129,7 +130,7 @@ _METAPHONE_BASE: dict[str, str] = {
 
 
 def _is_odia_letter(ch: str) -> bool:
-    return "\u0b00" <= ch <= "\u0b7f" and unicodedata.category(ch).startswith("L")
+    return "\u0b00" <= ch <= "\u0b7f" and ch != _AVAGRAHA and unicodedata.category(ch).startswith("L")
 
 
 def _require_str(word: object) -> None:
@@ -160,6 +161,8 @@ def soundex(word: str) -> str:
     duplicates collapse. In the body, vowels, matras, halant, nukta,
     and modifiers are dropped. The output is right-padded with ``0`` to exactly 4
     characters and truncated if longer.
+
+    The avagraha ``ଽ`` is not a letter and never starts a key.
 
     Vowels/matras reset duplicate suppression; conjunct marks do not.
     Thus ``ପାପା`` yields ``ପ600``. Input is NFC-normalised.
