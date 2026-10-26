@@ -87,11 +87,11 @@ Without `--json`, `freq` prints `COUNT<TAB>TOKEN` lines, `ngrams` prints space-j
 | Code | Meaning | stderr |
 | --- | --- | --- |
 | 0 | Success | empty |
-| 1 | Runtime error: unreadable or non-UTF-8 file, non-UTF-8 stdin with `--json`, closed stdin, unsupported language code, Google Translate failure | `openodia: error: <message>` (at most 200 characters) |
+| 1 | Runtime error: unreadable or non-UTF-8 file, non-UTF-8 stdin or text argument with `--json`, closed stdin, unsupported language code, Google Translate failure | `openodia: error: <message>` (at most 200 characters) |
 | 2 | Usage error: unknown subcommand, missing text, bad option value | argparse usage, then `openodia <subcommand>: error: <message>`; `summarize --threshold 0` prints only `error: --threshold must be a positive number` |
 | 141 | Output pipe closed early | empty |
 
-With `--json`, errors still go to stderr and stdout stays empty. Without `--json`, how invalid UTF-8 on stdin is handled depends on the locale, so only `--json` guarantees valid UTF-8 output.
+With `--json`, errors still go to stderr and stdout stays empty. Without `--json`, how invalid UTF-8 in stdin or in the text argument is handled depends on the locale, so only `--json` guarantees valid UTF-8 output.
 
 ```console
 $ openodia tokenize --file missing.txt 2>&1; echo "rc=$?"

@@ -90,10 +90,15 @@ def _utf8_stdio() -> None:
                 pass
 
 
-def _strict_stdin() -> None:
+def _require_utf8_input(args: argparse.Namespace) -> None:
     reconfigure = getattr(sys.stdin, "reconfigure", None)
     if reconfigure is not None:
         reconfigure(errors="strict")
+    if not getattr(args, "file", False):
+        try:
+            getattr(args, "text", "").encode("utf-8")
+        except UnicodeEncodeError:
+            raise ValueError("text argument is not valid UTF-8") from None
 
 
 # ---------------------------------------------------------------------------
@@ -433,9 +438,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     _utf8_stdio()
     parser = build_parser()
     args = parser.parse_args(argv)
-    if args.json:
-        _strict_stdin()
     try:
+        if args.json:
+            _require_utf8_input(args)
         code = int(args.func(args))
         if sys.stdout is not None:
             sys.stdout.flush()
