@@ -15,7 +15,7 @@
 ## Install
 
 - Requires **Python 3.11 or higher**.
-- The library is tested on Python 3.11, 3.12, 3.13, and 3.14.
+- The library is tested on Python 3.11, 3.12, 3.13, 3.14, and 3.15.
 
 ### Using pip
 
