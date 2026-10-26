@@ -15,6 +15,8 @@ SCHEMES: tuple[Scheme, ...] = ("ISO15919", "Hunterian", "ITRANS")
 
 _HALANT = "୍"
 
+_ODIA_TO_ASCII_DIGITS = str.maketrans("୦୧୨୩୪୫୬୭୮୯", "0123456789")
+
 
 def _table(scheme: Scheme) -> SchemeTable:
     if scheme == "ISO15919":
@@ -24,6 +26,10 @@ def _table(scheme: Scheme) -> SchemeTable:
     if scheme == "ITRANS":
         return ITRANS
     raise ValueError(f"unknown scheme {scheme!r}; supported: {SCHEMES}")
+
+
+def _writes_ascii_digits(scheme: Scheme, reversible: bool) -> bool:
+    return scheme == "Hunterian" or (scheme == "ITRANS" and not reversible)
 
 
 def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False) -> str:  # noqa: C901
@@ -37,7 +43,10 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
             a literal separator (``:`` / ``_``) is doubled, and any non-Odia
             run that could be read as Roman letters, or that contains
             combining marks, is quoted (``କi`` gives ``ka:{i:}``). Ignored
-            for ``Hunterian``.
+            for ``Hunterian``. Odia digits ``୦``-``୯`` become ASCII ``0``-``9``
+            in ``Hunterian`` and in ``ITRANS`` unless ``reversible`` is true
+            (an ASCII digit could not be told from a literal one); ``ISO15919``
+            keeps them.
 
     Returns:
         The transliterated string. Unless ``reversible`` is true, characters
@@ -59,6 +68,8 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
     modifiers: dict[str, str] = table["modifiers"]
     schwa: str = table["schwa"]
 
+    if _writes_ascii_digits(scheme, reversible):
+        text = text.translate(_ODIA_TO_ASCII_DIGITS)
     text = _ODIA_RUN.sub(lambda m: unicodedata.normalize("NFC", m.group()), text)
     text = text.replace("ଡ" + chr(0x0B3C), chr(0x0B5C))
     text = text.replace("ଢ" + chr(0x0B3C), chr(0x0B5D))

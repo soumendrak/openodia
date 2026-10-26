@@ -193,6 +193,11 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     written (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS). The same mark
     after a consonant means a halant before a vowel (`k:a` for `କ୍ଅ`).
 
+    `Hunterian` and `ITRANS` write the Odia digits `୦`-`୯` as ASCII `0`-`9`
+    (`to_roman("୨୦୨୬", "ITRANS")` gives `2026`); `from_roman` keeps ASCII
+    digits as they are. `ISO15919` keeps the Odia digits, and so does
+    `reversible=True`, because an ASCII digit could not be told from a literal one.
+
     For text that contains anything other than Odia, pass `reversible=True`:
     a literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that
     could be read as Roman letters (or that has combining marks) is quoted
