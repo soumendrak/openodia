@@ -87,11 +87,11 @@ Without `--json`, `freq` prints `COUNT<TAB>TOKEN` lines, `ngrams` prints space-j
 | Code | Meaning | stderr |
 | --- | --- | --- |
 | 0 | Success | empty |
-| 1 | Runtime error: unreadable or non-UTF-8 file, closed stdin, unsupported language code, Google Translate failure | `openodia: error: <message>` (at most 200 characters) |
+| 1 | Runtime error: unreadable or non-UTF-8 file, non-UTF-8 stdin with `--json`, closed stdin, unsupported language code, Google Translate failure | `openodia: error: <message>` (at most 200 characters) |
 | 2 | Usage error: unknown subcommand, missing text, bad option value | argparse usage, then `openodia <subcommand>: error: <message>`; `summarize --threshold 0` prints only `error: --threshold must be a positive number` |
 | 141 | Output pipe closed early | empty |
 
-With `--json`, errors still go to stderr and stdout stays empty.
+With `--json`, errors still go to stderr and stdout stays empty. Without `--json`, invalid UTF-8 on stdin is passed through unchanged, so only `--json` guarantees valid UTF-8 output.
 
 ```console
 $ openodia tokenize --file missing.txt 2>&1; echo "rc=$?"
@@ -103,7 +103,7 @@ openodia freq: error: argument --top: must be >= 0, got -1
 
 ## Output stability
 
-The default text output and the JSON keys above are pinned by tests in `tests/test_cli.py` and `tests/test_cli_json.py`, and every `console` example in this file is run by `tests/test_agent_docs.py`. New JSON keys may be added; existing keys and text formats are not changed within 0.1.x.
+Tests pin the JSON keys listed above for each subcommand, the exit codes 0, 1, 2 and 141 above, and the default text output of each subcommand for the inputs in `tests/test_cli.py` and `tests/test_cli_json.py`. Every `console` example in this file is run by `tests/test_agent_docs.py`. Nothing else is promised: error message wording, `name` output, Google Translate results and the exact scores or summaries the library computes can change.
 
 ## Develop
 

@@ -12,7 +12,7 @@ Subcommands: `tokenize`, `normalize`, `clean`, `translate`, `detect-language`, `
 Rules:
 
 - Text is a literal argument, `-` for stdin, or a path with `--file`. Input is UTF-8.
-- Add `--json` and parse stdout as one JSON document. Errors go to stderr and stdout stays empty. `--json` on every subcommand needs a release newer than 0.1.14.
+- Add `--json` and parse stdout as one JSON document. Errors go to stderr and stdout stays empty. `--json` on every subcommand needs a release newer than 0.1.14; PyPI 0.1.14 has it on `detect-language` only.
 - Exit codes: 0 success, 1 runtime error (`openodia: error: ...` on stderr), 2 usage error.
 - `translate` works offline only for English to Odia dictionary hits; other pairs need the network and can be rate limited.
 

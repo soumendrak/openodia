@@ -167,7 +167,7 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ### :material-console: Command-line interface
 
 - Installing the package adds an `openodia` command. Each subcommand wraps a function from the library so they're scriptable from any shell.
-- Add `--json` to a subcommand for one machine-readable JSON document on stdout. See [AGENTS.md](https://github.com/soumendrak/openodia/blob/main/AGENTS.md) for the JSON shapes and exit codes, and [llms.txt](llms.txt) for an index aimed at AI agents.
+- Add `--json` to a subcommand for one machine-readable JSON document on stdout. This needs a release newer than 0.1.14: PyPI 0.1.14 has `--json` on `detect-language` only, and other subcommands exit with code 2 there. See [AGENTS.md](https://github.com/soumendrak/openodia/blob/main/AGENTS.md) for the JSON shapes and exit codes, and [llms.txt](llms.txt) for an index aimed at AI agents.
 - Pass `-` as the text argument to read from stdin. Pass `--file` to read the text argument from a UTF-8 file; without it, an argument is always literal text, even if it matches a file name.
 
 ```sh

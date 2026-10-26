@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-DOCS = ["AGENTS.md", "skills/openodia/SKILL.md", "README.md"]
+RUNNABLE = ["AGENTS.md", "skills/openodia/SKILL.md", "README.md"]
+DOCS = [*RUNNABLE, "docs/llms.txt", "docs/index.md"]
 FENCE = re.compile(r"^```console\n(.*?)^```", re.DOTALL | re.MULTILINE)
 
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="documented examples use a POSIX shell")
@@ -30,7 +31,7 @@ def parse_steps(block: str) -> list[tuple[str, list[str]]]:
 CASES = [(doc, index) for doc in DOCS for index in range(len(console_blocks(doc)))]
 
 
-@pytest.mark.parametrize("doc", DOCS)
+@pytest.mark.parametrize("doc", RUNNABLE)
 def test_doc_has_runnable_examples(doc: str) -> None:
     assert console_blocks(doc)
 
