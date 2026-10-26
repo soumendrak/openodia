@@ -11,9 +11,10 @@ ODIA_UNICODE_END = 0x0B72  # 2930
 
 _SENTENCE = re.compile(
     r"""(?: [^।॥?!]+ | [?!](?=[A-Za-z0-9=&%\#/_]) )*
-        (?: [।॥?!]+ [)\]"'”’»]* | \Z )""",
+        (?: [।॥?!]+ [)\]}>"'”’»›]* | \Z )""",
     re.VERBOSE,
 )
+_WORD = re.compile(r"[^\W_]")
 
 
 class UnderstandData:
@@ -31,7 +32,17 @@ class UnderstandData:
     @classmethod
     def sentence_tokenizer(cls, text: str) -> list[str]:
         """Split the text into sentences at ।, ॥, ? and !, keeping each terminator."""
-        sent_list = [sentence for match in _SENTENCE.finditer(text) if (sentence := match.group().strip())]
+        sent_list: list[str] = []
+        carry = ""
+        for match in _SENTENCE.finditer(text):
+            part = match.group().strip()
+            if _WORD.search(part):
+                sent_list.append(f"{carry} {part}" if carry else part)
+                carry = ""
+            elif sent_list:
+                sent_list[-1] += "".join(part.split())
+            else:
+                carry += "".join(part.split())
         LOGGER.debug(f"{len(sent_list)} sentences have been formed.")
         return sent_list
 
