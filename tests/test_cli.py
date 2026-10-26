@@ -1,3 +1,4 @@
+import errno
 import io
 import os
 import json
@@ -567,6 +568,22 @@ class TestRobustness:
         assert cli.main(["name"]) == 141
         assert redirected == [1]
         assert capsys.readouterr().err == ""
+
+    @pytest.mark.parametrize(
+        ("platform", "filename", "exit_code"),
+        [("win32", None, 141), ("win32", "a|b.txt", 1), ("linux", None, 1)],
+    )
+    def test_einval_is_a_closed_pipe_only_on_windows_writes(self, platform, filename, exit_code, monkeypatch, capsys):
+        class Stdout:
+            def fileno(self):
+                return 1
+
+        monkeypatch.setattr("sys.stdout", Stdout())
+        monkeypatch.setattr("sys.platform", platform)
+        monkeypatch.setattr(os, "dup2", lambda source, target: None)
+        error = OSError(errno.EINVAL, "Invalid argument", filename)
+        monkeypatch.setattr("openodia.name.generate_names", lambda count: (_ for _ in ()).throw(error))
+        assert cli.main(["name"]) == exit_code
 
     def test_name_piped_into_closed_reader(self):
         cmd = [sys.executable, "-m", "openodia", "name", "--count", "100000"]

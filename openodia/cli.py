@@ -10,6 +10,7 @@ Python entry point in the package. New subcommands can be added in
 from __future__ import annotations
 
 import argparse
+import errno
 import math
 import json
 import os
@@ -367,6 +368,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _is_closed_pipe(exc: OSError) -> bool:
+    """Whether ``exc`` is a write to a closed pipe; Windows reports it as a bare ``EINVAL``."""
+    windows_write = sys.platform == "win32" and exc.errno == errno.EINVAL and exc.filename is None
+    return isinstance(exc, BrokenPipeError) or windows_write
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """CLI entry point.
 
@@ -383,16 +390,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         code = int(args.func(args))
         sys.stdout.flush()
         return code
-    except BrokenPipeError:
-        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
-        return 141
     except TooManyRequests:
         return _fail("Google Translate refused the request (rate limit or captcha); try again later")
     except LanguageNotSupportedException as exc:
         return _fail(f"unsupported language code {exc.val!r}")
     except (BaseError, RequestError) as exc:
         return _fail(exc.message)
-    except (OSError, UnicodeError, ValueError, ImportError) as exc:
+    except OSError as exc:
+        if not _is_closed_pipe(exc):
+            return _fail(str(exc))
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 141
+    except (UnicodeError, ValueError, ImportError) as exc:
         return _fail(str(exc))
 
 
