@@ -103,13 +103,14 @@ class TranslationCache:
     def stats(self) -> CacheStats:
         """Return current hit/miss/size counters."""
         with self._lock:
-            return CacheStats(
-                hits=self._hits,
-                misses=self._misses,
-                size=len(self._memory),
-                max_size=self._max_size,
-                disk_size=len(self._disk) if self._disk is not None else 0,
-            )
+            hits, misses, size = self._hits, self._misses, len(self._memory)
+        return CacheStats(
+            hits=hits,
+            misses=misses,
+            size=size,
+            max_size=self._max_size,
+            disk_size=len(self._disk) if self._disk is not None else 0,
+        )
 
     def clear(self) -> None:
         """Drop all entries (memory + disk) and reset counters."""

@@ -17,6 +17,10 @@ from openodia import _translate, _translate_async, cache
 DICTIONARY = {"watch": "ଦେଖନ୍ତୁ"}
 
 
+def anything(value: object) -> typing.Any:
+    return value
+
+
 class FakeService:
     def __init__(self) -> None:
         self.calls: list[tuple[str, str, str]] = []
@@ -298,19 +302,19 @@ def test_status_is_read_from_the_exception_itself(service: FakeService) -> None:
 @pytest.mark.parametrize("value", [1.5, 2.0, True, False, 0, -1, None, "3", math.nan, math.inf])
 def test_concurrency_must_be_a_positive_integer(value: object) -> None:
     with pytest.raises(ValueError, match="concurrency must be an integer >= 1"):
-        asyncio.run(openodia.translate_batch(["a"], concurrency=value))  # type: ignore[arg-type]
+        asyncio.run(openodia.translate_batch(["a"], concurrency=anything(value)))
 
 
 @pytest.mark.parametrize("value", [1.5, 1.0, True, False, -1, None, "1", math.nan, math.inf])
 def test_retries_must_be_a_non_negative_integer(value: object) -> None:
     with pytest.raises(ValueError, match="retries must be an integer >= 0"):
-        asyncio.run(openodia.translate_batch(["a"], retries=value))  # type: ignore[arg-type]
+        asyncio.run(openodia.translate_batch(["a"], retries=anything(value)))
 
 
 @pytest.mark.parametrize("value", [-0.1, -1, math.nan, math.inf, -math.inf, True, None, "1"])
 def test_backoff_must_be_a_finite_non_negative_number(value: object) -> None:
     with pytest.raises(ValueError, match="backoff must be a finite number >= 0"):
-        asyncio.run(openodia.translate_batch(["a"], backoff=value))  # type: ignore[arg-type]
+        asyncio.run(openodia.translate_batch(["a"], backoff=anything(value)))
 
 
 def test_integer_backoff_and_zero_values_are_accepted(service: FakeService) -> None:
@@ -318,10 +322,10 @@ def test_integer_backoff_and_zero_values_are_accepted(service: FakeService) -> N
     assert asyncio.run(openodia.translate_batch(["b"], backoff=1)) == ["b:or>en"]
 
 
-@pytest.mark.parametrize("value", ["abc", b"abc"])
+@pytest.mark.parametrize("value", ["abc", b"abc", bytearray(b"abc"), memoryview(b"abc")])
 def test_a_bare_string_is_rejected_instead_of_being_split_into_characters(value: object) -> None:
     with pytest.raises(TypeError, match="texts must be a list of strings, not a single str or bytes"):
-        asyncio.run(openodia.translate_batch(value))  # type: ignore[arg-type]
+        asyncio.run(openodia.translate_batch(anything(value)))
 
 
 def test_bad_options_are_rejected_before_any_work_even_for_an_empty_batch() -> None:
@@ -333,3 +337,31 @@ def test_return_exceptions_is_typed_so_callers_get_strings_by_default() -> None:
     hints = typing.get_overloads(openodia.translate_batch)
     returns = {inspect.signature(fn).return_annotation for fn in hints}
     assert returns == {"list[str]", "list[str | BaseException]"}
+
+
+def test_a_generator_is_translated_and_not_silently_emptied(service: FakeService) -> None:
+    assert asyncio.run(openodia.translate_batch(text for text in ["a", "b", "a"])) == ["a:or>en", "b:or>en", "a:or>en"]
+    assert sorted(call[0] for call in service.calls) == ["a", "b"]
+
+
+@pytest.mark.parametrize("texts", [iter(["a", "b"]), ("a", "b"), {"a": 1, "b": 2}.keys()])
+def test_any_iterable_of_strings_is_accepted(service: FakeService, texts: typing.Iterable[str]) -> None:
+    assert asyncio.run(openodia.translate_batch(texts)) == ["a:or>en", "b:or>en"]
+
+
+@pytest.mark.parametrize("bad", [None, 1, b"a", ["a"], 1.5])
+def test_non_string_items_are_rejected_before_any_work(service: FakeService, bad: object) -> None:
+    with pytest.raises(TypeError, match=r"texts must contain only strings, got \w+ at index 1"):
+        asyncio.run(openodia.translate_batch(["a", anything(bad), "c"]))
+    assert service.calls == []
+
+
+def test_the_item_error_names_the_type_and_does_not_echo_the_value(service: FakeService) -> None:
+    with pytest.raises(TypeError) as caught:
+        asyncio.run(openodia.translate_batch(["a", anything(b"secret")]))
+    assert "secret" not in str(caught.value)
+
+
+def test_a_non_iterable_is_a_type_error(service: FakeService) -> None:
+    with pytest.raises(TypeError):
+        asyncio.run(openodia.translate_batch(anything(5)))

@@ -78,6 +78,20 @@ def test_doc_states_which_release_has_json(doc: str) -> None:
     assert "`detect-language` only" in text
 
 
+@pytest.mark.parametrize("doc", [*DOCS, "docs/application.md"])
+def test_doc_that_mentions_translate_batch_states_which_release_has_it(doc: str) -> None:
+    text = (ROOT / doc).read_text(encoding="utf-8")
+    if "translate_batch" in text:
+        assert "needs a release newer than 0.1.14" in text
+        assert "`from openodia import translate_batch` fails on 0.1.14" in text
+
+
+def test_the_async_section_of_the_docs_index_carries_the_release_note() -> None:
+    text = (ROOT / "docs/index.md").read_text(encoding="utf-8")
+    section = text.split("#### Async and batch translation")[1].split("\n### ")[0]
+    assert "needs a release newer than 0.1.14" in section
+
+
 def test_llms_txt_leads_with_the_version_note() -> None:
     lines = (ROOT / "docs/llms.txt").read_text(encoding="utf-8").splitlines()
     assert lines[0].startswith("# ")

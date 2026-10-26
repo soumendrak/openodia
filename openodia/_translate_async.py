@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import math
 import threading
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from typing import Literal, overload
@@ -65,9 +65,17 @@ def _unless_stopped(
     return run
 
 
-def _validate_options(texts: object, concurrency: object, retries: object, backoff: object) -> None:
-    if isinstance(texts, str | bytes):
+def _validated_texts(texts: Iterable[str]) -> list[str]:
+    if isinstance(texts, str | bytes | bytearray | memoryview):
         raise TypeError("texts must be a list of strings, not a single str or bytes; wrap it in a list")
+    items = list(texts)
+    for index, item in enumerate(items):
+        if not isinstance(item, str):
+            raise TypeError(f"texts must contain only strings, got {type(item).__name__} at index {index}")
+    return items
+
+
+def _validate_options(concurrency: object, retries: object, backoff: object) -> None:
     for name, value, minimum in (("concurrency", concurrency, 1), ("retries", retries, 0)):
         if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
             raise ValueError(f"{name} must be an integer >= {minimum}, got {value!r}")
@@ -77,7 +85,7 @@ def _validate_options(texts: object, concurrency: object, retries: object, backo
 
 @overload
 async def translate_batch(
-    texts: Sequence[str],
+    texts: Iterable[str],
     *,
     source: str = ...,
     to: str = ...,
@@ -90,7 +98,7 @@ async def translate_batch(
 
 @overload
 async def translate_batch(
-    texts: Sequence[str],
+    texts: Iterable[str],
     *,
     source: str = ...,
     to: str = ...,
@@ -102,7 +110,7 @@ async def translate_batch(
 
 
 async def translate_batch(
-    texts: Sequence[str],
+    texts: Iterable[str],
     *,
     source: str = "or",
     to: str = "en",
@@ -112,6 +120,8 @@ async def translate_batch(
     return_exceptions: bool = False,
 ) -> list[str] | list[str | BaseException]:
     """Translate ``texts`` concurrently and return the results in input order.
+
+    ``texts`` can be any iterable of strings, including a generator; it is read once, up front.
 
     Each distinct text is translated once, through the same path and cache as the sync functions:
     ``source="or"`` and ``to="or"`` behave like :func:`odia_to_other_lang` and
@@ -136,12 +146,14 @@ async def translate_batch(
     way. A translation is cached only once it has succeeded, so neither case leaves a partial entry.
 
     Raises:
-        TypeError: If ``texts`` is a single ``str`` or ``bytes``.
+        TypeError: If ``texts`` is a single ``str``, ``bytes``, ``bytearray`` or ``memoryview``, is not
+            iterable, or has an item that is not a ``str``.
         ValueError: If ``concurrency`` is not an integer >= 1, ``retries`` is not an integer >= 0, or
             ``backoff`` is not a finite number >= 0.
     """
-    _validate_options(texts, concurrency, retries, backoff)
-    distinct = list(dict.fromkeys(texts))
+    items = _validated_texts(texts)
+    _validate_options(concurrency, retries, backoff)
+    distinct = list(dict.fromkeys(items))
     if not distinct:
         return []
     translate = _translator_for(source, to)
@@ -172,4 +184,4 @@ async def translate_batch(
             task.cancel()
         pool.shutdown(wait=False, cancel_futures=True)
     by_text = dict(zip(distinct, outcomes, strict=True))
-    return [by_text[text] for text in texts]
+    return [by_text[text] for text in items]
