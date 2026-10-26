@@ -97,11 +97,7 @@ def collocations(
 ) -> list[tuple[tuple[str, str], float]]:
     """Top-scoring bigram collocations.
 
-    Uses pointwise mutual information (PMI):
-
-    .. math::
-
-        \\mathrm{PMI}(w_1, w_2) = \\log_2 \\frac{P(w_1, w_2)}{P(w_1) \\, P(w_2)}
+    Uses pointwise mutual information (PMI), ``log2(P(w1, w2) / (P(w1) * P(w2)))``.
 
     Args:
         tokens_or_text: Pre-tokenized sequence or raw text.

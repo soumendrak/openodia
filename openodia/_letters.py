@@ -16,9 +16,9 @@ class Letters:
         all_letters: Every Odia letter, modifier, sign and digit, in code point order by group.
         vowels: Independent vowels.
         consonants: Consonants.
-        matras: Dependent vowel signs, modifiers, nukta, halant and the Odia isshar sign.
+        matras: Dependent vowel signs, modifiers, nukta, halant, length marks, the Odia isshar sign, wa and the fraction sign ``୲``.
         numbers: Odia digits ``୦`` to ``୯``.
-        punctuations: ASCII punctuation characters plus the Odia full stop ``୲``.
+        punctuations: ASCII punctuation characters plus the Odia fraction sign ``୲``.
     """
 
     all_letters = [

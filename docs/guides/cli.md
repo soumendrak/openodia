@@ -36,6 +36,9 @@ $ openodia tokenize input.txt --file
 
 The default output is meant for reading and for `grep`, `sort` and `wc`. Add `--json` for one JSON document on stdout.
 
+!!! warning "Needs a release newer than 0.1.14"
+    `--json` on every subcommand is on `main` but not in PyPI 0.1.14. PyPI 0.1.14 has `--json` on `detect-language` only, and other subcommands exit with code 2 there. From a source checkout, `uv run openodia <subcommand> --json` works. See [AGENTS.md](https://github.com/soumendrak/openodia/blob/main/AGENTS.md) for the JSON shapes and exit codes.
+
 ```console
 $ openodia tokenize "ରାମ ସୀତା" --json
 {"tokens": ["ରାମ", "ସୀତା"]}

@@ -85,7 +85,9 @@ class WordFrequency(SummarizationBaseMethod):
 
     def get_summary(self, threshold: float = None) -> str:
         """Main function to orchestrate the summarization
-        :param threshold: The more the value the lesser the summary text
+
+        Args:
+            threshold: The more the value the lesser the summary text
         """
         self.get_tokens()
         LOGGER.debug(f"{len(self.token_list)} number of tokens found.")

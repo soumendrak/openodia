@@ -38,7 +38,7 @@ ValueError: unrecognised token: 'ମିଲିୟନ'
 ```
 
 !!! note "Gotcha: errors for bad input"
-    `from_words` raises `ValueError` for a word it does not know, which includes short-scale words read with the default Indian scale (as above). `to_words(1.5)` raises `TypeError` because only integers are supported. `bool` is an `int` in Python, so `to_words(True)` returns `ଏକ`.
+    `from_words` raises `ValueError` for a word it does not know, which includes short-scale words read with the default Indian scale (as above). `to_words(1.5)` raises `TypeError`, but only as a side effect of the integer-only implementation, not as a deliberate check, so do not rely on the exception type or message. `bool` is an `int` in Python, so `to_words(True)` returns `ଏକ`.
 
 ## Ordinals
 

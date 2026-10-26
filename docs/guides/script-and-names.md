@@ -19,7 +19,7 @@ The Odia character inventory, a syllable splitter, and a generator of Odia names
 ```
 
 !!! note "Gotcha: `matras` includes more than vowel signs"
-    The list also holds the candrabindu, anusvara, visarga, nukta, avagraha and virama, so it is the set of combining marks, not only the matras of the textbook chart.
+    The list also holds the candrabindu, anusvara, visarga, nukta, avagraha and virama, plus the ai length mark `ୖ`, the au length mark `ୗ`, the isshar `୰`, the letter wa `ୱ` and the fraction sign `୲`. It is the set of combining marks and signs, not only the matras of the textbook chart.
 
 !!! note "Gotcha: the lists are shared"
     Each attribute is one list object for the whole process. Copy it with `list(alphabet.vowels)` before you sort or mutate it.
