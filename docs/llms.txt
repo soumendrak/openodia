@@ -8,6 +8,13 @@ Version note: `--json` on every CLI subcommand (one machine-readable JSON docume
 
 - [Documentation](https://openodia.soumendrak.com/): install, library API and command-line interface
 - [Applications](https://openodia.soumendrak.com/application/): worked examples such as name generation and data masking
+- [Text processing guide](https://openodia.soumendrak.com/guides/text-processing/): tokenize, sentences, stopwords, normalize, clean, detect language
+- [Script, syllables and names guide](https://openodia.soumendrak.com/guides/script-and-names/): alphabet, syllable split, name generation
+- [Numbers guide](https://openodia.soumendrak.com/guides/numbers/): number words, ordinals, dates, currency, digits
+- [Analysis guide](https://openodia.soumendrak.com/guides/analysis/): n-grams, frequency, collocations, co-occurrence, summarization
+- [Translation guide](https://openodia.soumendrak.com/guides/translation/): offline dictionary, Google Translate, translation cache
+- [Command-line guide](https://openodia.soumendrak.com/guides/cli/): every subcommand with runnable examples
+- [API reference](https://openodia.soumendrak.com/api/text/): signatures and docstrings generated from the source
 
 ## For agents
 

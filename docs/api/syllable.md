@@ -1,0 +1,4 @@
+# Syllables
+
+::: openodia.syllable
+

@@ -8,7 +8,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 RUNNABLE = ["AGENTS.md", "skills/openodia/SKILL.md", "README.md"]
-DOCS = [*RUNNABLE, "docs/llms.txt", "docs/index.md"]
+DOCS = [*RUNNABLE, "docs/llms.txt", "docs/index.md", "docs/guides/cli.md"]
 FENCE = re.compile(r"^```console\n(.*?)^```", re.DOTALL | re.MULTILINE)
 
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="documented examples use a POSIX shell")

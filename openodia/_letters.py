@@ -7,7 +7,19 @@ from string import punctuation
 
 
 class Letters:
-    """Letters in Odia language"""
+    """Letters in Odia language
+
+    Exposed as ``openodia.alphabet``. Every attribute is a class-level
+    constant, so no instance is needed.
+
+    Attributes:
+        all_letters: Every Odia letter, modifier, sign and digit, in code point order by group.
+        vowels: Independent vowels.
+        consonants: Consonants.
+        matras: Dependent vowel signs, modifiers, nukta, halant and the Odia isshar sign.
+        numbers: Odia digits ``୦`` to ``୯``.
+        punctuations: ASCII punctuation characters plus the Odia full stop ``୲``.
+    """
 
     all_letters = [
         "ଁ",
