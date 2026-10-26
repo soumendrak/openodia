@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Every CLI subcommand accepts `--json` and prints one UTF-8 JSON document on stdout; default text output is unchanged.
+- Docs for AI agents: `AGENTS.md`, `skills/openodia/SKILL.md` and `llms.txt` on the docs site.
+
 ## 0.1.14 (2026-10-26)
 
 - `python -m openodia` now runs the CLI.

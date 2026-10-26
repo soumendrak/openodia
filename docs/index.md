@@ -167,6 +167,7 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ### :material-console: Command-line interface
 
 - Installing the package adds an `openodia` command. Each subcommand wraps a function from the library so they're scriptable from any shell.
+- Add `--json` to a subcommand for one machine-readable JSON document on stdout. See [AGENTS.md](https://github.com/soumendrak/openodia/blob/main/AGENTS.md) for the JSON shapes and exit codes, and [llms.txt](llms.txt) for an index aimed at AI agents.
 - Pass `-` as the text argument to read from stdin. Pass `--file` to read the text argument from a UTF-8 file; without it, an argument is always literal text, even if it matches a file name.
 
 ```sh

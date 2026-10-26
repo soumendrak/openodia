@@ -1,0 +1,19 @@
+# OpenOdia
+
+> openodia is an open source Python library and command-line tool for Odia (ଓଡ଼ିଆ) text: tokenize, normalize, clean, translate, detect language, generate names, summarize, remove stopwords, n-grams and word frequency. Install with `pip install openodia` or run `uvx openodia`. Every CLI subcommand takes `--json` for one machine-readable JSON document on stdout.
+
+## Docs
+
+- [Documentation](https://openodia.soumendrak.com/): install, library API and command-line interface
+- [Applications](https://openodia.soumendrak.com/application/): worked examples such as name generation and data masking
+
+## For agents
+
+- [AGENTS.md](https://github.com/soumendrak/openodia/blob/main/AGENTS.md): CLI examples, JSON output shapes, exit codes and development commands
+- [SKILL.md](https://github.com/soumendrak/openodia/blob/main/skills/openodia/SKILL.md): agent skill for the openodia CLI
+
+## Optional
+
+- [PyPI](https://pypi.org/project/openodia/): releases and install
+- [Source code](https://github.com/soumendrak/openodia): issues and contributions
+- [Changelog](https://github.com/soumendrak/openodia/blob/main/CHANGELOG.md): what changed in each release
