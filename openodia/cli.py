@@ -12,10 +12,13 @@ from __future__ import annotations
 import argparse
 import math
 import json
+import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
+
+from deep_translator.exceptions import BaseError, LanguageNotSupportedException, RequestError, TooManyRequests
 
 
 # ---------------------------------------------------------------------------
@@ -26,9 +29,11 @@ from typing import Any
 def _read_input(value: str, *, file: bool = False) -> str:
     """Read an explicit UTF-8 file, stdin (``-``), or literal text."""
     if file:
-        return Path(value).read_text(encoding="utf-8")
+        return Path(value).read_text(encoding="utf-8-sig")
     if value == "-":
-        return sys.stdin.read()
+        if sys.stdin is None:
+            raise OSError("standard input is closed")
+        return sys.stdin.read().removeprefix("\ufeff")
     return value
 
 
@@ -36,7 +41,10 @@ def _int_at_least(minimum: int):
     """argparse ``type`` for integers >= ``minimum``."""
 
     def parse(raw: str) -> int:
-        value = int(raw)
+        try:
+            value = int(raw)
+        except ValueError:
+            raise argparse.ArgumentTypeError(f"must be an integer, got {raw!r}") from None
         if value < minimum:
             raise argparse.ArgumentTypeError(f"must be >= {minimum}, got {value}")
         return value
@@ -46,10 +54,18 @@ def _int_at_least(minimum: int):
 
 def _unit_float(raw: str) -> float:
     """argparse ``type`` for a finite float in [0, 1]."""
-    value = float(raw)
+    try:
+        value = float(raw)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"must be a number between 0 and 1, got {raw!r}") from None
     if not 0.0 <= value <= 1.0:  # also rejects NaN
         raise argparse.ArgumentTypeError(f"must be between 0 and 1, got {raw}")
     return value
+
+
+def _fail(message: str) -> int:
+    print(f"openodia: error: {message}", file=sys.stderr)
+    return 1
 
 
 def _utf8_stdio() -> None:
@@ -364,10 +380,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
-        return int(args.func(args))
-    except (OSError, UnicodeError) as exc:
-        print(f"openodia: error: {exc}", file=sys.stderr)
-        return 1
+        code = int(args.func(args))
+        sys.stdout.flush()
+        return code
+    except BrokenPipeError:
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 141
+    except TooManyRequests:
+        return _fail("Google Translate refused the request (rate limit or captcha); try again later")
+    except LanguageNotSupportedException as exc:
+        return _fail(f"unsupported language code {exc.val!r}")
+    except (BaseError, RequestError) as exc:
+        return _fail(exc.message)
+    except (OSError, UnicodeError, ValueError, ImportError) as exc:
+        return _fail(str(exc))
 
 
 if __name__ == "__main__":  # pragma: no cover

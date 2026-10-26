@@ -1,9 +1,14 @@
 import io
 import os
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
+
+from deep_translator import GoogleTranslator
+from deep_translator.exceptions import RequestError, TooManyRequests
 
 from openodia import cli
 
@@ -446,3 +451,153 @@ class TestRequestedReviewCoverage:
     @pytest.mark.parametrize(("top", "expected"), [("0", ""), ("1", "3\tରାମ\n"), ("2", "3\tରାମ\n2\tସୀତା\n")])
     def test_top_limits_output(self, top, expected, capsys):
         assert run(["freq", "ରାମ ସୀତା ରାମ ଲକ୍ଷ୍ମଣ ସୀତା ରାମ", "--top", top], capsys) == (0, expected, "")
+
+
+class _RaisingTranslator:
+    def __init__(self, source: str, target: str) -> None:
+        pass
+
+    def translate(self, text: str) -> str:
+        raise TooManyRequests()
+
+
+class TestTranslateErrors:
+    @staticmethod
+    def assert_clean_failure(code, out, err, expected):
+        assert (code, out) == (1, "")
+        assert err == f"openodia: error: {expected}\n"
+
+    def test_unsupported_language_code(self, monkeypatch, capsys):
+        monkeypatch.setattr("openodia._translate.GoogleTranslator", GoogleTranslator)
+        self.assert_clean_failure(*run(["translate", "hello", "--to", "zz"], capsys), "unsupported language code 'zz'")
+
+    def test_text_over_google_limit(self, monkeypatch, capsys, tmp_path):
+        monkeypatch.setattr("openodia._translate.GoogleTranslator", GoogleTranslator)
+        long_text = tmp_path / "long.txt"
+        long_text.write_text("ab " * 2000, encoding="utf-8")
+        code, out, err = run(["translate", str(long_text), "--file"], capsys)
+        self.assert_clean_failure(code, out, err, "Text length need to be between 0 and 5000 characters")
+        assert "ab ab" not in err
+
+    def test_rate_limit(self, monkeypatch, capsys):
+        monkeypatch.setattr("openodia._translate.GoogleTranslator", _RaisingTranslator)
+        self.assert_clean_failure(
+            *run(["translate", "ନମସ୍କାର", "--from", "or", "--to", "en"], capsys),
+            "Google Translate refused the request (rate limit or captcha); try again later",
+        )
+
+    def test_request_error(self, monkeypatch, capsys):
+        class Failing(_RaisingTranslator):
+            def translate(self, text):
+                raise RequestError()
+
+        monkeypatch.setattr("openodia._translate.GoogleTranslator", Failing)
+        code, out, err = run(["translate", "ନମସ୍କାର", "--from", "or", "--to", "en"], capsys)
+        self.assert_clean_failure(code, out, err, RequestError().message)
+
+    @pytest.mark.parametrize(
+        ("value", "message"),
+        [
+            ("abc", "OPENODIA_CACHE_MAX_SIZE must be an integer >= 1, got 'abc'"),
+            ("0", "OPENODIA_CACHE_MAX_SIZE must be an integer >= 1, got '0'"),
+        ],
+    )
+    def test_bad_cache_size_env(self, value, message, monkeypatch, capsys):
+        from openodia.cache import _cache as cache_module
+
+        monkeypatch.setattr(cache_module, "_cache", None)
+        monkeypatch.setenv("OPENODIA_CACHE_MAX_SIZE", value)
+        self.assert_clean_failure(*run(["translate", "ନମସ୍କାର", "--from", "or", "--to", "en"], capsys), message)
+
+    def test_disk_cache_without_diskcache(self, monkeypatch, capsys):
+        from openodia.cache import _cache as cache_module
+
+        monkeypatch.setattr(cache_module, "_cache", None)
+        monkeypatch.setenv("OPENODIA_CACHE_DISK", "/nonexistent")
+        monkeypatch.setitem(sys.modules, "diskcache", None)
+        code, out, err = run(["translate", "ନମସ୍କାର", "--from", "or", "--to", "en"], capsys)
+        assert (code, out) == (1, "")
+        assert (
+            err
+            == "openodia: error: Disk caching requires the 'diskcache' package. Install with: pip install openodia[cache]\n"
+        )
+
+
+BOM = "\ufeff"
+
+
+class TestBom:
+    @pytest.mark.parametrize("command", ["tokenize", "freq", "normalize", "clean"])
+    def test_file_bom_is_stripped(self, command, capsys, tmp_path):
+        f = tmp_path / "bom.txt"
+        f.write_bytes(BOM.encode("utf-8") + "ରାମ ସୀତା\n".encode())
+        code, out, _ = run([command, str(f), "--file"], capsys)
+        assert code == 0
+        assert BOM not in out
+        assert "ରାମ" in out
+
+    def test_stdin_bom_is_stripped(self, monkeypatch, capsys):
+        stdin = io.TextIOWrapper(io.BytesIO(BOM.encode("utf-8") + "ରାମ ସୀତା\n".encode()), encoding="utf-8")
+        monkeypatch.setattr("sys.stdin", stdin)
+        assert run(["tokenize", "-"], capsys) == (0, "ରାମ\nସୀତା\n", "")
+
+    def test_bom_does_not_change_detect_language(self, capsys, tmp_path):
+        plain, marked = tmp_path / "plain.txt", tmp_path / "bom.txt"
+        plain.write_text("ରାମ ସୀତା", encoding="utf-8")
+        marked.write_bytes(BOM.encode("utf-8") + "ରାମ ସୀତା".encode())
+        assert run(["detect-language", str(marked), "--file"], capsys) == run(
+            ["detect-language", str(plain), "--file"], capsys
+        )
+
+
+class TestRobustness:
+    def test_closed_stdin(self, monkeypatch, capsys):
+        monkeypatch.setattr("sys.stdin", None)
+        assert run(["tokenize", "-"], capsys) == (1, "", "openodia: error: standard input is closed\n")
+
+    def test_broken_pipe_exits_quietly(self, monkeypatch, capsys):
+        class Stdout:
+            def fileno(self):
+                return 1
+
+        redirected = []
+        monkeypatch.setattr("sys.stdout", Stdout())
+        monkeypatch.setattr(os, "dup2", lambda source, target: redirected.append(target))
+        monkeypatch.setattr("openodia.name.generate_names", lambda count: (_ for _ in ()).throw(BrokenPipeError()))
+        assert cli.main(["name"]) == 141
+        assert redirected == [1]
+        assert capsys.readouterr().err == ""
+
+    def test_name_piped_into_closed_reader(self):
+        cmd = [sys.executable, "-m", "openodia", "name", "--count", "100000"]
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        assert proc.stdout.readline()
+        proc.stdout.close()
+        assert proc.stderr.read() == b""
+        assert proc.wait(timeout=60) == 141
+
+    def test_small_output_into_closed_reader(self):
+        proc = subprocess.Popen(
+            [sys.executable, "-m", "openodia", "name", "--count", "3"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        proc.stdout.close()
+        assert proc.stderr.read() == b""
+        assert proc.wait(timeout=60) == 141
+
+    @pytest.mark.parametrize(
+        ("argv", "message"),
+        [
+            (
+                ["detect-language", "x", "--threshold", "abc"],
+                "argument --threshold: must be a number between 0 and 1, got 'abc'",
+            ),
+            (["name", "--count", "abc"], "argument --count: must be an integer, got 'abc'"),
+            (["ngrams", "x", "-n", "abc"], "argument -n: must be an integer, got 'abc'"),
+            (["freq", "x", "--top", "1.5"], "argument --top: must be an integer, got '1.5'"),
+        ],
+    )
+    def test_argparse_messages_name_no_internals(self, argv, message, capsys):
+        with pytest.raises(SystemExit) as exc:
+            cli.main(argv)
+        assert exc.value.code == 2
+        assert capsys.readouterr().err.splitlines()[-1] == f"openodia {argv[0]}: error: {message}"

@@ -350,7 +350,7 @@ alphabet.numbers
 ['୦', '୧', '୨', '୩', '୪', '୫', '୬', '୭', '୮', '୯']
 '''
 
-alphabet.matra
+alphabet.matras
 '''
 ['ଁ', 'ଂ', 'ଃ', '଼', 'ଽ', 'ା', 'ି', 'ୀ', 'ୁ', 'ୂ', 
  'ୃ', 'ୄ', 'େ', 'ୈ', 'ୋ', 'ୌ', '୍', 'ୖ', 'ୗ', '୰', 'ୱ', '୲']
@@ -428,14 +428,14 @@ ud.detect_language("hey how are you?")
 
 ud.detect_language("hey how are you? ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ")
 '''
-{'language': 'odia', 'confidence_score': 0.66666}
+{'language': 'odia', 'confidence_score': 0.67}
 '''
 
 ud.detect_language(
     "hey how are you? ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ", 
     threshold=0.7)
 '''
-{'language': 'non-odia', 'confidence_score': 0.333333}
+{'language': 'non-odia', 'confidence_score': 0.33}
 '''
 
 ud.detect_language(
@@ -443,7 +443,7 @@ ud.detect_language(
     "ଆର୍ଟିଫିସିଆଲ ଇଣ୍ଟେଲିଜେନ୍ସର ସେହି ବିଭାଗକୁ କୁହାଯ ାଏ ଯାହା" \ 
     "ମନୁଷ୍ୟର ଭାଷାଗୁଡ଼ିକ ସହ କମ୍ପ୍ୟୁଟରର କଥାବାର୍ତ୍ତାକୁ ବୁଝାଇଥାଏ।")
 '''
-{'language': 'odia', 'confidence_score': 0.99404}
+{'language': 'odia', 'confidence_score': 0.99}
 '''
 ```
 - For more info on Odia language detection, please visit the blog post on this at [blog.soumendrak.com](https://blog.soumendrak.com/odia-language-detection).
@@ -472,7 +472,10 @@ ud.word_tokenizer(
 
 ```python
 from openodia import ud
-ud.sentence_tokenizer()
+ud.sentence_tokenizer("ଏକ ଦୁଇ । ତିନି ଚାରି ।")
+'''
+['ଏକ ଦୁଇ', ' ତିନି ଚାରି', '']
+'''
 ```
 
 ### :material-eye-remove: Remove stopwords
