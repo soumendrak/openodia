@@ -34,11 +34,34 @@ def test_large_text_is_linear() -> None:
     assert time.perf_counter() - start < 2
 
 
-PIECES = [
-    "ରାମ", "ସୀତା", "ଗଲା", "ଘରକୁ", "୧୨୩", "a", "Hello", "?q=1", "a?id=5", "Yahoo!Mail", "😀", ".", ",", "…",
-    "।", "॥", "?", "!", "।।", "?!", '"', "'", "”", ")", "]", "}", ">", "(", "{", "<",
-    " ", " ", " ", "\t", "\n", "\r\n", "\r", "\u2028", "\u2029",
-]  # fmt: skip
+WORDS = ["ରାମ", "ସୀତା", "ଗଲା", "ଘରକୁ", "୧୨୩", "a", "Hello", "?q=1", "a?id=5", "Yahoo!Mail", "😀", ".", ",", "…"]
+TERMINATORS = ["।", "॥", "?", "!", "।।", "?!"]
+CLOSERS = ['"', "'", "”", ")", "]", "}", ">", "(", "{", "<"]
+SPACES = [" ", " ", " ", "\t", "\n", "\r\n", "\r", "\u2028", "\u2029"]
+PIECES = WORDS + TERMINATORS + CLOSERS + SPACES
+
+LONG = 400_000
+PATHOLOGICAL = {
+    "stray terminators after a sentence": "ରାମ।" + " ।" * LONG,
+    "stray question marks after a word": "ରାମ" + " ?!" * LONG,
+    "leading stray terminators": "। " * LONG + "ରାମ",
+    "leading mixed terminators": "। ? ! " * (LONG // 2) + "ରାମ",
+    "alternating closers": "ରାମ।" + ')"' * LONG,
+    "long run of closers": "ରାମ।" + ")" * (2 * LONG),
+    "many terminator runs": "ରାମ" + "?!" * LONG,
+    "spaced closers": "ରାମ। ) " * LONG,
+    "no terminator": "ରାମ " * LONG,
+    "one long word": "ରାମ" * LONG,
+}
+
+
+@pytest.mark.parametrize("name", PATHOLOGICAL)
+def test_pathological_shapes_are_linear(name: str) -> None:
+    text = PATHOLOGICAL[name]
+    start = time.perf_counter()
+    result = ud.sentence_tokenizer(text)
+    assert time.perf_counter() - start < 2
+    assert squash("".join(result)) == squash(text)
 
 
 def random_texts(count: int = 5000, seed: int = 20260427) -> list[str]:

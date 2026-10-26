@@ -59,5 +59,6 @@
   {"name": "url guard: ? before query string", "text": "ସେ a?x=1&y=2 ଦେଖିଲା।", "sentences": ["ସେ a?x=1&y=2 ଦେଖିଲା।"]},
   {"name": "url guard: ? before path", "text": "ସେ a?b/c ଦେଖିଲା।", "sentences": ["ସେ a?b/c ଦେଖିଲା।"]},
   {"name": "url guard: ? before capital letter", "text": "ସେ a?B ଦେଖିଲା।", "sentences": ["ସେ a?B ଦେଖିଲା।"]},
-  {"name": "url guard: ? before lowercase letter", "text": "ସେ a?b ଦେଖିଲା।", "sentences": ["ସେ a?b ଦେଖିଲା।"]}
+  {"name": "url guard: ? before lowercase letter", "text": "ସେ a?b ଦେଖିଲା।", "sentences": ["ସେ a?b ଦେଖିଲା।"]},
+  {"name": "url guard: ! before equals", "text": "ସେ a!x=1 ଦେଖିଲା।", "sentences": ["ସେ a!x=1 ଦେଖିଲା।"]}
 ]
