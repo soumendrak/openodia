@@ -83,8 +83,7 @@ def transliterate(text: str, from_script: Script, to_script: Script) -> str:
         raise ValueError(f"unknown to_script {to_script!r}; supported: {tuple(_SCRIPT_OFFSETS)}")
 
     src_offset = _SCRIPT_OFFSETS[from_script]
-    dst_offset = _SCRIPT_OFFSETS[to_script]
-    if src_offset == dst_offset:
+    if from_script == to_script:
         return text
 
     src_names = _names(src_offset)
@@ -210,10 +209,18 @@ _NAME_FALLBACKS = {
 }
 _ASSAMESE_TARGET = {"LETTER RA": "\u09f0", "LETTER VA": "\u09f1"}
 _BENGALI_TARGET = {"LETTER VA": "\u09ac"}
-_SOURCE_ALIASES: dict[int, dict[str, str]] = {0x0D00: {"AU LENGTH MARK": "VOWEL SIGN AU"}}
+_ASSAMESE_ONLY = ("LETTER RA WITH MIDDLE DIAGONAL", "LETTER RA WITH LOWER DIAGONAL")
+_SOURCE_ALIASES: dict[int, dict[str, str]] = {
+    0x0D00: {
+        "AU LENGTH MARK": "VOWEL SIGN AU",
+        "SIGN VERTICAL BAR VIRAMA": "SIGN VIRAMA",
+        "SIGN CIRCULAR VIRAMA": "SIGN VIRAMA",
+    }
+}
 _DEAD_CONSONANTS = {
     "LETTER KHANDA TA": "LETTER TA",
     "LETTER DOT REPH": "LETTER RA",
+    "LETTER NAKAARA POLLU": "LETTER NA",
 }
 
 
@@ -257,6 +264,8 @@ def _chars_by_name(script: Script) -> dict[str, str]:
         table.update(_ASSAMESE_TARGET)
     elif script == "bengali":
         table.update(_BENGALI_TARGET)
+        for name in _ASSAMESE_ONLY:
+            del table[name]
     return table
 
 

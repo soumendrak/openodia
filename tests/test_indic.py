@@ -322,3 +322,39 @@ _DEVANAGARI_BINDI = [
 @pytest.mark.parametrize(("vowel", "expected"), _DEVANAGARI_BINDI)
 def test_every_bindi_vowel(vowel: str, expected: str) -> None:
     assert indic.transliterate(vowel + "\u0902", "devanagari", "gurmukhi") == expected + "\u0a02"
+
+
+class TestAssameseBengaliDirect:
+    @pytest.mark.parametrize(
+        ("text", "src", "dst", "expected"),
+        [
+            ("ৰাম", "assamese", "bengali", "রাম"),
+            ("ৱ", "assamese", "bengali", "ব"),
+            ("রাম", "bengali", "assamese", "ৰাম"),
+            ("ৰ", "assamese", "assamese", "ৰ"),
+            ("রাম", "bengali", "bengali", "রাম"),
+        ],
+    )
+    def test_direct_conversion_applies_the_script_specific_letters(
+        self, text: str, src: Script, dst: Script, expected: str
+    ) -> None:
+        assert indic.transliterate(text, src, dst) == expected
+
+    def test_direct_conversion_matches_the_route_through_devanagari(self) -> None:
+        text = "ৰাম ৱাহ কৃষ্ণ"
+        direct = indic.transliterate(text, "assamese", "bengali")
+        via = indic.transliterate(indic.transliterate(text, "assamese", "devanagari"), "devanagari", "bengali")
+        assert direct == via
+
+
+class TestUnicodeEdgeCases:
+    @pytest.mark.parametrize(
+        ("text", "src"),
+        [("\u0c5d", "telugu"), ("\u0cdd", "kannada")],
+    )
+    def test_nakaara_pollu_is_dead_na(self, text: str, src: Script) -> None:
+        assert indic.transliterate(text, src, "devanagari") == "\u0928\u094d"
+
+    @pytest.mark.parametrize("virama", ["\u0d3b", "\u0d3c"])
+    def test_malayalam_variant_viramas_are_the_virama(self, virama: str) -> None:
+        assert indic.transliterate("\u0d15" + virama + "\u0d37", "malayalam", "devanagari") == "\u0915\u094d\u0937"
