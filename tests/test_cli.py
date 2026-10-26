@@ -501,6 +501,7 @@ class TestTranslateErrors:
         [
             ("abc", "OPENODIA_CACHE_MAX_SIZE must be an integer >= 1, got 'abc'"),
             ("0", "OPENODIA_CACHE_MAX_SIZE must be an integer >= 1, got '0'"),
+            ("-3", "OPENODIA_CACHE_MAX_SIZE must be an integer >= 1, got '-3'"),
         ],
     )
     def test_bad_cache_size_env(self, value, message, monkeypatch, capsys):
@@ -509,6 +510,13 @@ class TestTranslateErrors:
         monkeypatch.setattr(cache_module, "_cache", None)
         monkeypatch.setenv("OPENODIA_CACHE_MAX_SIZE", value)
         self.assert_clean_failure(*run(["translate", "ନମସ୍କାର", "--from", "or", "--to", "en"], capsys), message)
+
+    @pytest.mark.parametrize(("value", "size"), [(" 5 ", 5), ("1_000", 1000), ("+7", 7)])
+    def test_cache_size_env_accepts_what_int_accepts(self, value, size, monkeypatch):
+        from openodia.cache import _cache as cache_module
+
+        monkeypatch.setenv("OPENODIA_CACHE_MAX_SIZE", value)
+        assert cache_module._build_from_env().max_size == size
 
     def test_disk_cache_without_diskcache(self, monkeypatch, capsys):
         from openodia.cache import _cache as cache_module
@@ -584,6 +592,27 @@ class TestRobustness:
         error = OSError(errno.EINVAL, "Invalid argument", filename)
         monkeypatch.setattr("openodia.name.generate_names", lambda count: (_ for _ in ()).throw(error))
         assert cli.main(["name"]) == exit_code
+
+    @pytest.mark.skipif(sys.platform == "win32", reason="needs POSIX fork to close a descriptor")
+    @pytest.mark.parametrize("closed", [(1,), (2,), (1, 2)])
+    @pytest.mark.parametrize("argv", [["tokenize", "ରାମ"], ["name", "--count", "3"]])
+    def test_closed_standard_streams_exit_quietly(self, argv, closed):
+        def close_streams():
+            for fd in closed:
+                os.close(fd)
+
+        proc = subprocess.run(
+            [sys.executable, "-m", "openodia", *argv],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            preexec_fn=close_streams,
+            timeout=60,
+        )
+        assert (proc.returncode, proc.stderr) == (0, b"")
+
+    def test_long_error_is_truncated(self, capsys):
+        assert cli._fail("x" * 500) == 1
+        assert capsys.readouterr().err == "openodia: error: " + "x" * 197 + "...\n"
 
     def test_name_piped_into_closed_reader(self):
         cmd = [sys.executable, "-m", "openodia", "name", "--count", "100000"]

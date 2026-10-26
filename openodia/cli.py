@@ -64,7 +64,12 @@ def _unit_float(raw: str) -> float:
     return value
 
 
+_MAX_ERROR_LENGTH = 200
+
+
 def _fail(message: str) -> int:
+    if len(message) > _MAX_ERROR_LENGTH:
+        message = message[: _MAX_ERROR_LENGTH - 3] + "..."
     print(f"openodia: error: {message}", file=sys.stderr)
     return 1
 
@@ -388,7 +393,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         code = int(args.func(args))
-        sys.stdout.flush()
+        if sys.stdout is not None:
+            sys.stdout.flush()
         return code
     except TooManyRequests:
         return _fail("Google Translate refused the request (rate limit or captcha); try again later")
@@ -397,11 +403,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (BaseError, RequestError) as exc:
         return _fail(exc.message)
     except OSError as exc:
-        if not _is_closed_pipe(exc):
+        if sys.stdout is None or not _is_closed_pipe(exc):
             return _fail(str(exc))
         os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
         return 141
-    except (UnicodeError, ValueError, ImportError) as exc:
+    except (ValueError, ImportError) as exc:
         return _fail(str(exc))
 
 
