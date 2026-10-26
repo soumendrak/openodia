@@ -9,6 +9,12 @@ from openodia.common.utility import LOGGER
 ODIA_UNICODE_START = 0x0B01  # 2817
 ODIA_UNICODE_END = 0x0B72  # 2930
 
+_SENTENCE = re.compile(
+    r"""(?: [^।॥?!]+ | [?!](?=[A-Za-z0-9=&%\#/_]) )*
+        (?: [।॥?!]+ [)\]"'”’»]* | \Z )""",
+    re.VERBOSE,
+)
+
 
 class UnderstandData:
     """Tokenizer implementation"""
@@ -24,9 +30,9 @@ class UnderstandData:
 
     @classmethod
     def sentence_tokenizer(cls, text: str) -> list[str]:
-        """Split the text into sentences"""
-        sent_list = text.split(" ।")
-        LOGGER.debug(f"{len(sent_list)} sentences have been formed using ' ।' splitter.")
+        """Split the text into sentences at ।, ॥, ? and !, keeping each terminator."""
+        sent_list = [sentence for match in _SENTENCE.finditer(text) if (sentence := match.group().strip())]
+        LOGGER.debug(f"{len(sent_list)} sentences have been formed.")
         return sent_list
 
     @classmethod

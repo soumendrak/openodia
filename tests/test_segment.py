@@ -124,16 +124,14 @@ class TestIdempotenceProperty:
         assert first == second
 
 
-class TestBackwardCompatibility:
-    """The pre-existing ``ud.sentence_tokenizer`` must keep working unchanged."""
+class TestUdSentenceTokenizer:
+    """``ud.sentence_tokenizer`` keeps its own, narrower terminator set."""
 
-    def test_old_tokenizer_still_works(self) -> None:
+    def test_ud_tokenizer_splits_on_danda_only_not_full_stop(self) -> None:
         from openodia import ud
 
-        # Same behaviour as before: splits on " ।".
-        out = ud.sentence_tokenizer("ରାମ ଗଲା । ସୀତା ଆସିଲା ।")
-        assert isinstance(out, list)
-        assert len(out) > 0
+        assert ud.sentence_tokenizer("ରାମ ଗଲା । ସୀତା ଆସିଲା ।") == ["ରାମ ଗଲା ।", "ସୀତା ଆସିଲା ।"]
+        assert ud.sentence_tokenizer("Hello. World.") == ["Hello. World."]
 
 
 class TestPublicAPI:

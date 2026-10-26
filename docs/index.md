@@ -303,9 +303,10 @@ sentences("Hello. World!", keep_terminators=False)
     vocabulary (e.g. trade names, place abbreviations) can be added by
     extending it in a wrapper module.
 
-??? note "Existing `ud.sentence_tokenizer` is unchanged"
-    The pre-existing helper continues to behave exactly as before (splits
-    on `" ।"` only). Adopt `openodia.sentences()` for new code.
+??? note "`ud.sentence_tokenizer` and `sentences()` differ"
+    `ud.sentence_tokenizer` splits on `।`, `॥`, `?` and `!` only.
+    `openodia.sentences()` also splits on `.` and `…` and knows Odia
+    abbreviations. `summarize` and `tokenize --sentences` use the former.
 
 ### :material-format-letter-case: Odia alphabets 
 
@@ -469,13 +470,16 @@ ud.word_tokenizer(
 ### :material-call-split: Sentence Tokenizer
 
 - Tokenize a paragraph into multiple sentences.
-- Only working on full stop.
+- Splits after `।`, `॥`, `?` and `!`, with or without a space after them, and keeps the terminator on each sentence.
+- A `?` or `!` directly followed by an ASCII letter, digit or one of `=&%#/_` (as in `a?id=5` or `Yahoo!Mail`) is not a boundary. A closing quote or bracket stays with its sentence.
+- A full stop `.` is not a boundary here; use `openodia.sentences()` for that.
+- Empty or whitespace-only text gives `[]`.
 
 ```python
 from openodia import ud
 ud.sentence_tokenizer("ଏକ ଦୁଇ । ତିନି ଚାରି ।")
 '''
-['ଏକ ଦୁଇ', ' ତିନି ଚାରି', '']
+['ଏକ ଦୁଇ ।', 'ତିନି ଚାରି ।']
 '''
 ```
 
