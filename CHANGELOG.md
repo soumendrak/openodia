@@ -6,6 +6,7 @@
 - Docs for AI agents: `AGENTS.md`, `skills/openodia/SKILL.md` and `llms.txt` on the docs site.
 - Async translation: `odia_to_other_lang_async`, `other_lang_to_odia_async`, `universal_translation_async` and `translate_batch` with bounded concurrency, optional retries and `return_exceptions`.
 - `TranslationCache` is now thread-safe (it can still be pickled and deep-copied); concurrent use could raise `KeyError` and lose counter updates.
+- `openodia.cache.get_cache()` builds its singleton under a lock, so threads making the first call together share one cache (before, `OPENODIA_CACHE_DISK` could give each its own, losing entries and counts).
 
 ## 0.1.14 (2026-10-26)
 

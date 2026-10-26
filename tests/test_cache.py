@@ -1,3 +1,5 @@
+import threading
+import time
 from collections import OrderedDict
 from collections.abc import Iterator
 from pathlib import Path
@@ -445,3 +447,77 @@ def test_a_shallow_copy_shares_the_memory_dict() -> None:
 
     original = cache.TranslationCache(max_size=3)
     assert copy.copy(original)._memory is original._memory
+
+
+class TestSingletonConstruction:
+    THREADS = 8
+
+    @pytest.fixture
+    def unbuilt(self, monkeypatch: pytest.MonkeyPatch) -> tuple[list[cache.TranslationCache], threading.Event]:
+        from openodia.cache import _cache as cache_module
+
+        built: list[cache.TranslationCache] = []
+        release = threading.Event()
+
+        def slow_factory() -> cache.TranslationCache:
+            release.wait(timeout=5)
+            instance = cache.TranslationCache(max_size=5)
+            built.append(instance)
+            return instance
+
+        monkeypatch.setattr(cache_module, "_cache", None)
+        monkeypatch.setattr(cache_module, "_build_from_env", slow_factory)
+        return built, release
+
+    def test_threads_making_the_first_call_together_share_one_instance(
+        self, unbuilt: tuple[list[cache.TranslationCache], threading.Event]
+    ) -> None:
+        built, release = unbuilt
+        gate = threading.Barrier(self.THREADS + 1)
+        seen: list[cache.TranslationCache] = []
+
+        def first_call() -> None:
+            gate.wait(timeout=5)
+            seen.append(cache.get_cache())
+
+        workers = [threading.Thread(target=first_call) for _ in range(self.THREADS)]
+        for worker in workers:
+            worker.start()
+        gate.wait(timeout=5)
+        time.sleep(0.2)
+        release.set()
+        for worker in workers:
+            worker.join(timeout=5)
+        assert len(built) == 1
+        assert len(seen) == self.THREADS
+        assert all(instance is built[0] for instance in seen)
+        assert cache.get_cache() is built[0]
+
+    def test_a_built_singleton_is_returned_without_taking_the_lock(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from openodia.cache import _cache as cache_module
+
+        lock = RecordingLock()
+        monkeypatch.setattr(cache_module, "_singleton_lock", lock)
+        built = cache.get_cache()
+        assert cache.get_cache() is built
+        assert lock.acquisitions == 0
+
+    def test_the_first_call_builds_under_the_module_lock_and_checks_again_inside_it(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from openodia.cache import _cache as cache_module
+
+        winner = cache.TranslationCache(max_size=7)
+
+        def rival_wins_the_race() -> cache.TranslationCache:
+            raise AssertionError("built a second instance")
+
+        class WinsWhileWaiting(RecordingLock):
+            def __enter__(self) -> None:
+                monkeypatch.setattr(cache_module, "_cache", winner)
+                super().__enter__()
+
+        monkeypatch.setattr(cache_module, "_cache", None)
+        monkeypatch.setattr(cache_module, "_build_from_env", rival_wins_the_race)
+        monkeypatch.setattr(cache_module, "_singleton_lock", WinsWhileWaiting())
+        assert cache.get_cache() is winner

@@ -349,9 +349,11 @@ def test_any_iterable_of_strings_is_accepted(service: FakeService, texts: typing
     assert asyncio.run(openodia.translate_batch(texts)) == ["a:or>en", "b:or>en"]
 
 
-@pytest.mark.parametrize("bad", [None, 1, b"a", ["a"], 1.5])
-def test_non_string_items_are_rejected_before_any_work(service: FakeService, bad: object) -> None:
-    with pytest.raises(TypeError, match=r"texts must contain only strings, got \w+ at index 1"):
+@pytest.mark.parametrize(
+    ("bad", "type_name"), [(None, "NoneType"), (1, "int"), (b"a", "bytes"), (["a"], "list"), (1.5, "float")]
+)
+def test_non_string_items_are_rejected_before_any_work(service: FakeService, bad: object, type_name: str) -> None:
+    with pytest.raises(TypeError, match=rf"texts must contain only strings, got {type_name} at index 1$"):
         asyncio.run(openodia.translate_batch(["a", anything(bad), "c"]))
     assert service.calls == []
 
@@ -359,7 +361,7 @@ def test_non_string_items_are_rejected_before_any_work(service: FakeService, bad
 def test_the_item_error_names_the_type_and_does_not_echo_the_value(service: FakeService) -> None:
     with pytest.raises(TypeError) as caught:
         asyncio.run(openodia.translate_batch(["a", anything(b"secret")]))
-    assert "secret" not in str(caught.value)
+    assert str(caught.value) == "texts must contain only strings, got bytes at index 1"
 
 
 def test_a_non_iterable_is_a_type_error(service: FakeService) -> None:

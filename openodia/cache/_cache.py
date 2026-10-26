@@ -157,13 +157,19 @@ def _build_from_env() -> TranslationCache:
 # ---------------------------------------------------------------------------
 
 _cache: TranslationCache | None = None
+_singleton_lock = threading.Lock()
 
 
 def get_cache() -> TranslationCache:
-    """Return the active cache instance, building it lazily on first use."""
+    """Return the active cache instance, building it lazily on first use.
+
+    Safe to call from several threads at once: they all get the same instance.
+    """
     global _cache
     if _cache is None:
-        _cache = _build_from_env()
+        with _singleton_lock:
+            if _cache is None:
+                _cache = _build_from_env()
     return _cache
 
 
