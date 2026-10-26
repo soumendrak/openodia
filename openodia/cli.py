@@ -90,14 +90,22 @@ def _utf8_stdio() -> None:
                 pass
 
 
+def _utf8_text(text: str) -> str:
+    try:
+        text.encode("utf-8")
+    except UnicodeEncodeError:
+        return os.fsencode(text).decode("utf-8")
+    return text
+
+
 def _require_utf8_input(args: argparse.Namespace) -> None:
     reconfigure = getattr(sys.stdin, "reconfigure", None)
     if reconfigure is not None:
         reconfigure(errors="strict")
     if not getattr(args, "file", False):
         try:
-            getattr(args, "text", "").encode("utf-8")
-        except UnicodeEncodeError:
+            args.text = _utf8_text(getattr(args, "text", ""))
+        except UnicodeError:
             raise ValueError("text argument is not valid UTF-8") from None
 
 
