@@ -19,7 +19,7 @@
 
 - Set up the library from PyPI using the following command in your terminal or command prompt.
 - Requires **Python 3.11 or higher**.
-- The library is tested on Python 3.11, 3.12, 3.13, and 3.14.
+- The library is tested on Python 3.11, 3.12, 3.13, 3.14, and 3.15.
     
     ??? hint "Python Installation instruction"
         You can download Python from [Python official website](https://www.python.org/downloads/) and install on your system. 
