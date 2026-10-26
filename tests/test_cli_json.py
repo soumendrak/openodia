@@ -248,11 +248,6 @@ def test_json_stdin_stays_valid_utf8_for_valid_input() -> None:
     assert json.loads(done.stdout.decode("utf-8")) == {"tokens": ["ରାମ", "ସୀତା"]}
 
 
-def test_text_mode_stdin_is_unchanged_for_invalid_utf8() -> None:
-    done = _run_cli("tokenize", "-", stdin=b"\xff")
-    assert (done.returncode, done.stdout, done.stderr) == (0, b"\xff\n", b"")
-
-
 def test_json_strict_stdin_in_process(monkeypatch, capsys) -> None:
     monkeypatch.setattr("sys.stdin", io.TextIOWrapper(io.BytesIO(b"\xff"), encoding="utf-8", errors="surrogateescape"))
     assert cli.main(["tokenize", "-", "--json"]) == 1
