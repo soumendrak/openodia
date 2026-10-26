@@ -60,5 +60,8 @@
   {"name": "url guard: ? before path", "text": "ସେ a?b/c ଦେଖିଲା।", "sentences": ["ସେ a?b/c ଦେଖିଲା।"]},
   {"name": "url guard: ? before capital letter", "text": "ସେ a?B ଦେଖିଲା।", "sentences": ["ସେ a?B ଦେଖିଲା।"]},
   {"name": "url guard: ? before lowercase letter", "text": "ସେ a?b ଦେଖିଲା।", "sentences": ["ସେ a?b ଦେଖିଲା।"]},
-  {"name": "url guard: ! before equals", "text": "ସେ a!x=1 ଦେଖିଲା।", "sentences": ["ସେ a!x=1 ଦେଖିଲା।"]}
+  {"name": "url guard: ! before equals", "text": "ସେ a!x=1 ଦେଖିଲା।", "sentences": ["ସେ a!x=1 ଦେଖିଲା।"]},
+  {"name": "terminator run of two stays together", "text": "ରାମ ।। ସୀତା", "sentences": ["ରାମ ।।", "ସୀତା"]},
+  {"name": "leading stray terminators join without a space", "text": "। । ରାମ।", "sentences": ["।। ରାମ।"]},
+  {"name": "terminator run before an ascii letter stays together", "text": "ରାମ ।। ସୀତା?!x", "sentences": ["ରାମ ।।", "ସୀତା?!", "x"]}
 ]
