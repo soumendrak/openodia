@@ -1,5 +1,7 @@
 import io
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -227,3 +229,33 @@ def test_every_subcommand_accepts_json(command, capsys) -> None:
     argv = [command] if command == "name" else [command, ""]
     assert cli.main([*argv, "--json"]) == 0
     json.loads(capsys.readouterr().out)
+
+
+def _run_cli(*argv: str, stdin: bytes) -> subprocess.CompletedProcess[bytes]:
+    return subprocess.run([sys.executable, "-m", "openodia", *argv], input=stdin, capture_output=True, timeout=60)
+
+
+def test_json_rejects_invalid_utf8_stdin() -> None:
+    done = _run_cli("tokenize", "-", "--json", stdin=b"\xff")
+    assert done.returncode == 1
+    assert done.stdout == b""
+    assert done.stderr.decode("utf-8").startswith("openodia: error: 'utf-8' codec can't decode byte 0xff")
+
+
+def test_json_stdin_stays_valid_utf8_for_valid_input() -> None:
+    done = _run_cli("tokenize", "-", "--json", stdin="ରାମ ସୀତା".encode())
+    assert done.returncode == 0
+    assert json.loads(done.stdout.decode("utf-8")) == {"tokens": ["ରାମ", "ସୀତା"]}
+
+
+def test_text_mode_stdin_is_unchanged_for_invalid_utf8() -> None:
+    done = _run_cli("tokenize", "-", stdin=b"\xff")
+    assert (done.returncode, done.stdout, done.stderr) == (0, b"\xff\n", b"")
+
+
+def test_json_strict_stdin_in_process(monkeypatch, capsys) -> None:
+    monkeypatch.setattr("sys.stdin", io.TextIOWrapper(io.BytesIO(b"\xff"), encoding="utf-8", errors="surrogateescape"))
+    assert cli.main(["tokenize", "-", "--json"]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err.startswith("openodia: error: 'utf-8' codec can't decode byte 0xff")

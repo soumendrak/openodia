@@ -90,6 +90,12 @@ def _utf8_stdio() -> None:
                 pass
 
 
+def _strict_stdin() -> None:
+    reconfigure = getattr(sys.stdin, "reconfigure", None)
+    if reconfigure is not None:
+        reconfigure(errors="strict")
+
+
 # ---------------------------------------------------------------------------
 # Subcommand handlers
 # ---------------------------------------------------------------------------
@@ -427,6 +433,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     _utf8_stdio()
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.json:
+        _strict_stdin()
     try:
         code = int(args.func(args))
         if sys.stdout is not None:

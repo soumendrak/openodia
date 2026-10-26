@@ -69,6 +69,8 @@ removed). Pass `-` without `--file` to read UTF-8 text from stdin.
 
 Every subcommand takes `--json` and prints one UTF-8 JSON document on stdout. Errors go to stderr with a nonzero exit code.
 
+> **Version note:** `--json` on every subcommand needs a release newer than 0.1.14; PyPI 0.1.14 has it on `detect-language` only, so `uvx openodia tokenize --json` fails there with exit code 2. From a source checkout, `uv run openodia ...` has it. The examples below need that newer release or a source checkout; only `detect-language --json` works on 0.1.14.
+
 ```console
 $ openodia tokenize --json 'ରାମ ସୀତା ଘରକୁ ଯାଏ ।'
 {"tokens": ["ରାମ", "ସୀତା", "ଘରକୁ", "ଯାଏ", "।"]}
