@@ -52,6 +52,13 @@ class TranslationCache:
         if disk_path is not None:
             self._disk = _open_diskcache(disk_path)
 
+    def __getstate__(self) -> dict[str, Any]:
+        return {name: value for name, value in self.__dict__.items() if name != "_lock"}
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        self.__dict__.update(state)
+        self._lock = threading.Lock()
+
     # ------------------------------------------------------------------
     # Get / set
     # ------------------------------------------------------------------

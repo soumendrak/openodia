@@ -571,7 +571,9 @@ odia_to_other_lang("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?")
 
 - `odia_to_other_lang_async`, `other_lang_to_odia_async` and `universal_translation_async` are awaitable versions of the functions above. They share the same cache.
 - `translate_batch` translates a list of texts concurrently and returns the results in input order. Repeated texts are translated once.
-- `concurrency` (default 8) caps the number of requests in flight. Rate limits and network errors are retried `retries` times (default 0) after `backoff * 2**attempt` seconds. Unsupported language codes are never retried.
+- `concurrency` (default 8, an integer >= 1) caps the number of requests in flight. `retries` (default 0, an integer >= 0) retries a request after `backoff * 2**attempt` seconds, where `backoff` is a finite number >= 0. Bad values raise `ValueError`, and a single `str` instead of a list raises `TypeError`.
+- Only these failures are retried: a rate limit (HTTP 429), an HTTP 5xx status, and connection or timeout errors. Everything else is raised at once, including other HTTP statuses, `PermissionError` and other `OSError`s, and unsupported language codes. deep-translator reports a failed HTTP response as a `RequestError` without a status, so that error is not retried and a 5xx served through it is not either.
+- Identical texts are translated once per call; repeats across calls come from the cache. A text of 5000 or more characters raises `NotValidLength`, which aborts the whole batch unless `return_exceptions=True`.
 - The first failure is raised and queued texts never start. Pass `return_exceptions=True` to get one entry per text, either the translation or its exception.
 - `source="or"` and `to="or"` use the same paths as `odia_to_other_lang` and `other_lang_to_odia`, so English to Odia checks the offline dictionary first.
 

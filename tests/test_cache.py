@@ -258,3 +258,15 @@ def test_concurrent_use_keeps_counters_exact_and_never_raises() -> None:
     assert errors == []
     assert stats["hits"] + stats["misses"] == 8 * rounds
     assert stats["size"] <= 2
+
+
+def test_cache_survives_pickle_and_deepcopy() -> None:
+    import copy
+    import pickle
+
+    original = cache.TranslationCache(max_size=3)
+    original.set(("a",), "x")
+    for clone in (pickle.loads(pickle.dumps(original)), copy.deepcopy(original)):
+        assert clone.get(("a",)) == "x"
+        clone.set(("b",), "y")
+        assert original.get(("b",)) is None
