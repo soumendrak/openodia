@@ -15,7 +15,7 @@ import math
 import json
 import os
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -38,7 +38,7 @@ def _read_input(value: str, *, file: bool = False) -> str:
     return value
 
 
-def _int_at_least(minimum: int):
+def _int_at_least(minimum: int) -> Callable[[str], int]:
     """argparse ``type`` for integers >= ``minimum``."""
 
     def parse(raw: str) -> int:

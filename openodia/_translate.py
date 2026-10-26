@@ -29,7 +29,7 @@ def _hit_google_api(text: str, source_lang_code: str, destination_lang_code: str
         return cached
 
     translator = GoogleTranslator(source=source_lang_code, target=destination_lang_code)
-    result = translator.translate(text)
+    result: str = translator.translate(text)
     cache.set(key, result)
     return result
 

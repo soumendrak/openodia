@@ -23,11 +23,11 @@ class SummarizationBaseMethod(ABC):
         """Get tokens from the text of the entire webpage"""
         self.token_list = ud.word_tokenizer(self.text)
 
-    def get_sentences(self):
+    def get_sentences(self) -> None:
         """Get ordered sentences list from the text of the entire webpage"""
         self.sentence_list = ud.sentence_tokenizer(self.text)
 
-    def remove_stopwords(self):
+    def remove_stopwords(self) -> None:
         """Remove stopwords from the provided token list"""
         self.token_list = ud.remove_stopwords(self.token_list)
 
