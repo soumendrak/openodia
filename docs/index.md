@@ -193,6 +193,13 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     written (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS). The same mark
     after a consonant means a halant before a vowel (`k:a` for `କ୍ଅ`).
 
+    The nukta `଼` has no precomposed form after most consonants, so it gets its own
+    mark: `·` (U+00B7) in ISO 15919 and `` ` `` in ITRANS (`ଖୋଜ଼` gives `khōj·a` and
+    ``khoj`a``). `ଡ଼` and `ଢ଼` keep their own spellings. Hunterian drops the nukta
+    (`khoja`), as it drops every other diacritic. `from_roman` reads `·` / `` ` ``
+    back as the nukta, so those two characters are no longer passed through in
+    ISO 15919 and ITRANS; `reversible=True` quotes them.
+
     For text that contains anything other than Odia, pass `reversible=True`:
     a literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that
     could be read as Roman letters (or that has combining marks) is quoted
