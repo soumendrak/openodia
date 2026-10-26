@@ -1,4 +1,4 @@
-"""The :class:`Stopwords` container."""
+"""The ``Stopwords`` container."""
 
 from __future__ import annotations
 

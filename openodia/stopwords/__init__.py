@@ -1,8 +1,8 @@
 """Customizable stopword lists for Odia text.
 
-The package's bundled list is exposed as :data:`openodia.STOPWORDS`
-(a :class:`frozenset`). For pipelines that need to extend / shrink /
-swap the list per call, use :class:`Stopwords`.
+The package's bundled list is exposed as ``openodia.STOPWORDS``
+(a ``frozenset``). For pipelines that need to extend / shrink /
+swap the list per call, use ``Stopwords``.
 
 Examples:
     >>> from openodia import Stopwords

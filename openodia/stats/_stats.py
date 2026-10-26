@@ -42,13 +42,13 @@ def ngrams(tokens_or_text: Sequence[str] | str, n: int) -> Iterator[tuple[str, .
 
 
 class FreqDist(Counter):
-    """Token frequency distribution backed by :class:`collections.Counter`.
+    """Token frequency distribution backed by ``collections.Counter``.
 
     Adds three light convenience methods:
 
-    * :meth:`hapaxes` — words occurring exactly once.
-    * :meth:`entropy` — Shannon entropy of the distribution in bits.
-    * :attr:`ttr` — type-token ratio (vocabulary / total count).
+    * ``hapaxes`` — words occurring exactly once.
+    * ``entropy`` — Shannon entropy of the distribution in bits.
+    * ``ttr`` — type-token ratio (vocabulary / total count).
 
     All other ``Counter`` operations (``most_common``, ``+``, ``&``, ...) work
     unchanged.
@@ -160,7 +160,7 @@ def cooccurrence(
             is preserved.
 
     Returns:
-        :class:`collections.Counter` mapping pair → co-occurrence count.
+        ``collections.Counter`` mapping pair → co-occurrence count.
 
     Raises:
         ValueError: If ``window < 1``.
