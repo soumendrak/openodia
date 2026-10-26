@@ -173,7 +173,13 @@ def test_detection_scales_linearly_with_input_size(unit: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "text", ["a" * 1_000_000 + "@", "@" + "b." * 500_000, "www." + "." * 1_000_000, "a@" + "b-" * 500_000]
+    "text",
+    [
+        pytest.param("a" * 1_000_000 + "@", id="long-local-part"),
+        pytest.param("@" + "b." * 500_000, id="dotted-run-after-at"),
+        pytest.param("www." + "." * 1_000_000, id="www-then-dots"),
+        pytest.param("a@" + "b-" * 500_000, id="dashed-domain"),
+    ],
 )
 def test_detection_survives_one_huge_token(text: str) -> None:
     started = time.perf_counter()
