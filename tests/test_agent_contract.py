@@ -26,6 +26,7 @@ SAMPLES = {
     "remove-stopwords": [["remove-stopwords", "ରାମ ସୀତା"], ["remove-stopwords", "--get-str", "ରାମ ସୀତା"]],
     "ngrams": [["ngrams", "-n", "2", "ରାମ ସୀତା ଘରକୁ"]],
     "freq": [["freq", "ରାମ ସୀତା ରାମ"]],
+    "pii": [["pii", "a@b.com"], ["pii", "--mask", "a@b.com"]],
 }
 
 

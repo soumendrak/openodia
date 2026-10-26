@@ -1,6 +1,6 @@
 # AGENTS.md
 
-`openodia` is a Python library and command-line tool for Odia (ଓଡ଼ିଆ) text: tokenize, normalize, clean, translate, detect language, generate names, summarize, remove stopwords, n-grams and word frequency. Docs: https://openodia.soumendrak.com. Skill file: [skills/openodia/SKILL.md](skills/openodia/SKILL.md).
+`openodia` is a Python library and command-line tool for Odia (ଓଡ଼ିଆ) text: tokenize, normalize, clean, translate, detect language, generate names, summarize, remove stopwords, n-grams, word frequency and PII masking. Docs: https://openodia.soumendrak.com. Skill file: [skills/openodia/SKILL.md](skills/openodia/SKILL.md).
 
 ## Install
 
@@ -61,11 +61,17 @@ $ openodia ngrams -n 2 --json 'ରାମ ସୀତା ଘରକୁ'
 {"ngrams": [["ରାମ", "ସୀତା"], ["ସୀତା", "ଘରକୁ"]]}
 $ openodia freq --top 2 --json 'ରାମ ସୀତା ରାମ'
 {"counts": [{"token": "ରାମ", "count": 2}, {"token": "ସୀତା", "count": 1}]}
+$ openodia pii --json 'ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ।'
+{"entities": [{"type": "PHONE", "text": "୯୮୭୬୫୪୩୨୧୦", "start": 7, "end": 17, "confidence": 0.9}]}
+$ openodia pii --mask --json 'ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ।'
+{"text": "ମୋ ଫୋନ <PHONE> ।"}
 ```
 
 `name` output is random, so only its shape is fixed: `{"names": ["...", "..."]}`.
 
 `translate` answers English to Odia from an offline dictionary when it can. Every other pair calls Google Translate over the network, which can be rate limited (exit code 1) and refuses text over 5,000 characters. Language codes: `en`, `or` (Odia), and any code Google supports. `summarize` returns an empty summary for text with too few sentences.
+
+`pii` finds Indian mobile numbers, emails, URLs, Aadhaar numbers, PAN and PIN codes, in Odia or ASCII digits, offline. It does not find names, street addresses, dates or amounts, so `pii --mask` output is not anonymised. Offsets count characters of the input. A PIN code is only reported after `PIN`, `Pincode` or `ପିନ`. An Aadhaar-shaped number that fails its checksum is reported with confidence 0.5 (0.95 when it passes); `--min-confidence 0.9` drops it. `--type` (repeatable) limits the types: `PHONE`, `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PINCODE`.
 
 ## JSON shapes
 
@@ -79,8 +85,9 @@ $ openodia freq --top 2 --json 'ରାମ ସୀତା ରାମ'
 | `remove-stopwords` | `{"tokens": [string]}`; with `--get-str` `{"text": string}` |
 | `ngrams` | `{"ngrams": [[string]]}`, each inner list has `n` tokens |
 | `freq` | `{"counts": [{"token": string, "count": integer}]}`, most frequent first |
+| `pii` | `{"entities": [{"type": string, "text": string, "start": integer, "end": integer, "confidence": number}]}`, by position; with `--mask` `{"text": string}` |
 
-Without `--json`, `freq` prints `COUNT<TAB>TOKEN` lines, `ngrams` prints space-joined n-grams, and `detect-language` prints `odia (confidence: 0.91)` or `(empty input)`.
+Without `--json`, `pii` prints `TYPE<TAB>START<TAB>END<TAB>TEXT` lines (or the masked text with `--mask`), `freq` prints `COUNT<TAB>TOKEN` lines, `ngrams` prints space-joined n-grams, and `detect-language` prints `odia (confidence: 0.91)` or `(empty input)`.
 
 ## Exit codes and errors
 

@@ -74,6 +74,7 @@ The tools are available in Odia language.
 - [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
 - [x] [Sentence segmenter](#sentence-segmenter)
+- [x] [PII detection and masking](#pii-detection-and-masking)
 
 
 ### :material-broom: Unicode normalization
@@ -194,6 +195,9 @@ openodia name --kind first --count 5
 # Extractive summary
 openodia summarize --file article.txt --threshold 3
 
+# Find or mask phone, email, Aadhaar, PAN, PIN code
+openodia pii "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦" --mask
+
 # Stopword removal + corpus stats
 openodia remove-stopwords "ରାମ ଓ ସୀତା"
 openodia ngrams "ରାମ ସୀତା ଲକ୍ଷ୍ମଣ" -n 2
@@ -306,6 +310,44 @@ sentences("Hello. World!", keep_terminators=False)
 ??? note "Existing `ud.sentence_tokenizer` is unchanged"
     The pre-existing helper continues to behave exactly as before (splits
     on `" ।"` only). Adopt `openodia.sentences()` for new code.
+
+### :material-shield-account: PII detection and masking
+
+- `openodia.pii` finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency.
+- Odia digits (`୦`-`୯`) and ASCII digits are both recognised. Offsets in the result count characters of your original text.
+
+```python
+from openodia import pii
+
+text = "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦, ମେଲ a@b.com, ଆଧାର ୨୩୪୫ ୬୭୮୯ ୦୧୨୪, PIN ୭୫୧୦୦୧"
+pii.detect(text)
+# [PIIEntity(type='PHONE', text='୯୮୭୬୫୪୩୨୧୦', start=7, end=17, confidence=0.9), ...]
+pii.mask(text)
+# 'ମୋ ଫୋନ <PHONE>, ମେଲ <EMAIL>, ଆଧାର <AADHAAR>, PIN <PINCODE>'
+pii.mask(text, types=["EMAIL"], placeholder=lambda entity: "***")
+pii.detect(text, min_confidence=0.9)
+```
+
+| Type | What it matches | Confidence |
+| --- | --- | --- |
+| `PHONE` | 10-digit Indian mobile starting 6-9, optional `+91`, `0091` or `0`, optional space or `-` after the fifth digit | 0.9 |
+| `EMAIL` | `local@domain.tld` | 0.95 |
+| `URL` | `http://`, `https://` or `www.` up to whitespace; trailing `. , ; : ! ? )` and `।` are left out | 0.9 |
+| `AADHAAR` | 12 digits starting 2-9, contiguous or grouped 4-4-4 by one space or `-`. 0.95 when the Verhoeff checksum passes, 0.5 when it fails | 0.95 / 0.5 |
+| `PAN` | `AAAPA1234A`: uppercase, fourth letter one of `PCHFATBLJG` | 0.95 |
+| `PINCODE` | 6 digits, first 1-9, directly after `PIN`, `Pincode`, `PIN code` or `ପିନ` | 0.8 |
+
+Confidence ranks how specific a pattern is; it is not a probability.
+
+??? warning "What it does not catch"
+    - **Names**, nicknames and addresses. A masked text can still identify a person, so this is not anonymisation.
+    - Dates of birth, amounts, bank account and card numbers, landline numbers, passport and voter IDs.
+    - Lowercase PAN, Aadhaar written with other separators or split by line breaks, and a PIN code with no `PIN` or `ପିନ` before it.
+    - Aadhaar numbers starting with 0 or 1, which UIDAI does not issue.
+    - A 10-digit number that looks like a mobile number is reported even if nobody owns it.
+
+- `mask` is idempotent with its default `<TYPE>` tags. A custom `placeholder` function, for example one that keeps the last four digits, can break that.
+- There is no pseudonymisation or reversible mapping: masking is one-way.
 
 ### :material-format-letter-case: Odia alphabets 
 
