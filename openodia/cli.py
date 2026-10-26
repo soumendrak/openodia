@@ -74,6 +74,10 @@ def _fail(message: str) -> int:
     return 1
 
 
+def _emit_json(payload: object) -> None:
+    print(json.dumps(payload, ensure_ascii=False))
+
+
 def _utf8_stdio() -> None:
     """Use UTF-8 even when a redirected stream defaults to a legacy codec."""
     for stream in (sys.stdin, sys.stdout, sys.stderr):
@@ -96,6 +100,9 @@ def _cmd_tokenize(args: argparse.Namespace) -> int:
 
     text = _read_input(args.text, file=args.file)
     tokens = ud.sentence_tokenizer(text) if args.sentences else ud.word_tokenizer(text)
+    if args.json:
+        _emit_json({"tokens": list(tokens)})
+        return 0
     for token in tokens:
         print(token)
     return 0
@@ -105,7 +112,11 @@ def _cmd_normalize(args: argparse.Namespace) -> int:
     from openodia import normalize
 
     text = _read_input(args.text, file=args.file)
-    print(normalize(text, form=args.form))
+    normalized = normalize(text, form=args.form)
+    if args.json:
+        _emit_json({"text": normalized})
+    else:
+        print(normalized)
     return 0
 
 
@@ -121,7 +132,11 @@ def _cmd_clean(args: argparse.Namespace) -> int:
         latin_to_odia_digits=args.latin_to_odia,
         odia_to_latin_digits=args.odia_to_latin,
     )
-    print(clean(text, options=options))
+    cleaned = clean(text, options=options)
+    if args.json:
+        _emit_json({"text": cleaned})
+    else:
+        print(cleaned)
     return 0
 
 
@@ -130,17 +145,19 @@ def _cmd_translate(args: argparse.Namespace) -> int:
 
     text = _read_input(args.text, file=args.file)
     if args.from_lang == "or":
-        print(odia_to_other_lang(text, dest_language_code=args.to))
+        translated = odia_to_other_lang(text, dest_language_code=args.to)
     elif args.to == "or":
-        print(other_lang_to_odia(text, source_language_code=args.from_lang))
+        translated = other_lang_to_odia(text, source_language_code=args.from_lang)
     else:
-        print(
-            universal_translation(
-                text,
-                source_language_code=args.from_lang,
-                dest_language_code=args.to,
-            )
+        translated = universal_translation(
+            text,
+            source_language_code=args.from_lang,
+            dest_language_code=args.to,
         )
+    if args.json:
+        _emit_json({"text": translated})
+    else:
+        print(translated)
     return 0
 
 
@@ -151,7 +168,7 @@ def _cmd_detect_language(args: argparse.Namespace) -> int:
     # Whitespace-only input would divide by zero inside detect_language.
     result: dict[str, Any] = ud.detect_language(text, threshold=args.threshold) if text.strip() else {}
     if args.json:
-        print(json.dumps(result, ensure_ascii=False))
+        _emit_json(result)
     else:
         if not result:
             print("(empty input)")
@@ -175,6 +192,9 @@ def _cmd_name(args: argparse.Namespace) -> int:
         names = name.generate_prefixes(args.count)
     else:  # pragma: no cover  — argparse already validates ``--kind``
         raise ValueError(f"unknown name kind: {args.kind}")
+    if args.json:
+        _emit_json({"names": list(names)})
+        return 0
     for n in names:
         print(n)
     return 0
@@ -186,14 +206,18 @@ def _cmd_summarize(args: argparse.Namespace) -> int:
     text = _read_input(args.text, file=args.file)
     wf = WordFrequency(text=text)
     if args.threshold is None:
-        print(wf.get_summary())
+        summary = wf.get_summary()
     elif not math.isfinite(args.threshold) or args.threshold <= 0:
         # WordFrequency treats a falsy threshold as "auto", so 0 would
         # silently act like the default; reject it instead.
         print("error: --threshold must be a positive number", file=sys.stderr)
         return 2
     else:
-        print(wf.get_summary(threshold=args.threshold))
+        summary = wf.get_summary(threshold=args.threshold)
+    if args.json:
+        _emit_json({"summary": summary})
+    else:
+        print(summary)
     return 0
 
 
@@ -202,7 +226,9 @@ def _cmd_remove_stopwords(args: argparse.Namespace) -> int:
 
     text = _read_input(args.text, file=args.file)
     result = ud.remove_stopwords(text, get_str=args.get_str)
-    if isinstance(result, list):
+    if args.json:
+        _emit_json({"tokens": result} if isinstance(result, list) else {"text": result})
+    elif isinstance(result, list):
         for token in result:
             print(token)
     else:
@@ -214,7 +240,11 @@ def _cmd_ngrams(args: argparse.Namespace) -> int:
     from openodia import ngrams
 
     text = _read_input(args.text, file=args.file)
-    for tup in ngrams(text, args.n):
+    grams = ngrams(text, args.n)
+    if args.json:
+        _emit_json({"ngrams": [list(gram) for gram in grams]})
+        return 0
+    for tup in grams:
         print(" ".join(tup))
     return 0
 
@@ -224,7 +254,11 @@ def _cmd_freq(args: argparse.Namespace) -> int:
 
     text = _read_input(args.text, file=args.file)
     fd = FreqDist(text)
-    for token, count in fd.most_common(args.top):
+    top = fd.most_common(args.top)
+    if args.json:
+        _emit_json({"counts": [{"token": token, "count": count} for token, count in top]})
+        return 0
+    for token, count in top:
         print(f"{count}\t{token}")
     return 0
 
@@ -314,7 +348,6 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.5,
         help="Confidence threshold for classifying as Odia (default: 0.5)",
     )
-    p.add_argument("--json", action="store_true", help="Emit JSON instead of text")
     p.set_defaults(func=_cmd_detect_language)
 
     # name
@@ -369,6 +402,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="How many top tokens to emit (default: 20)",
     )
     p.set_defaults(func=_cmd_freq)
+
+    for subparser in sub.choices.values():
+        subparser.add_argument("--json", action="store_true", help="Emit JSON instead of text")
 
     return parser
 

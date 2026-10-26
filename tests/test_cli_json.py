@@ -1,0 +1,229 @@
+import io
+import json
+from pathlib import Path
+
+import pytest
+from deep_translator.exceptions import LanguageNotSupportedException
+
+from openodia import cli
+
+ODIA = "ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ ।"
+ENGLISH = "Hello world. Bye now."
+LONG_ODIA = "ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ । ରାମ ଭଲ ପିଲା । ଓଡ଼ିଶା ଏକ ସୁନ୍ଦର ରାଜ୍ୟ । ପୁରୀରେ ଜଗନ୍ନାଥ ମନ୍ଦିର ଅଛି । ରାମ ପୁରୀକୁ ଯାଏ ।"
+LONG_SUMMARY = "ରାମ ସୀତା ଘରକୁ ଯାଏ  ସେ ଭଲ ଲୋକ  ରାମ ଭଲ ପିଲା  ରାମ ପୁରୀକୁ ଯାଏ"
+ODIA_TOKENS = ["ରାମ", "ସୀତା", "ଘରକୁ", "ଯାଏ", "।", "ସେ", "ଭଲ", "ଲୋକ", "।"]
+ENGLISH_TOKENS = ["Hello", "world", "Bye", "now"]
+ODIA_SENTENCES = ["ରାମ ସୀତା ଘରକୁ ଯାଏ", " ସେ ଭଲ ଲୋକ", ""]
+
+CASES = {
+    "tokenize-odia": (["tokenize"], ODIA, "\n".join(ODIA_TOKENS) + "\n", {"tokens": ODIA_TOKENS}),
+    "tokenize-english": (["tokenize"], ENGLISH, "\n".join(ENGLISH_TOKENS) + "\n", {"tokens": ENGLISH_TOKENS}),
+    "tokenize-empty": (["tokenize"], "", "", {"tokens": []}),
+    "sentences-odia": (
+        ["tokenize", "--sentences"],
+        ODIA,
+        "ରାମ ସୀତା ଘରକୁ ଯାଏ\n ସେ ଭଲ ଲୋକ\n\n",
+        {"tokens": ODIA_SENTENCES},
+    ),
+    "sentences-english": (["tokenize", "--sentences"], ENGLISH, ENGLISH + "\n", {"tokens": [ENGLISH]}),
+    "sentences-empty": (["tokenize", "--sentences"], "", "\n", {"tokens": [""]}),
+    "normalize-odia": (["normalize"], ODIA, ODIA + "\n", {"text": ODIA}),
+    "normalize-english": (["normalize"], ENGLISH, ENGLISH + "\n", {"text": ENGLISH}),
+    "normalize-empty": (["normalize"], "", "\n", {"text": ""}),
+    "clean-odia": (["clean"], "ନମ‌ସ୍କାର  ୧୨୩", "ନମସ୍କାର ୧୨୩\n", {"text": "ନମସ୍କାର ୧୨୩"}),
+    "clean-digits": (["clean", "--odia-to-latin"], "୧୨୩", "123\n", {"text": "123"}),
+    "clean-english": (["clean"], "a   b", "a b\n", {"text": "a b"}),
+    "clean-empty": (["clean"], "", "\n", {"text": ""}),
+    "detect-odia": (
+        ["detect-language"],
+        ODIA,
+        "odia (confidence: 0.91)\n",
+        {"language": "odia", "confidence_score": 0.91},
+    ),
+    "detect-english": (
+        ["detect-language"],
+        ENGLISH,
+        "non-odia (confidence: 1.0)\n",
+        {"language": "non-odia", "confidence_score": 1.0},
+    ),
+    "detect-empty": (["detect-language"], "", "(empty input)\n", {}),
+    "summarize-odia": (["summarize"], LONG_ODIA, LONG_SUMMARY + "\n", {"summary": LONG_SUMMARY}),
+    "summarize-english": (["summarize"], ENGLISH, "\n", {"summary": ""}),
+    "summarize-empty": (["summarize"], "", "\n", {"summary": ""}),
+    "stopwords-odia": (
+        ["remove-stopwords"],
+        ODIA,
+        "\n".join(ODIA_TOKENS[:4] + ODIA_TOKENS[5:8]) + "\n",
+        {"tokens": ODIA_TOKENS[:4] + ODIA_TOKENS[5:8]},
+    ),
+    "stopwords-english": (["remove-stopwords"], ENGLISH, "\n".join(ENGLISH_TOKENS) + "\n", {"tokens": ENGLISH_TOKENS}),
+    "stopwords-empty": (["remove-stopwords"], "", "", {"tokens": []}),
+    "stopwords-str-odia": (
+        ["remove-stopwords", "--get-str"],
+        ODIA,
+        "ରାମ ସୀତା ଘରକୁ ଯାଏ ସେ ଭଲ ଲୋକ\n",
+        {"text": "ରାମ ସୀତା ଘରକୁ ଯାଏ ସେ ଭଲ ଲୋକ"},
+    ),
+    "stopwords-str-english": (
+        ["remove-stopwords", "--get-str"],
+        ENGLISH,
+        "Hello world Bye now\n",
+        {"text": "Hello world Bye now"},
+    ),
+    "stopwords-str-empty": (["remove-stopwords", "--get-str"], "", "\n", {"text": ""}),
+    "ngrams-odia": (
+        ["ngrams"],
+        ODIA,
+        "ରାମ ସୀତା\nସୀତା ଘରକୁ\nଘରକୁ ଯାଏ\nଯାଏ ।\n। ସେ\nସେ ଭଲ\nଭଲ ଲୋକ\nଲୋକ ।\n",
+        {"ngrams": [list(pair) for pair in zip(ODIA_TOKENS, ODIA_TOKENS[1:])]},
+    ),
+    "ngrams-english": (
+        ["ngrams", "-n", "3"],
+        ENGLISH,
+        "Hello world Bye\nworld Bye now\n",
+        {"ngrams": [["Hello", "world", "Bye"], ["world", "Bye", "now"]]},
+    ),
+    "ngrams-empty": (["ngrams"], "", "", {"ngrams": []}),
+    "freq-odia": (
+        ["freq", "--top", "2"],
+        ODIA,
+        "2\t।\n1\tରାମ\n",
+        {"counts": [{"token": "।", "count": 2}, {"token": "ରାମ", "count": 1}]},
+    ),
+    "freq-english": (
+        ["freq"],
+        ENGLISH,
+        "1\tHello\n1\tworld\n1\tBye\n1\tnow\n",
+        {"counts": [{"token": token, "count": 1} for token in ENGLISH_TOKENS]},
+    ),
+    "freq-empty": (["freq"], "", "", {"counts": []}),
+    "translate-odia": (["translate", "--from", "or", "--to", "en"], "ନମସ୍କାର", "Hello\n", {"text": "Hello"}),
+    "translate-english": (["translate"], "good morning", "ଶୁଭ ସକାଳ\n", {"text": "ଶୁଭ ସକାଳ"}),
+    "translate-empty": (["translate"], "", "\n", {"text": ""}),
+}
+
+MODES = ["inline", "stdin", "file"]
+
+
+class _FakeGoogleTranslator:
+    def __init__(self, source: str, target: str) -> None:
+        self._pair = (source, target)
+
+    def translate(self, text: str) -> str:
+        return {("or", "en"): {"ନମସ୍କାର": "Hello"}}.get(self._pair, {}).get(text, text)
+
+
+@pytest.fixture(autouse=True)
+def _offline_translator(monkeypatch: pytest.MonkeyPatch):
+    from openodia import _translate
+    from openodia.cache import _cache as cache_module
+
+    monkeypatch.setattr(cache_module, "_cache", cache_module.TranslationCache())
+    monkeypatch.setattr(_translate, "GoogleTranslator", _FakeGoogleTranslator)
+
+
+def invoke(
+    argv: list[str],
+    text: str,
+    mode: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> tuple[int, str, str]:
+    if mode == "inline":
+        full = [*argv, text]
+    elif mode == "stdin":
+        monkeypatch.setattr("sys.stdin", io.StringIO(text))
+        full = [*argv, "-"]
+    else:
+        path = tmp_path / "input.txt"
+        path.write_text(text, encoding="utf-8")
+        full = [*argv, "--file", str(path)]
+    capsys.readouterr()
+    code = cli.main(full)
+    captured = capsys.readouterr()
+    return code, captured.out, captured.err
+
+
+@pytest.mark.parametrize("mode", MODES)
+@pytest.mark.parametrize("case", CASES)
+def test_default_output_is_unchanged(case, mode, tmp_path, monkeypatch, capsys) -> None:
+    argv, text, expected, _ = CASES[case]
+    assert invoke(argv, text, mode, tmp_path, monkeypatch, capsys) == (0, expected, "")
+
+
+@pytest.mark.parametrize("mode", MODES)
+@pytest.mark.parametrize("case", CASES)
+def test_json_output_is_one_utf8_document(case, mode, tmp_path, monkeypatch, capsys) -> None:
+    argv, text, _, payload = CASES[case]
+    code, out, err = invoke([*argv, "--json"], text, mode, tmp_path, monkeypatch, capsys)
+    assert (code, err) == (0, "")
+    assert out == json.dumps(payload, ensure_ascii=False) + "\n"
+    assert json.loads(out) == payload
+
+
+def test_json_keeps_odia_unescaped(capsys) -> None:
+    assert cli.main(["tokenize", "ରାମ", "--json"]) == 0
+    assert capsys.readouterr().out == '{"tokens": ["ରାମ"]}\n'
+
+
+@pytest.mark.parametrize("count", [0, 3])
+def test_name_json(count, monkeypatch, capsys) -> None:
+    names = ["ରାମ ଦାସ", "ସୀତା ଦେବୀ", "ଲକ୍ଷ୍ମଣ ସାହୁ"][:count]
+    monkeypatch.setattr("openodia.name.generate_names", lambda n: names)
+    assert cli.main(["name", "--count", str(count)]) == 0
+    assert capsys.readouterr().out == "".join(f"{n}\n" for n in names)
+    assert cli.main(["name", "--count", str(count), "--json"]) == 0
+    assert capsys.readouterr().out == json.dumps({"names": names}, ensure_ascii=False) + "\n"
+
+
+@pytest.mark.parametrize("kind", ["first", "middle", "surname", "prefix"])
+def test_name_json_for_every_kind(kind, capsys) -> None:
+    assert cli.main(["name", "--kind", kind, "--count", "2", "--json"]) == 0
+    names = json.loads(capsys.readouterr().out)["names"]
+    assert len(names) == 2
+    assert all(isinstance(n, str) and n for n in names)
+
+
+def test_summarize_json_with_threshold(capsys) -> None:
+    assert cli.main(["summarize", LONG_ODIA, "--threshold", "1", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"summary": LONG_SUMMARY}
+
+
+class _UnsupportedTranslator:
+    def __init__(self, source: str, target: str) -> None:
+        raise LanguageNotSupportedException("zz")
+
+
+@pytest.mark.parametrize(
+    ("argv", "code", "message"),
+    [
+        (["translate", "x", "--from", "zz", "--json"], 1, "openodia: error: unsupported language code 'zz'\n"),
+        (["tokenize", "--file", "missing-file.txt", "--json"], 1, "openodia: error: [Errno 2]"),
+        (["summarize", "x", "--threshold", "0", "--json"], 2, "error: --threshold must be a positive number\n"),
+    ],
+)
+def test_json_errors_stay_on_stderr(argv, code, message, monkeypatch, capsys) -> None:
+    monkeypatch.setattr("openodia._translate.GoogleTranslator", _UnsupportedTranslator)
+    assert cli.main(argv) == code
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err.startswith(message)
+
+
+def test_json_usage_error_exits_2_with_empty_stdout(capsys) -> None:
+    with pytest.raises(SystemExit) as exc:
+        cli.main(["freq", "x", "--top", "-1", "--json"])
+    assert exc.value.code == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "openodia freq: error: argument --top" in captured.err
+
+
+@pytest.mark.parametrize(
+    "command", ["tokenize", "normalize", "clean", "translate", "name", "summarize", "remove-stopwords", "ngrams", "freq"]
+)
+def test_every_subcommand_accepts_json(command, capsys) -> None:
+    argv = [command] if command == "name" else [command, ""]
+    assert cli.main([*argv, "--json"]) == 0
+    json.loads(capsys.readouterr().out)
