@@ -225,3 +225,36 @@ class TestTranslationIntegration:
         odia_to_other_lang("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?")
         odia_to_other_lang("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?")
         assert cache.stats()["hits"] >= 1
+
+
+def test_concurrent_use_keeps_counters_exact_and_never_raises() -> None:
+    import sys
+    import threading
+
+    previous = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)
+    shared = cache.TranslationCache(max_size=2)
+    errors: list[BaseException] = []
+    rounds = 3000
+
+    def hammer() -> None:
+        try:
+            for i in range(rounds):
+                key = (i % 3,)
+                if shared.get(key) is None:
+                    shared.set(key, "v")
+        except BaseException as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=hammer) for _ in range(8)]
+    try:
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+    finally:
+        sys.setswitchinterval(previous)
+    stats = shared.stats()
+    assert errors == []
+    assert stats["hits"] + stats["misses"] == 8 * rounds
+    assert stats["size"] <= 2

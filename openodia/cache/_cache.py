@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import threading
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any, TypedDict
@@ -43,6 +44,7 @@ class TranslationCache:
         if max_size < 1:
             raise ValueError(f"max_size must be >= 1, got {max_size}")
         self._max_size = max_size
+        self._lock = threading.Lock()
         self._memory: OrderedDict[Any, str] = OrderedDict()
         self._hits = 0
         self._misses = 0
@@ -60,22 +62,24 @@ class TranslationCache:
         Hits in memory are moved to the most-recently-used position. Hits
         on disk are promoted to memory.
         """
-        if key in self._memory:
-            self._memory.move_to_end(key)
-            self._hits += 1
-            return self._memory[key]
-        if self._disk is not None:
-            value = self._disk.get(key)
-            if value is not None:
-                self._store_memory(key, value)
+        with self._lock:
+            if key in self._memory:
+                self._memory.move_to_end(key)
                 self._hits += 1
-                return value
-        self._misses += 1
-        return None
+                return self._memory[key]
+        value = self._disk.get(key) if self._disk is not None else None
+        with self._lock:
+            if value is None:
+                self._misses += 1
+                return None
+            self._store_memory(key, value)
+            self._hits += 1
+            return value
 
     def set(self, key: Any, value: str) -> None:
         """Insert into memory (and disk, if configured)."""
-        self._store_memory(key, value)
+        with self._lock:
+            self._store_memory(key, value)
         if self._disk is not None:
             self._disk[key] = value
 
@@ -91,19 +95,21 @@ class TranslationCache:
 
     def stats(self) -> CacheStats:
         """Return current hit/miss/size counters."""
-        return CacheStats(
-            hits=self._hits,
-            misses=self._misses,
-            size=len(self._memory),
-            max_size=self._max_size,
-            disk_size=len(self._disk) if self._disk is not None else 0,
-        )
+        with self._lock:
+            return CacheStats(
+                hits=self._hits,
+                misses=self._misses,
+                size=len(self._memory),
+                max_size=self._max_size,
+                disk_size=len(self._disk) if self._disk is not None else 0,
+            )
 
     def clear(self) -> None:
         """Drop all entries (memory + disk) and reset counters."""
-        self._memory.clear()
-        self._hits = 0
-        self._misses = 0
+        with self._lock:
+            self._memory.clear()
+            self._hits = 0
+            self._misses = 0
         if self._disk is not None:
             self._disk.clear()
 

@@ -203,6 +203,7 @@ openodia freq --file corpus.txt --top 20
 ### :material-database-cog: Translation cache
 
 - Translations are memoised in an LRU. Defaults to 10,000 entries in memory.
+- The cache is thread-safe, so sync and async translation can share it.
 - Resize the cache, plug in a persistent disk backend, or inspect hit/miss counters.
 - Environment variables `OPENODIA_CACHE_MAX_SIZE` and `OPENODIA_CACHE_DISK` set defaults at process start.
 
@@ -564,6 +565,21 @@ odia_to_other_lang("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?")
 '''
 'Hello! Sounds good?'
 '''
+```
+
+#### Async and batch translation
+
+- `odia_to_other_lang_async`, `other_lang_to_odia_async` and `universal_translation_async` are awaitable versions of the functions above. They share the same cache.
+- `translate_batch` translates a list of texts concurrently and returns the results in input order. Repeated texts are translated once.
+- `concurrency` (default 8) caps the number of requests in flight. Rate limits and network errors are retried `retries` times (default 0) after `backoff * 2**attempt` seconds. Unsupported language codes are never retried.
+- The first failure is raised and queued texts never start. Pass `return_exceptions=True` to get one entry per text, either the translation or its exception.
+- `source="or"` and `to="or"` use the same paths as `odia_to_other_lang` and `other_lang_to_odia`, so English to Odia checks the offline dictionary first.
+
+```python
+import asyncio
+from openodia import translate_batch
+
+asyncio.run(translate_batch(["ନମସ୍କାର", "ଧନ୍ୟବାଦ"], to="en", concurrency=4, retries=2))
 ```
 ### :material-shovel: Automatic extractive text summarization
 
