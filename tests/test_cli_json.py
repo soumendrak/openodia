@@ -117,11 +117,11 @@ class _FakeGoogleTranslator:
 
 @pytest.fixture(autouse=True)
 def _offline_translator(monkeypatch: pytest.MonkeyPatch):
-    from openodia import _translate
+    import deep_translator
     from openodia.cache import _cache as cache_module
 
     monkeypatch.setattr(cache_module, "_cache", cache_module.TranslationCache())
-    monkeypatch.setattr(_translate, "GoogleTranslator", _FakeGoogleTranslator)
+    monkeypatch.setattr(deep_translator, "GoogleTranslator", _FakeGoogleTranslator)
 
 
 def invoke(
@@ -206,7 +206,7 @@ class _UnsupportedTranslator:
     ],
 )
 def test_json_errors_stay_on_stderr(argv, code, message, monkeypatch, capsys) -> None:
-    monkeypatch.setattr("openodia._translate.GoogleTranslator", _UnsupportedTranslator)
+    monkeypatch.setattr("deep_translator.GoogleTranslator", _UnsupportedTranslator)
     assert cli.main(argv) == code
     captured = capsys.readouterr()
     assert captured.out == ""

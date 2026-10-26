@@ -6,6 +6,7 @@ Tests the _translate module
 
 from unittest import mock
 
+import deep_translator
 import pytest
 
 from openodia import (
@@ -67,7 +68,7 @@ def translation_calls():
                     "Add one to FAKE_TRANSLATIONS rather than letting the suite call the live service."
                 ) from None
 
-    with mock.patch.object(_translate, "GoogleTranslator", FakeGoogleTranslator):
+    with mock.patch.object(deep_translator, "GoogleTranslator", FakeGoogleTranslator):
         yield calls
 
     cache.clear()
