@@ -22,6 +22,17 @@
   {"name": "english text with question and exclamation", "text": "Who is there? Me! Come in.", "sentences": ["Who is there?", "Me!", "Come in."]},
   {"name": "empty", "text": "", "sentences": []},
   {"name": "whitespace only", "text": " \n\t ", "sentences": []},
-  {"name": "lone terminator is kept", "text": "।", "sentences": ["।"]},
+  {"name": "lone terminator gives no sentence", "text": "।", "sentences": []},
+  {"name": "only punctuation gives no sentence", "text": "?! । ॥ \"", "sentences": []},
+  {"name": "stray terminator joins the previous sentence", "text": "ରାମ ଗଲା । । ସୀତା", "sentences": ["ରାମ ଗଲା ।।", "ସୀତା"]},
+  {"name": "stray terminators join the previous sentence", "text": "ରାମ ଗଲା। ।। ॥ ସୀତା ଆସିଲା।", "sentences": ["ରାମ ଗଲା।।।॥", "ସୀତା ଆସିଲା।"]},
+  {"name": "leading terminator joins the next sentence", "text": "। ରାମ ଗଲା", "sentences": ["। ରାମ ଗଲା"]},
+  {"name": "stray closing quote joins the previous sentence", "text": "ରାମ ଗଲା। \" ସୀତା ଆସିଲା।", "sentences": ["ରାମ ଗଲା।\"", "ସୀତା ଆସିଲା।"]},
+  {"name": "closing brace and angle bracket stay with their sentence", "text": "{ସେ ଗଲା।} <ସେ ଆସିଲା।> ଶେଷ।", "sentences": ["{ସେ ଗଲା।}", "<ସେ ଆସିଲା।>", "ଶେଷ।"]},
+  {"name": "crlf line ends", "text": "ରାମ ଗଲା।\r\nସୀତା ଆସିଲା।\r\n", "sentences": ["ରାମ ଗଲା।", "ସୀତା ଆସିଲା।"]},
+  {"name": "crlf inside a sentence", "text": "ରାମ ଗଲା\r\nଘରକୁ।\r\nସୀତା ଆସିଲା।", "sentences": ["ରାମ ଗଲା\r\nଘରକୁ।", "ସୀତା ଆସିଲା।"]},
+  {"name": "bare carriage return", "text": "ରାମ ଗଲା।\rସୀତା ଆସିଲା।\r", "sentences": ["ରାମ ଗଲା।", "ସୀତା ଆସିଲା।"]},
+  {"name": "line separator U+2028", "text": "ରାମ ଗଲା।\u2028ସୀତା ଆସିଲା।\u2028", "sentences": ["ରାମ ଗଲା।", "ସୀତା ଆସିଲା।"]},
+  {"name": "paragraph separator U+2029", "text": "ରାମ ଗଲା।\u2029ସୀତା ଆସିଲା।\u2029", "sentences": ["ରାମ ଗଲା।", "ସୀତା ଆସିଲା।"]},
   {"name": "odia digits before danda", "text": "ସେ ୧୨୩। ସେ ୪୫୬।", "sentences": ["ସେ ୧୨୩।", "ସେ ୪୫୬।"]}
 ]

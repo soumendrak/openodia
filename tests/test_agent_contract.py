@@ -110,3 +110,8 @@ def test_documented_exit_codes_match_real_behaviour(capsys: pytest.CaptureFixtur
     with pytest.raises(SystemExit) as exc:
         cli.main(["tokenize"])
     assert exc.value.code == 2
+
+
+def test_empty_sentence_input_is_an_empty_list_as_documented(capsys: pytest.CaptureFixture[str]) -> None:
+    assert "empty input gives `[]`" in AGENTS
+    assert run_json(["tokenize", "--sentences", ""], capsys) == {"tokens": []}

@@ -1,4 +1,5 @@
 import json
+import random
 import time
 from pathlib import Path
 
@@ -15,8 +16,8 @@ def test_gold_sentences(case: dict[str, object]) -> None:
 
 
 @pytest.mark.parametrize("case", GOLD, ids=[case["name"] for case in GOLD])
-def test_no_text_is_lost(case: dict[str, object]) -> None:
-    assert "".join("".join(s.split()) for s in ud.sentence_tokenizer(case["text"])) == "".join(case["text"].split())
+def test_no_text_is_lost_in_gold_cases(case: dict[str, object]) -> None:
+    assert_text_kept(case["text"])
 
 
 def test_returns_list_of_str() -> None:
@@ -30,4 +31,57 @@ def test_large_text_is_linear() -> None:
     start = time.perf_counter()
     result = ud.sentence_tokenizer(text)
     assert len(result) == 150_000
-    assert time.perf_counter() - start < 10
+    assert time.perf_counter() - start < 2
+
+
+PIECES = [
+    "ରାମ", "ସୀତା", "ଗଲା", "ଘରକୁ", "୧୨୩", "a", "Hello", "?q=1", "a?id=5", "Yahoo!Mail", "😀", ".", ",", "…",
+    "।", "॥", "?", "!", "।।", "?!", '"', "'", "”", ")", "]", "}", ">", "(", "{", "<",
+    " ", " ", " ", "\t", "\n", "\r\n", "\r", "\u2028", "\u2029",
+]  # fmt: skip
+
+
+def random_texts(count: int = 5000, seed: int = 20260427) -> list[str]:
+    rng = random.Random(seed)
+    return ["".join(rng.choices(PIECES, k=rng.randint(0, 14))) for _ in range(count)]
+
+
+TEXTS = random_texts()
+
+
+def squash(text: str) -> str:
+    return "".join(text.split())
+
+
+def has_word(text: str) -> bool:
+    return any(char.isalnum() for char in text)
+
+
+def assert_text_kept(text: str) -> None:
+    parts = ud.sentence_tokenizer(text)
+    expected = squash(text) if has_word(text) else ""
+    assert squash("".join(parts)) == expected, (text, parts)
+
+
+def test_every_part_has_a_word() -> None:
+    for text in TEXTS:
+        for part in ud.sentence_tokenizer(text):
+            assert has_word(part), (text, part)
+
+
+def test_parts_are_trimmed_and_not_empty() -> None:
+    for text in TEXTS:
+        for part in ud.sentence_tokenizer(text):
+            assert part
+            assert part == part.strip(), (text, part)
+
+
+def test_no_text_is_lost() -> None:
+    for text in TEXTS:
+        assert_text_kept(text)
+
+
+def test_splitting_the_joined_parts_gives_the_same_parts() -> None:
+    for text in TEXTS:
+        parts = ud.sentence_tokenizer(text)
+        assert ud.sentence_tokenizer(" ".join(parts)) == parts, (text, parts)
