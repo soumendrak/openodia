@@ -10,7 +10,7 @@ Examples:
 """
 
 from openodia.pii._detect import detect
-from openodia.pii._entity import PII_TYPES, PIIEntity
+from openodia.pii._entity import PII_TYPES, PIIEntity, PIIType
 from openodia.pii._mask import mask
 
-__all__ = ["PII_TYPES", "PIIEntity", "detect", "mask"]
+__all__ = ["PII_TYPES", "PIIEntity", "PIIType", "detect", "mask"]

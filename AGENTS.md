@@ -71,7 +71,7 @@ $ openodia pii --mask --json 'ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ �
 
 `translate` answers English to Odia from an offline dictionary when it can. Every other pair calls Google Translate over the network, which can be rate limited (exit code 1) and refuses text over 5,000 characters. Language codes: `en`, `or` (Odia), and any code Google supports. `summarize` returns an empty summary for text with too few sentences.
 
-`pii` finds Indian mobile numbers, emails, URLs, Aadhaar numbers, PAN and PIN codes, in Odia or ASCII digits, offline. It does not find names, street addresses, dates or amounts, so `pii --mask` output is not anonymised. Offsets count characters of the input. A PIN code is only reported after `PIN`, `Pincode` or `ପିନ`. An Aadhaar-shaped number that fails its checksum is reported with confidence 0.5 (0.95 when it passes); `--min-confidence 0.9` drops it. `--type` (repeatable) limits the types: `PHONE`, `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PINCODE`.
+`pii` finds Indian mobile numbers, emails, URLs, Aadhaar numbers, PAN and PIN codes, in Odia or ASCII digits, offline. `pii` needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there. It does not find names, street addresses, dates or amounts, so `pii --mask` output is not anonymised. Offsets count characters of the text the command read: for `--file` and `-` that is after a leading BOM is dropped and CRLF becomes LF, and a literal argument is used as given. Matches that overlap merge into one span, typed by the longest match (a tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`), so `--mask` never leaves half of a value visible. It repeats until nothing new appears (at most 10 passes), so masking its own output changes nothing unless the input chains more than 10 values glued together. Expect false positives: any 10-digit number starting 6-9 is a `PHONE`, and any 12-digit number starting 2-9 is an `AADHAAR` at confidence 0.5. A local part over 64 characters, a bare domain without `http(s)://` or `www.`, and digits in other scripts are not found. A PIN code is only reported after `PIN`, `Pincode` or `ପିନ`. An Aadhaar-shaped number that fails its checksum is reported with confidence 0.5 (0.95 when it passes); `--min-confidence 0.9` drops it. `--type` (repeatable) limits the types: `PHONE`, `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PINCODE`.
 
 ## JSON shapes
 
@@ -85,7 +85,7 @@ $ openodia pii --mask --json 'ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ �
 | `remove-stopwords` | `{"tokens": [string]}`; with `--get-str` `{"text": string}` |
 | `ngrams` | `{"ngrams": [[string]]}`, each inner list has `n` tokens |
 | `freq` | `{"counts": [{"token": string, "count": integer}]}`, most frequent first |
-| `pii` | `{"entities": [{"type": string, "text": string, "start": integer, "end": integer, "confidence": number}]}`, by position; with `--mask` `{"text": string}` |
+| `pii` | `{"entities": [{"type": string, "text": string, "start": integer, "end": integer, "confidence": number}]}`, by position; `text` is the raw matched value, so plain `--json` output contains the PII itself. With `--mask`, `{"text": string}` holds only the masked text |
 
 Without `--json`, `pii` prints `TYPE<TAB>START<TAB>END<TAB>TEXT` lines (or the masked text with `--mask`), `freq` prints `COUNT<TAB>TOKEN` lines, `ngrams` prints space-joined n-grams, and `detect-language` prints `odia (confidence: 0.91)` or `(empty input)`.
 

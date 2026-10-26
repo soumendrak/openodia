@@ -79,6 +79,14 @@ def test_doc_states_which_release_has_json(doc: str) -> None:
     assert "`detect-language` only" in text
 
 
+@pytest.mark.parametrize("doc", [*DOCS, "docs/application.md"])
+def test_doc_that_mentions_pii_states_which_release_has_it(doc: str) -> None:
+    text = (ROOT / doc).read_text(encoding="utf-8")
+    if "pii" in text.lower():
+        assert "`openodia pii` exits 2 on 0.1.14" in text
+        assert "`import openodia.pii` fails" in text
+
+
 def test_llms_txt_leads_with_the_version_note() -> None:
     lines = (ROOT / "docs/llms.txt").read_text(encoding="utf-8").splitlines()
     assert lines[0].startswith("# ")

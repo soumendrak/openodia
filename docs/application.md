@@ -34,7 +34,7 @@ name.generate_names()
 
 #### Masking phone numbers, emails, Aadhaar, PAN and PIN codes
 
-- `openodia.pii.mask(text)` replaces them with `<PHONE>`, `<EMAIL>`, `<AADHAAR>`, `<PAN>`, `<PINCODE>` and `<URL>` tags. See [PII detection and masking](index.md#pii-detection-and-masking) for what it does and does not catch. It does not mask names.
+- `openodia.pii.mask(text)` replaces them with `<PHONE>`, `<EMAIL>`, `<AADHAAR>`, `<PAN>`, `<PINCODE>` and `<URL>` tags. See [PII detection and masking](index.md#pii-detection-and-masking) for what it does and does not catch. It does not mask names. `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there; it needs a newer release.
 
 #### Masking names: 
 

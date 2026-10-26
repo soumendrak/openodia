@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pytest
 
@@ -57,3 +58,13 @@ def test_reads_stdin(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixt
 
     monkeypatch.setattr("sys.stdin", io.StringIO("a@b.com"))
     assert run(["-", "--mask"], capsys) == "<EMAIL>\n"
+
+
+def test_file_offsets_index_the_text_after_the_bom_and_crlf_are_normalised(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    path = tmp_path / "in.txt"
+    path.write_bytes("\ufeffଲାଇନ\r\na@b.com\r\n".encode())
+    [entity] = json.loads(run([str(path), "--file", "--json"], capsys))["entities"]
+    assert (entity["start"], entity["end"]) == (5, 12)
+    assert "ଲାଇନ\na@b.com\n"[entity["start"] : entity["end"]] == "a@b.com"

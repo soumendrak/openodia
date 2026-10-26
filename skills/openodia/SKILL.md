@@ -14,7 +14,7 @@ Rules:
 - Text is a literal argument, `-` for stdin, or a path with `--file`. Input is UTF-8.
 - Add `--json` and parse stdout as one JSON document. Errors go to stderr and stdout stays empty. `--json` on every subcommand needs a release newer than 0.1.14; PyPI 0.1.14 has it on `detect-language` only.
 - Exit codes: 0 success, 1 runtime error (`openodia: error: ...` on stderr), 2 usage error.
-- `pii` is rule-based and finds only phone, email, URL, Aadhaar, PAN and PIN code; it does not find names or addresses.
+- `pii` is rule-based and finds only phone, email, URL, Aadhaar, PAN and PIN code; it does not find names or addresses. `pii` needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there. Each entity's `text` is the raw value, so use `pii --mask --json` when the output must not contain PII.
 - `translate` works offline only for English to Odia dictionary hits; other pairs need the network and can be rate limited.
 
 ```console
