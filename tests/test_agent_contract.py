@@ -129,3 +129,5 @@ def test_pii_docs_say_what_stdin_does_to_offsets_and_how_far_mask_can_be_trusted
     assert "for `--file` and `-`" not in text
     assert "can still contain raw PII" in text
     assert "`HTTPS://` and `WWW.`" in text
+    assert "turns CRLF and a lone CR into LF" in text
+    assert "``. _ % + - ! # $ & ' * / = ? ^ ` { | } ~``" in text

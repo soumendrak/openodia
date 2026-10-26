@@ -1,4 +1,5 @@
 import random
+import re
 import time
 import typing
 from typing import Any
@@ -150,6 +151,9 @@ def test_detected_entities_are_sorted_and_never_overlap_on_random_input() -> Non
         "9876 ",
         "http://a ",
         "a@b.com ",
+        "o'c@x.in ",
+        "a!b@",
+        "!#$%&'*+/=?^`{|}~-.",
         "www.a.com ",
         "9876543210 ",
         "2345 6789 0124 ",
@@ -307,10 +311,10 @@ def test_detect_reads_a_types_iterator_once() -> None:
 
 
 def test_a_url_that_swallows_many_phone_candidates_is_still_linear() -> None:
-    text = "https://x.com/" + "9876543210-" * 30_000
+    text = "https://x.com/" + "9876543210-" * 60_000
     started = time.perf_counter()
     [entity] = pii.detect(text)
-    assert time.perf_counter() - started < 10
+    assert time.perf_counter() - started < 2
     assert (entity.type, entity.start, entity.end) == ("URL", 0, len(text))
 
 
@@ -327,3 +331,73 @@ def test_a_url_that_swallows_many_phone_candidates_is_still_linear() -> None:
 )
 def test_url_scheme_and_www_match_in_any_letter_case(text: str, masked: str) -> None:
     assert pii.mask(text) == masked
+
+
+LOCAL_PART_PUNCTUATION = "!#$%&'*+-./=?^_`{|}~"
+
+
+@pytest.mark.parametrize("char", list(LOCAL_PART_PUNCTUATION))
+def test_every_rfc_5322_atext_punctuation_in_the_local_part_is_masked_with_the_rest(char: str) -> None:
+    assert pii.mask(f"a{char}b@example.com") == "<EMAIL>"
+    assert pii.mask(f"call {char}ab@example.com now") == "call <EMAIL> now"
+    assert pii.mask(f"ab{char}@example.com.") == "<EMAIL>."
+
+
+@pytest.mark.parametrize(
+    ("text", "masked"),
+    [
+        ("o'connor@example.com", "<EMAIL>"),
+        ("alice/sales@example.com", "<EMAIL>"),
+        ("mail o'connor@example.com or alice/sales@example.com", "mail <EMAIL> or <EMAIL>"),
+        ("a{b}@example.com", "<EMAIL>"),
+        ("ଇମେଲ o'c@x.in", "ଇମେଲ <EMAIL>"),
+    ],
+)
+def test_emails_with_punctuation_leave_no_visible_prefix(text: str, masked: str) -> None:
+    assert pii.mask(text) == masked
+
+
+SECRETS = ["o'connor@example.com", "alice/sales@example.com", "a!b#c@x.org", "9876543210", "ABCPE1234F", "https://h.org/p?q=1"]
+SEPARATORS = [
+    " ",
+    "\n",
+    "-",
+    "/",
+    ",",
+    "'",
+    "!",
+    "#",
+    "=",
+    "?",
+    "`",
+    "{",
+    "}",
+    "|",
+    "~",
+    "^",
+    "&",
+    "*",
+    "$",
+    "%",
+    "+",
+    ".",
+    "_",
+]
+
+
+def test_no_secret_survives_masking_when_values_are_glued_with_punctuation() -> None:
+    rng = random.Random(285)
+    for _ in range(4000):
+        parts: list[str] = []
+        for _ in range(rng.randint(1, 6)):
+            parts.append(rng.choice(SEPARATORS))
+            parts.append(rng.choice(SECRETS))
+        text = "".join(parts)
+        leftovers = re.sub(r"<[A-Z]+>|[^A-Za-z0-9]", "", pii.mask(text))
+        assert leftovers == "", text
+
+
+def test_a_local_part_over_64_characters_is_not_found_and_a_punctuated_one_is_masked_from_its_last_64() -> None:
+    assert pii.mask("a" * 70 + "@x.com") == "a" * 70 + "@x.com"
+    punctuated = "a." * 40 + "@x.com"
+    assert pii.mask(punctuated) == punctuated[:16] + "<EMAIL>"

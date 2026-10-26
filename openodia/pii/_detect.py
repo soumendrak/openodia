@@ -11,7 +11,9 @@ from openodia.pii._entity import PII_TYPES, PIIEntity, PIIType
 from openodia.pii._verhoeff import is_valid
 
 _URL = re.compile(r"(?i:https?://|(?<![A-Za-z0-9@.-])www\.)[^\s<>\"'।]*[^\s<>\"'।.,;:!?)\]]")
-_EMAIL = re.compile(r"(?<![A-Za-z0-9])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63})*\.[A-Za-z]{2,63}")
+_EMAIL = re.compile(
+    r"(?<![A-Za-z0-9])[A-Za-z0-9._%+\-!#$&'*/=?^`{|}~]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63})*\.[A-Za-z]{2,63}"
+)
 _PHONE = re.compile(r"(?<![0-9])(?:\(?(?:\+|00)91\)?[ -]?|91[ -]|0)?[6-9][0-9]{4}[ -]?[0-9]{5}(?![0-9])")
 _AADHAAR = re.compile(r"(?<![0-9])[2-9][0-9]{3}([ -]?)[0-9]{4}\1[0-9]{4}(?![0-9])")
 _PAN = re.compile(r"(?<![A-Za-z])[A-Z]{3}[PCHFATBLJG][A-Z][0-9]{4}[A-Z](?![A-Za-z])")

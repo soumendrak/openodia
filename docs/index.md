@@ -314,7 +314,7 @@ sentences("Hello. World!", keep_terminators=False)
 ### :material-shield-account: PII detection and masking
 
 - `openodia.pii` finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there.
-- Odia digits (`୦`-`୯`) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: `--file` drops a leading BOM and turns CRLF into LF. `-` (stdin) drops a leading BOM only and keeps any `\r`: a Linux or macOS pipe delivers `\r\n` unchanged, so offsets from `-` can differ from `--file` by one per line break.
+- Odia digits (`୦`-`୯`) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: `--file` drops a leading BOM and turns CRLF and a lone CR into LF. `-` (stdin) drops a leading BOM only and keeps any `\r`: a Linux or macOS pipe delivers `\r\n` unchanged, so offsets from `-` can differ from `--file` by one per line break.
 - Matches that overlap merge into one span typed by the longest match, so no part of a value stays visible. A tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`. `min_confidence` is applied before merging.
 - `openodia pii --json` puts the raw matched `text` in every entity, so it contains the PII. Use `--mask --json` for output that holds only the masked text.
 
@@ -333,7 +333,7 @@ pii.detect(text, min_confidence=0.9)
 | Type | What it matches | Confidence |
 | --- | --- | --- |
 | `PHONE` | 10-digit Indian mobile starting 6-9, optional `+91`, `(+91)`, `0091`, `91` followed by a space or `-`, or `0`; optional space or `-` after the fifth digit | 0.9 |
-| `EMAIL` | `local@domain.tld`; local part up to 64 characters, top-level domain of two or more letters | 0.95 |
+| `EMAIL` | `local@domain.tld`; the local part is up to 64 characters of letters, digits and ``. _ % + - ! # $ & ' * / = ? ^ ` { | } ~`` (RFC 5322 atext), top-level domain of two or more letters. A longer local part is not found, and if it contains punctuation only its last 64 characters may be masked, so the earlier part stays visible | 0.95 |
 | `URL` | `http://`, `https://` or `www.` in any letter case, so `HTTPS://` and `WWW.` are found (not glued to a letter, digit, `@`, `.` or `-` before it) up to whitespace; trailing `. , ; : ! ? )` and `।` are left out | 0.9 |
 | `AADHAAR` | 12 digits starting 2-9, contiguous or grouped 4-4-4 by one space or `-`. 0.95 when the Verhoeff checksum passes, 0.5 when it fails | 0.95 / 0.5 |
 | `PAN` | `AAAPA1234A`: uppercase, fourth letter one of `PCHFATBLJG` | 0.95 |
@@ -346,7 +346,7 @@ Confidence ranks how specific a pattern is; it is not a probability.
     - Dates of birth, amounts, bank account and card numbers, landline numbers, passport and voter IDs.
     - Lowercase PAN, Aadhaar written with other separators or split by line breaks, and a PIN code with no `PIN` or `ପିନ` before it.
     - Aadhaar numbers starting with 0 or 1, which UIDAI does not issue.
-    - A bare domain with no `http(s)://` or `www.`, an email whose local part is over 64 characters, and digits of other scripts such as Devanagari.
+    - A bare domain with no `http(s)://` or `www.`, an email whose local part is over 64 characters (see the `EMAIL` row), and digits of other scripts such as Devanagari.
     - **False positives**: a 10-digit number starting 6-9 (an order or account number) is reported as `PHONE` even if nobody owns it, a 12-digit number starting 2-9 as `AADHAAR` at confidence 0.5, and a PAN-shaped code as `PAN`. Filter with `types` and `min_confidence`.
     - A bare `91` before a mobile number is taken as its country code only when a space or `-` follows it.
 
