@@ -10,7 +10,7 @@ from openodia.numbers import odia_to_ascii
 from openodia.pii._entity import PII_TYPES, PIIEntity, PIIType
 from openodia.pii._verhoeff import is_valid
 
-_URL = re.compile(r"(?:https?://|(?<![A-Za-z0-9@.-])www\.)[^\s<>\"'।]*[^\s<>\"'।.,;:!?)\]]")
+_URL = re.compile(r"(?i:https?://|(?<![A-Za-z0-9@.-])www\.)[^\s<>\"'।]*[^\s<>\"'।.,;:!?)\]]")
 _EMAIL = re.compile(r"(?<![A-Za-z0-9])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63})*\.[A-Za-z]{2,63}")
 _PHONE = re.compile(r"(?<![0-9])(?:\(?(?:\+|00)91\)?[ -]?|91[ -]|0)?[6-9][0-9]{4}[ -]?[0-9]{5}(?![0-9])")
 _AADHAAR = re.compile(r"(?<![0-9])[2-9][0-9]{3}([ -]?)[0-9]{4}\1[0-9]{4}(?![0-9])")
@@ -75,7 +75,7 @@ def _merge(candidates: Iterable[_Candidate]) -> list[_Candidate]:
     return merged
 
 
-def _validate_types(types: Iterable[str] | None) -> frozenset[str]:
+def validated_types(types: Iterable[str] | None) -> frozenset[str]:
     if isinstance(types, (str, bytes)):
         raise TypeError("types must be a list of PII type names, not a single string; wrap it in a list")
     wanted = frozenset(PII_TYPES if types is None else types)
@@ -105,7 +105,7 @@ def detect(text: str, types: Iterable[str] | None = None, min_confidence: float 
     """
     if not isinstance(text, str):
         raise TypeError(f"text must be str, got {type(text).__name__}")
-    wanted = _validate_types(types)
+    wanted = validated_types(types)
     _validate_min_confidence(min_confidence)
     ascii_text = odia_to_ascii(text)
     candidates = []

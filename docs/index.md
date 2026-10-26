@@ -314,7 +314,7 @@ sentences("Hello. World!", keep_terminators=False)
 ### :material-shield-account: PII detection and masking
 
 - `openodia.pii` finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there.
-- Odia digits (`୦`-`୯`) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: for `--file` and `-`, after a leading BOM is dropped and CRLF becomes LF.
+- Odia digits (`୦`-`୯`) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: `--file` drops a leading BOM and turns CRLF into LF. `-` (stdin) drops a leading BOM only and keeps any `\r`: a Linux or macOS pipe delivers `\r\n` unchanged, so offsets from `-` can differ from `--file` by one per line break.
 - Matches that overlap merge into one span typed by the longest match, so no part of a value stays visible. A tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`. `min_confidence` is applied before merging.
 - `openodia pii --json` puts the raw matched `text` in every entity, so it contains the PII. Use `--mask --json` for output that holds only the masked text.
 
@@ -334,7 +334,7 @@ pii.detect(text, min_confidence=0.9)
 | --- | --- | --- |
 | `PHONE` | 10-digit Indian mobile starting 6-9, optional `+91`, `(+91)`, `0091`, `91` followed by a space or `-`, or `0`; optional space or `-` after the fifth digit | 0.9 |
 | `EMAIL` | `local@domain.tld`; local part up to 64 characters, top-level domain of two or more letters | 0.95 |
-| `URL` | `http://`, `https://` or `www.` (not glued to a letter, digit, `@`, `.` or `-` before it) up to whitespace; trailing `. , ; : ! ? )` and `।` are left out | 0.9 |
+| `URL` | `http://`, `https://` or `www.` in any letter case, so `HTTPS://` and `WWW.` are found (not glued to a letter, digit, `@`, `.` or `-` before it) up to whitespace; trailing `. , ; : ! ? )` and `।` are left out | 0.9 |
 | `AADHAAR` | 12 digits starting 2-9, contiguous or grouped 4-4-4 by one space or `-`. 0.95 when the Verhoeff checksum passes, 0.5 when it fails | 0.95 / 0.5 |
 | `PAN` | `AAAPA1234A`: uppercase, fourth letter one of `PCHFATBLJG` | 0.95 |
 | `PINCODE` | 6 digits, first 1-9, directly after `PIN`, `Pincode`, `PIN code` or `ପିନ` | 0.8 |
@@ -350,7 +350,7 @@ Confidence ranks how specific a pattern is; it is not a probability.
     - **False positives**: a 10-digit number starting 6-9 (an order or account number) is reported as `PHONE` even if nobody owns it, a 12-digit number starting 2-9 as `AADHAAR` at confidence 0.5, and a PAN-shaped code as `PAN`. Filter with `types` and `min_confidence`.
     - A bare `91` before a mobile number is taken as its country code only when a space or `-` follows it.
 
-- `mask` repeats detection and replacement until nothing changes, at most 10 passes, because masking a value can expose one that was glued to it, such as a PAN written right before a URL. With the default `<TYPE>` tags, masking its own output therefore changes nothing, unless the input chains more than 10 glued values. A custom `placeholder` receives entities from the later passes too, with offsets into the partly masked text, and one that returns PII-shaped text, for example one that keeps the last four digits, can keep the loop running to its limit.
+- `mask` repeats detection and replacement until nothing changes, at most 10 passes, because masking a value can expose one that was glued to it, such as a PAN written right before a URL. With the default `<TYPE>` tags, masking its own output therefore changes nothing, unless the input chains more than 10 glued values. Past that, the text `mask` returns can still contain raw PII, so do not rely on it for input like that. A custom `placeholder` receives entities from the later passes too, with offsets into the partly masked text, and one that returns PII-shaped text, for example one that keeps the last four digits, can keep the loop running to its limit.
 - `detect` and `mask` raise `TypeError` for a `text` that is not a `str` or `types` given as a bare string, and `ValueError` for an unknown type or a `min_confidence` outside 0 to 1.
 - There is no pseudonymisation or reversible mapping: masking is one-way.
 

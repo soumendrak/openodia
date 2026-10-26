@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 
-from openodia.pii._detect import detect
+from openodia.pii._detect import detect, validated_types
 from openodia.pii._entity import PIIEntity
 
 _MAX_PASSES = 10
@@ -14,9 +14,7 @@ def _tag(entity: PIIEntity) -> str:
     return f"<{entity.type}>"
 
 
-def _replace_once(
-    text: str, types: Iterable[str] | None, min_confidence: float, placeholder: Callable[[PIIEntity], str]
-) -> str:
+def _replace_once(text: str, types: frozenset[str], min_confidence: float, placeholder: Callable[[PIIEntity], str]) -> str:
     pieces: list[str] = []
     cursor = 0
     for entity in detect(text, types, min_confidence):
@@ -41,9 +39,13 @@ def mask(
     chains more than 10 such glued values. From the second pass on, ``placeholder`` receives
     entities whose offsets index the partly masked text. A custom ``placeholder`` that returns
     text matching a detector can keep the loop going until the limit.
+
+    Past 10 glued values the result can still contain raw PII, so do not rely on it for input
+    that chains that many. ``types`` is read once, so an iterator works.
     """
+    wanted = validated_types(types)
     for _ in range(_MAX_PASSES):
-        masked = _replace_once(text, types, min_confidence, placeholder)
+        masked = _replace_once(text, wanted, min_confidence, placeholder)
         if masked == text:
             break
         text = masked

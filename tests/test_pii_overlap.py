@@ -287,3 +287,43 @@ def test_custom_placeholder_that_looks_like_pii_cannot_loop_forever() -> None:
 )
 def test_glued_values_are_detected_one_by_one(text: str, expected: list[tuple[str, str]]) -> None:
     assert kinds(text) == expected
+
+
+def test_mask_materialises_types_once_so_an_iterator_is_not_exhausted_by_the_first_pass() -> None:
+    glued = "ABCPE1234Fhttps://x.com"
+    assert pii.mask(glued, types=iter(["PAN", "URL"])) == "<PAN><URL>"
+    assert pii.mask(glued, types=(kind for kind in ["PAN", "URL"])) == pii.mask(glued, types=["PAN", "URL"])
+
+
+def test_mask_validates_types_even_when_given_an_iterator() -> None:
+    with pytest.raises(ValueError, match="unknown PII type 'NOPE'"):
+        pii.mask("a@b.com", types=iter(["NOPE"]))
+    with pytest.raises(TypeError, match="not a single string"):
+        pii.mask("a@b.com", types="PAN")
+
+
+def test_detect_reads_a_types_iterator_once() -> None:
+    assert [e.type for e in pii.detect("ABCPE1234F a@b.com", types=iter(["PAN"]))] == ["PAN"]
+
+
+def test_a_url_that_swallows_many_phone_candidates_is_still_linear() -> None:
+    text = "https://x.com/" + "9876543210-" * 30_000
+    started = time.perf_counter()
+    [entity] = pii.detect(text)
+    assert time.perf_counter() - started < 10
+    assert (entity.type, entity.start, entity.end) == ("URL", 0, len(text))
+
+
+@pytest.mark.parametrize(
+    ("text", "masked"),
+    [
+        ("HTTPS://x.com/?token=s", "<URL>"),
+        ("Http://x.com/a", "<URL>"),
+        ("WWW.example.com", "<URL>"),
+        ("Www.example.com/path.", "<URL>."),
+        ("see wWw.a.com now", "see <URL> now"),
+        ("xWWW.example.com", "xWWW.example.com"),
+    ],
+)
+def test_url_scheme_and_www_match_in_any_letter_case(text: str, masked: str) -> None:
+    assert pii.mask(text) == masked

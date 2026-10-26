@@ -435,7 +435,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.set_defaults(func=_cmd_freq)
 
-    # pii
     from openodia.pii import PII_TYPES
 
     p = sub.add_parser("pii", help="Find or mask phone, email, URL, Aadhaar, PAN and PIN code")

@@ -119,3 +119,13 @@ def test_documented_exit_codes_match_real_behaviour(capsys: pytest.CaptureFixtur
     with pytest.raises(SystemExit) as exc:
         cli.main(["tokenize"])
     assert exc.value.code == 2
+
+
+@pytest.mark.parametrize("doc", ["AGENTS.md", "docs/index.md"])
+def test_pii_docs_say_what_stdin_does_to_offsets_and_how_far_mask_can_be_trusted(doc: str) -> None:
+    text = (ROOT / doc).read_text(encoding="utf-8")
+    assert "`-` (stdin) drops a leading BOM only" in text
+    assert "keeps any `\\r`" in text
+    assert "for `--file` and `-`" not in text
+    assert "can still contain raw PII" in text
+    assert "`HTTPS://` and `WWW.`" in text
