@@ -149,7 +149,7 @@ def invoke(
 
 @pytest.mark.parametrize("mode", MODES)
 @pytest.mark.parametrize("case", CASES)
-def test_default_output_is_unchanged(case, mode, tmp_path, monkeypatch, capsys) -> None:
+def test_default_sentences_output_pins_trimmed_sentences(case, mode, tmp_path, monkeypatch, capsys) -> None:
     argv, text, expected, _ = CASES[case]
     assert invoke(argv, text, mode, tmp_path, monkeypatch, capsys) == (0, expected, "")
 
