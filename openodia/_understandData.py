@@ -33,16 +33,20 @@ class UnderstandData:
     def sentence_tokenizer(cls, text: str) -> list[str]:
         """Split the text into sentences at ।, ॥, ? and !, keeping each terminator."""
         sent_list: list[str] = []
-        carry = ""
+        stray: list[str] = []
         for match in _SENTENCE.finditer(text):
             part = match.group().strip()
-            if _WORD.search(part):
-                sent_list.append(f"{carry} {part}" if carry else part)
-                carry = ""
-            elif sent_list:
-                sent_list[-1] += "".join(part.split())
-            else:
-                carry += "".join(part.split())
+            if not _WORD.search(part):
+                stray.append("".join(part.split()))
+                continue
+            if sent_list:
+                sent_list[-1] += "".join(stray)
+            elif stray:
+                part = f"{''.join(stray)} {part}"
+            sent_list.append(part)
+            stray.clear()
+        if sent_list:
+            sent_list[-1] += "".join(stray)
         LOGGER.debug(f"{len(sent_list)} sentences have been formed.")
         return sent_list
 
