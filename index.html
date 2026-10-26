@@ -911,6 +911,7 @@ is a strict tokeniser, never modifying or normalising characters.</p>
 <h3 id="command-line-interface"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12zm0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm-7 14v-2h5v2zm-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59z"/></svg></span> Command-line interface<a class="headerlink" href="#command-line-interface" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Installing the package adds an <code>openodia</code> command. Each subcommand wraps a function from the library so they're scriptable from any shell.</li>
+<li>Add <code>--json</code> to a subcommand for one machine-readable JSON document on stdout. This needs a release newer than 0.1.14: PyPI 0.1.14 has <code>--json</code> on <code>detect-language</code> only, and other subcommands exit with code 2 there. See <a href="https://github.com/soumendrak/openodia/blob/main/AGENTS.md">AGENTS.md</a> for the JSON shapes and exit codes, and <a href="llms.txt">llms.txt</a> for an index aimed at AI agents.</li>
 <li>Pass <code>-</code> as the text argument to read from stdin. Pass <code>--file</code> to read the text argument from a UTF-8 file; without it, an argument is always literal text, even if it matches a file name.</li>
 </ul>
 <div class="highlight"><pre><span></span><code>openodia<span class="w"> </span>--help
@@ -1391,7 +1392,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="October 26, 2026 16:33:49 UTC"><span class="timeago" datetime="2026-10-26T16:33:49+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 26, 2026 16:33:49 UTC">2026-10-26</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="October 26, 2026 18:32:33 UTC"><span class="timeago" datetime="2026-10-26T18:32:33+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 26, 2026 18:32:33 UTC">2026-10-26</span>
   </span>
 
     
