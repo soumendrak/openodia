@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -117,11 +118,11 @@ class _FakeGoogleTranslator:
 
 @pytest.fixture(autouse=True)
 def _offline_translator(monkeypatch: pytest.MonkeyPatch):
-    from openodia import _translate
+    import deep_translator
     from openodia.cache import _cache as cache_module
 
     monkeypatch.setattr(cache_module, "_cache", cache_module.TranslationCache())
-    monkeypatch.setattr(_translate, "GoogleTranslator", _FakeGoogleTranslator)
+    monkeypatch.setattr(deep_translator, "GoogleTranslator", _FakeGoogleTranslator)
 
 
 def invoke(
@@ -206,7 +207,7 @@ class _UnsupportedTranslator:
     ],
 )
 def test_json_errors_stay_on_stderr(argv, code, message, monkeypatch, capsys) -> None:
-    monkeypatch.setattr("openodia._translate.GoogleTranslator", _UnsupportedTranslator)
+    monkeypatch.setattr("deep_translator.GoogleTranslator", _UnsupportedTranslator)
     assert cli.main(argv) == code
     captured = capsys.readouterr()
     assert captured.out == ""
@@ -302,5 +303,49 @@ def test_json_into_closed_reader_exits_141(tmp_path) -> None:
             stderr=subprocess.PIPE,
         )
         proc.stdout.close()
-        assert proc.stderr.read() == b""
-        assert proc.wait(timeout=60) == 141
+        _, stderr = proc.communicate(timeout=60)
+    assert (proc.returncode, stderr) == (141, b"")
+
+
+ODD_LOCALE = {"LC_ALL": "C", "PYTHONUTF8": "0"}
+
+
+def _argv_run(*argv: bytes, env: dict[str, str]) -> subprocess.CompletedProcess[bytes]:
+    return subprocess.run(
+        [os.fsencode(sys.executable), b"-m", b"openodia", *argv],
+        env={**os.environ, **env},
+        capture_output=True,
+        timeout=60,
+    )
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="raw argv bytes need POSIX")
+@pytest.mark.parametrize("env", [{}, ODD_LOCALE], ids=["default", "c-locale"])
+def test_json_accepts_valid_utf8_argv_in_any_locale(env) -> None:
+    done = _argv_run(b"tokenize", "ରାମ ସୀତା".encode(), b"--json", env=env)
+    assert (done.returncode, done.stderr) == (0, b"")
+    assert json.loads(done.stdout.decode("utf-8")) == {"tokens": ["ରାମ", "ସୀତା"]}
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="raw argv bytes need POSIX")
+@pytest.mark.parametrize("env", [{}, ODD_LOCALE], ids=["default", "c-locale"])
+def test_json_rejects_invalid_utf8_argv_in_any_locale(env) -> None:
+    done = _argv_run(b"tokenize", b"\xff", b"--json", env=env)
+    assert (done.returncode, done.stdout) == (1, b"")
+    assert done.stderr == b"openodia: error: text argument is not valid UTF-8\n"
+
+
+def test_json_rejects_unencodable_surrogate_argument(capsys) -> None:
+    assert cli.main(["tokenize", "\ud800", "--json"]) == 1
+    assert capsys.readouterr().err == "openodia: error: text argument is not valid UTF-8\n"
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="raw file names need POSIX")
+def test_json_file_path_may_contain_invalid_utf8(tmp_path, capsys) -> None:
+    path = Path(os.fsdecode(os.fsencode(tmp_path) + b"/bad\xff.txt"))
+    try:
+        path.write_text("ରାମ ସୀତା", encoding="utf-8")
+    except OSError:
+        pytest.skip("filesystem rejects non-UTF-8 file names")
+    assert cli.main(["tokenize", "--file", str(path), "--json"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"tokens": ["ରାମ", "ସୀତା"]}

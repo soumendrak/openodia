@@ -1,6 +1,6 @@
 import re
 from collections.abc import Container
-from typing import Any
+from typing import Any, Literal, overload
 
 from openodia.common.constants import STOPWORDS
 from openodia.common.utility import LOGGER
@@ -49,6 +49,33 @@ class UnderstandData:
             sent_list[-1] += "".join(stray)
         LOGGER.debug(f"{len(sent_list)} sentences have been formed.")
         return sent_list
+
+    @overload
+    @classmethod
+    def remove_stopwords(
+        cls,
+        text: str | list[str],
+        get_str: Literal[False] = False,
+        stopwords: Container[str] | None = None,
+    ) -> list[str]: ...
+
+    @overload
+    @classmethod
+    def remove_stopwords(
+        cls,
+        text: str | list[str],
+        get_str: Literal[True],
+        stopwords: Container[str] | None = None,
+    ) -> str: ...
+
+    @overload
+    @classmethod
+    def remove_stopwords(
+        cls,
+        text: str | list[str],
+        get_str: bool,
+        stopwords: Container[str] | None = None,
+    ) -> list[str] | str: ...
 
     @classmethod
     def remove_stopwords(
