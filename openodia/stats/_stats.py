@@ -41,7 +41,7 @@ def ngrams(tokens_or_text: Sequence[str] | str, n: int) -> Iterator[tuple[str, .
         yield tuple(tokens[i : i + n])
 
 
-class FreqDist(Counter):
+class FreqDist(Counter[str]):
     """Token frequency distribution backed by ``collections.Counter``.
 
     Adds three light convenience methods:
@@ -147,7 +147,7 @@ def cooccurrence(
     tokens_or_text: Sequence[str] | str,
     window: int = 5,
     symmetric: bool = True,
-) -> Counter:
+) -> Counter[tuple[str, ...]]:
     """Count word co-occurrences within a sliding window.
 
     Args:
@@ -169,7 +169,7 @@ def cooccurrence(
         raise ValueError(f"window must be >= 1, got {window}")
 
     tokens = _as_tokens(tokens_or_text)
-    counts: Counter = Counter()
+    counts: Counter[tuple[str, ...]] = Counter()
     n = len(tokens)
     for i in range(n):
         end = min(n, i + window + 1)

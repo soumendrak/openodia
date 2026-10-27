@@ -4,17 +4,14 @@ Author: Soumendra Kumar Sahoo
 Google wrapper for odia language
 """
 
-from deep_translator import GoogleTranslator
-
 from openodia.cache import get_cache
 from openodia.corpus.dictionary import get_dictionary
 
 
-def _search_offline_dictionary(text: str) -> str:
+def _search_offline_dictionary(text: str) -> str | None:
     """Search the text from offline dictionary"""
     offline_dict = get_dictionary()
-    translated_odia_text = offline_dict.get(text.lower())
-    return translated_odia_text
+    return offline_dict.get(text.lower())
 
 
 def _hit_google_api(text: str, source_lang_code: str, destination_lang_code: str) -> str:
@@ -29,8 +26,10 @@ def _hit_google_api(text: str, source_lang_code: str, destination_lang_code: str
     if cached is not None:
         return cached
 
+    from deep_translator import GoogleTranslator
+
     translator = GoogleTranslator(source=source_lang_code, target=destination_lang_code)
-    result = translator.translate(text)
+    result: str = translator.translate(text)
     cache.set(key, result)
     return result
 

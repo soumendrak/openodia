@@ -50,6 +50,7 @@ dev = [
     "mkdocs-material>=7.3.2",
     "mkdocstrings[python]>=0.26",
     "diskcache>=5.0.0",
+    "mypy>=1.11",
 ]
 
 [project.urls]
@@ -96,3 +97,11 @@ max-complexity = 10
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.mypy]
+files = ["openodia"]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["deep_translator", "deep_translator.*", "diskcache"]
+ignore_missing_imports = true
