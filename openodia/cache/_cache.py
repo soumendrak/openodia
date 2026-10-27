@@ -74,7 +74,7 @@ class TranslationCache:
                 self._memory.move_to_end(key)
                 self._hits += 1
                 return self._memory[key]
-        value = self._disk.get(key) if self._disk is not None else None
+        value: str | None = self._disk.get(key) if self._disk is not None else None
         with self._lock:
             if value is None:
                 self._misses += 1

@@ -7,6 +7,10 @@
 - Async translation: `odia_to_other_lang_async`, `other_lang_to_odia_async`, `universal_translation_async` and `translate_batch` with bounded concurrency, optional retries and `return_exceptions`.
 - `TranslationCache` is now thread-safe (it can still be pickled and deep-copied); concurrent use could raise `KeyError` and lose counter updates.
 - `openodia.cache.get_cache()` builds its singleton under a lock, so threads making the first call together share one cache (before, `OPENODIA_CACHE_DISK` could give each its own, losing entries and counts).
+- The package ships `py.typed` (PEP 561) and is fully type-annotated (mypy strict), so type checkers see the narrowed `remove_stopwords` return types.
+- `import openodia` and `openodia --help` no longer import `faker`, `deep_translator`, `requests` or `bs4`; they load on first use of `name.generate_names` or a Google translation (a cached result or an offline-dictionary hit loads nothing). `import openodia` is about 2.5x faster in this repo's measurements. The public API is unchanged.
+- `import openodia` no longer configures logging. It used to call `logging.basicConfig` with a Rich handler, which attached a root handler in the host application and printed log lines (with local variables in tracebacks) to stdout. Library logs now go to the `openodia` logger, which has a `NullHandler`; configure logging in your application to see them. The `openodia` CLI output is unchanged.
+- An invalid `name_type` in `name.generate_firstnames` logs an error without the meaningless `NoneType: None` traceback line (the `ValueError` is unchanged).
 
 ## 0.1.14 (2026-10-26)
 
