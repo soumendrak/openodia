@@ -435,7 +435,7 @@ def _translation_failure(exc: Exception) -> str | None:
     if isinstance(exc, LanguageNotSupportedException):
         return f"unsupported language code {exc.val!r}"
     if isinstance(exc, BaseError | RequestError):
-        return exc.message
+        return str(exc.message)
     return None
 
 
