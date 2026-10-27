@@ -48,7 +48,7 @@ class Names:
         elif name_type.lower() == "unisex":
             return random.sample(FIRST_NAMES_UNISEX, min(count, len(FIRST_NAMES_UNISEX)))
         elif len(name_type) > 0:
-            LOGGER.exception(f"Invalid {name_type=} provided.\n Please provide one of these {valid_types=}")
+            LOGGER.error(f"Invalid {name_type=} provided.\n Please provide one of these {valid_types=}")
             raise ValueError("Invalid name_type provided")
         else:
             # send mix of all first names
