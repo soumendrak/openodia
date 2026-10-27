@@ -7,6 +7,7 @@ import typing
 from collections.abc import Callable
 from unittest import mock
 
+import deep_translator
 import pytest
 import requests
 from deep_translator.exceptions import LanguageNotSupportedException, RequestError, TooManyRequests
@@ -57,7 +58,7 @@ def service():
     cache.clear()
     fake = FakeService()
     with (
-        mock.patch.object(_translate, "GoogleTranslator", fake.translator),
+        mock.patch.object(deep_translator, "GoogleTranslator", fake.translator),
         mock.patch.object(_translate, "get_dictionary", lambda: DICTIONARY),
     ):
         yield fake

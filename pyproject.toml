@@ -101,5 +101,5 @@ files = ["openodia"]
 strict = true
 
 [[tool.mypy.overrides]]
-module = ["deep_translator", "deep_translator.*", "diskcache"]
+module = ["deep_translator", "deep_translator.*", "diskcache", "requests", "requests.*"]
 ignore_missing_imports = true

@@ -10,13 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from typing import Literal, overload
 
-from deep_translator.exceptions import TooManyRequests
-from requests.exceptions import ConnectionError as RequestsConnectionError
-from requests.exceptions import Timeout as RequestsTimeout
-
 from openodia._translate import odia_to_other_lang, other_lang_to_odia, universal_translation
-
-_CONNECTION_ERRORS = (ConnectionError, TimeoutError, RequestsConnectionError, RequestsTimeout)
 
 
 async def odia_to_other_lang_async(text: str, dest_language_code: str = "en") -> str:
@@ -46,7 +40,11 @@ def _is_retryable(exc: BaseException) -> bool:
     status = getattr(exc, "status_code", None) or getattr(getattr(exc, "response", None), "status_code", None)
     if isinstance(status, int):
         return status == 429 or 500 <= status < 600
-    return isinstance(exc, (TooManyRequests, *_CONNECTION_ERRORS))
+    from deep_translator.exceptions import TooManyRequests
+    from requests.exceptions import ConnectionError as RequestsConnectionError
+    from requests.exceptions import Timeout as RequestsTimeout
+
+    return isinstance(exc, (TooManyRequests, ConnectionError, TimeoutError, RequestsConnectionError, RequestsTimeout))
 
 
 def _unless_stopped(
