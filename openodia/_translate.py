@@ -4,8 +4,6 @@ Author: Soumendra Kumar Sahoo
 Google wrapper for odia language
 """
 
-from deep_translator import GoogleTranslator
-
 from openodia.cache import get_cache
 from openodia.corpus.dictionary import get_dictionary
 
@@ -28,6 +26,8 @@ def _hit_google_api(text: str, source_lang_code: str, destination_lang_code: str
     cached = cache.get(key)
     if cached is not None:
         return cached
+
+    from deep_translator import GoogleTranslator
 
     translator = GoogleTranslator(source=source_lang_code, target=destination_lang_code)
     result = translator.translate(text)

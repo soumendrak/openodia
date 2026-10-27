@@ -19,8 +19,6 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from deep_translator.exceptions import BaseError, LanguageNotSupportedException, RequestError, TooManyRequests
-
 
 # ---------------------------------------------------------------------------
 # Input helpers
@@ -428,6 +426,19 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _translation_failure(exc: Exception) -> str | None:
+    """Describe a deep-translator error, or return ``None`` if ``exc`` is something else."""
+    from deep_translator.exceptions import BaseError, LanguageNotSupportedException, RequestError, TooManyRequests
+
+    if isinstance(exc, TooManyRequests):
+        return "Google Translate refused the request (rate limit or captcha); try again later"
+    if isinstance(exc, LanguageNotSupportedException):
+        return f"unsupported language code {exc.val!r}"
+    if isinstance(exc, BaseError | RequestError):
+        return exc.message
+    return None
+
+
 def _is_closed_pipe(exc: OSError) -> bool:
     """Whether ``exc`` is a write to a closed pipe; Windows reports it as a bare ``EINVAL``."""
     windows_write = sys.platform == "win32" and exc.errno == errno.EINVAL and exc.filename is None
@@ -453,12 +464,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         if sys.stdout is not None:
             sys.stdout.flush()
         return code
-    except TooManyRequests:
-        return _fail("Google Translate refused the request (rate limit or captcha); try again later")
-    except LanguageNotSupportedException as exc:
-        return _fail(f"unsupported language code {exc.val!r}")
-    except (BaseError, RequestError) as exc:
-        return _fail(exc.message)
     except OSError as exc:
         if sys.stdout is None or not _is_closed_pipe(exc):
             return _fail(str(exc))
@@ -466,6 +471,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 141
     except (ValueError, ImportError) as exc:
         return _fail(str(exc))
+    except Exception as exc:
+        message = _translation_failure(exc)
+        if message is None:
+            raise
+        return _fail(message)
 
 
 if __name__ == "__main__":  # pragma: no cover

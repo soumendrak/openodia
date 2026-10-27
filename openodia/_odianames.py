@@ -1,7 +1,5 @@
 import random
 
-from faker import Faker
-
 from openodia.common.constants import (
     PREFIXES,
     FIRST_NAMES_MALE,
@@ -29,6 +27,8 @@ class Names:
         """Generate Odia names
         :param count: number of names to generate
         """
+        from faker import Faker
+
         fake = Faker("or_IN")
         name_list = [fake.name() for _ in range(count)]
         LOGGER.debug(f"generated {len(name_list)} number of names.")
