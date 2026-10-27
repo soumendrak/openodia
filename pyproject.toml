@@ -98,9 +98,7 @@ indent-style = "space"
 
 [tool.mypy]
 files = ["openodia"]
-warn_unused_configs = true
-warn_redundant_casts = true
-warn_unused_ignores = true
+strict = true
 
 [[tool.mypy.overrides]]
 module = ["deep_translator", "deep_translator.*", "diskcache"]
