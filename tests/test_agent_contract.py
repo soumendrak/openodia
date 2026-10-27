@@ -174,3 +174,12 @@ def test_pii_index_documents_the_domain_label_limit_and_url_apostrophes() -> Non
     assert "`<EMAIL>b.com`" in text
     assert "(`a@` + 64 `b` + `.com` is unchanged)" in text
     assert "an apostrophe inside the URL is part of it" in text
+
+
+def test_pii_index_says_a_closing_apostrophe_is_swallowed_when_a_url_character_follows() -> None:
+    text = (ROOT / "docs/index.md").read_text(encoding="utf-8")
+    assert "unless a URL character follows it" in text
+    assert "`'https://a.com/x'+p`" in text
+    assert "`'https://a.com/x'9876543210`" in text
+    assert "one that closes a quoted URL, ends it" not in text
+    assert "trailing `. , ; : ! ? ) ]` and `।` are left out" in text
