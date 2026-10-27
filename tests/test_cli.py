@@ -207,12 +207,12 @@ class _FakeGoogleTranslator:
 @pytest.fixture(autouse=True)
 def _offline_translator(monkeypatch: pytest.MonkeyPatch):
     """Keep CLI translation tests off the network and start with an empty cache."""
-    from openodia import _translate
+    import deep_translator
     from openodia.cache import _cache as cache_module
 
     # A fresh in-memory cache: never touch a configured OPENODIA_CACHE_DISK.
     monkeypatch.setattr(cache_module, "_cache", cache_module.TranslationCache())
-    monkeypatch.setattr(_translate, "GoogleTranslator", _FakeGoogleTranslator)
+    monkeypatch.setattr(deep_translator, "GoogleTranslator", _FakeGoogleTranslator)
     yield
 
 
@@ -469,11 +469,11 @@ class TestTranslateErrors:
         assert err == f"openodia: error: {expected}\n"
 
     def test_unsupported_language_code(self, monkeypatch, capsys):
-        monkeypatch.setattr("openodia._translate.GoogleTranslator", GoogleTranslator)
+        monkeypatch.setattr("deep_translator.GoogleTranslator", GoogleTranslator)
         self.assert_clean_failure(*run(["translate", "hello", "--to", "zz"], capsys), "unsupported language code 'zz'")
 
     def test_text_over_google_limit(self, monkeypatch, capsys, tmp_path):
-        monkeypatch.setattr("openodia._translate.GoogleTranslator", GoogleTranslator)
+        monkeypatch.setattr("deep_translator.GoogleTranslator", GoogleTranslator)
         long_text = tmp_path / "long.txt"
         long_text.write_text("ab " * 2000, encoding="utf-8")
         code, out, err = run(["translate", str(long_text), "--file"], capsys)
@@ -481,7 +481,7 @@ class TestTranslateErrors:
         assert "ab ab" not in err
 
     def test_rate_limit(self, monkeypatch, capsys):
-        monkeypatch.setattr("openodia._translate.GoogleTranslator", _RaisingTranslator)
+        monkeypatch.setattr("deep_translator.GoogleTranslator", _RaisingTranslator)
         self.assert_clean_failure(
             *run(["translate", "ନମସ୍କାର", "--from", "or", "--to", "en"], capsys),
             "Google Translate refused the request (rate limit or captcha); try again later",
@@ -492,9 +492,18 @@ class TestTranslateErrors:
             def translate(self, text):
                 raise RequestError()
 
-        monkeypatch.setattr("openodia._translate.GoogleTranslator", Failing)
+        monkeypatch.setattr("deep_translator.GoogleTranslator", Failing)
         code, out, err = run(["translate", "ନମସ୍କାର", "--from", "or", "--to", "en"], capsys)
         self.assert_clean_failure(code, out, err, RequestError().message)
+
+    def test_unexpected_error_still_propagates(self, monkeypatch, capsys):
+        class Crashing(_RaisingTranslator):
+            def translate(self, text):
+                raise RuntimeError("boom")
+
+        monkeypatch.setattr("deep_translator.GoogleTranslator", Crashing)
+        with pytest.raises(RuntimeError, match="boom"):
+            run(["translate", "ନମସ୍କାର", "--from", "or", "--to", "en"], capsys)
 
     @pytest.mark.parametrize(
         ("value", "message"),
