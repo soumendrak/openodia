@@ -15,12 +15,10 @@ import math
 import json
 import os
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
-
-from deep_translator.exceptions import BaseError, LanguageNotSupportedException, RequestError, TooManyRequests
 
 
 # ---------------------------------------------------------------------------
@@ -39,7 +37,7 @@ def _read_input(value: str, *, file: bool = False) -> str:
     return value
 
 
-def _int_at_least(minimum: int):
+def _int_at_least(minimum: int) -> Callable[[str], int]:
     """argparse ``type`` for integers >= ``minimum``."""
 
     def parse(raw: str) -> int:
@@ -91,14 +89,22 @@ def _utf8_stdio() -> None:
                 pass
 
 
+def _utf8_text(text: str) -> str:
+    try:
+        text.encode("utf-8")
+    except UnicodeEncodeError:
+        return os.fsencode(text).decode("utf-8")
+    return text
+
+
 def _require_utf8_input(args: argparse.Namespace) -> None:
     reconfigure = getattr(sys.stdin, "reconfigure", None)
     if reconfigure is not None:
         reconfigure(errors="strict")
     if not getattr(args, "file", False):
         try:
-            getattr(args, "text", "").encode("utf-8")
-        except UnicodeEncodeError:
+            args.text = _utf8_text(getattr(args, "text", ""))
+        except UnicodeError:
             raise ValueError("text argument is not valid UTF-8") from None
 
 
@@ -451,6 +457,19 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _translation_failure(exc: Exception) -> str | None:
+    """Describe a deep-translator error, or return ``None`` if ``exc`` is something else."""
+    from deep_translator.exceptions import BaseError, LanguageNotSupportedException, RequestError, TooManyRequests
+
+    if isinstance(exc, TooManyRequests):
+        return "Google Translate refused the request (rate limit or captcha); try again later"
+    if isinstance(exc, LanguageNotSupportedException):
+        return f"unsupported language code {exc.val!r}"
+    if isinstance(exc, BaseError | RequestError):
+        return str(exc.message)
+    return None
+
+
 def _is_closed_pipe(exc: OSError) -> bool:
     """Whether ``exc`` is a write to a closed pipe; Windows reports it as a bare ``EINVAL``."""
     windows_write = sys.platform == "win32" and exc.errno == errno.EINVAL and exc.filename is None
@@ -476,12 +495,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         if sys.stdout is not None:
             sys.stdout.flush()
         return code
-    except TooManyRequests:
-        return _fail("Google Translate refused the request (rate limit or captcha); try again later")
-    except LanguageNotSupportedException as exc:
-        return _fail(f"unsupported language code {exc.val!r}")
-    except (BaseError, RequestError) as exc:
-        return _fail(exc.message)
     except OSError as exc:
         if sys.stdout is None or not _is_closed_pipe(exc):
             return _fail(str(exc))
@@ -489,6 +502,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 141
     except (ValueError, ImportError) as exc:
         return _fail(str(exc))
+    except Exception as exc:
+        message = _translation_failure(exc)
+        if message is None:
+            raise
+        return _fail(message)
 
 
 if __name__ == "__main__":  # pragma: no cover
