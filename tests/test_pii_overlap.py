@@ -167,6 +167,14 @@ def test_detected_entities_are_sorted_and_never_overlap_on_random_input() -> Non
         "9 ",
         "+91 ",
         "ମୋ ",
+        "'a",
+        "'",
+        "a'",
+        "https://x/'a",
+        "https://x/'",
+        "https://x/a'",
+        "https://x/'.",
+        "https://x/a'?",
     ],
 )
 def test_detection_scales_linearly_with_input_size(unit: str) -> None:
@@ -183,6 +191,10 @@ def test_detection_scales_linearly_with_input_size(unit: str) -> None:
         pytest.param("@" + "b." * 500_000, id="dotted-run-after-at"),
         pytest.param("www." + "." * 1_000_000, id="www-then-dots"),
         pytest.param("a@" + "b-" * 500_000, id="dashed-domain"),
+        pytest.param("https://x/" + "'a" * 500_000, id="url-apostrophe-letter-run"),
+        pytest.param("https://x/" + "a'" * 500_000, id="url-letter-apostrophe-run"),
+        pytest.param("https://x/" + "'" * 1_000_000, id="url-apostrophe-run"),
+        pytest.param("https://x/" + "'." * 500_000, id="url-apostrophe-dot-run"),
     ],
 )
 def test_detection_survives_one_huge_token(text: str) -> None:
@@ -357,7 +369,15 @@ def test_emails_with_punctuation_leave_no_visible_prefix(text: str, masked: str)
     assert pii.mask(text) == masked
 
 
-SECRETS = ["o'connor@example.com", "alice/sales@example.com", "a!b#c@x.org", "9876543210", "ABCPE1234F", "https://h.org/p?q=1"]
+SECRETS = [
+    "o'connor@example.com",
+    "alice/sales@example.com",
+    "a!b#c@x.org",
+    "9876543210",
+    "ABCPE1234F",
+    "https://h.org/p?q=1",
+    "https://h.org/O'Neil?k=it's",
+]
 SEPARATORS = [
     " ",
     "\n",
@@ -414,6 +434,8 @@ def test_a_local_part_over_64_characters_is_not_found_and_a_punctuated_one_is_ma
         ("a@" + "b" * 63 + ".com", "<EMAIL>"),
         ("a@" + "b" * 64 + ".com", "a@" + "b" * 64 + ".com"),
         ("a@x." + "b" * 63 + ".com", "<EMAIL>"),
+        ("a@x." + "b" * 64 + ".com", "<EMAIL>b.com"),
+        ("a@x.y." + "b" * 63 + ".com", "<EMAIL>"),
     ],
 )
 def test_email_length_limits_are_exactly_64_local_and_63_per_domain_label(text: str, masked: str) -> None:
@@ -425,3 +447,55 @@ def test_an_email_never_starts_inside_a_run_of_ascii_letters_or_digits(neighbour
     glued = neighbour * 65 + "@x.com"
     assert pii.mask(glued) == glued
     assert kinds(neighbour + "@x.com") == [("EMAIL", neighbour + "@x.com")]
+
+
+@pytest.mark.parametrize(
+    ("text", "masked"),
+    [
+        ("https://example.com/users/O'Connor?token=secret", "<URL>"),
+        ("https://x.com/a?q=it's&token=SECRET", "<URL>"),
+        ("https://x.com/it's/that's", "<URL>"),
+        ("https://x.com/a'b'c'd", "<URL>"),
+        ("https://x.com/'a", "<URL>"),
+        ("www.x.com/O'Connor", "<URL>"),
+        ("see https://x.com/it's now", "see <URL> now"),
+        ("'https://a.com/x'", "'<URL>'"),
+        ("see 'https://a.com/x'.", "see '<URL>'."),
+        ("https://a.com/x'", "<URL>'"),
+        ("https://a.com/x''", "<URL>''"),
+        ("https://a.com/x'.", "<URL>'."),
+        ("https://a.com/x',", "<URL>',"),
+        ("https://a.com/x';", "<URL>';"),
+        ("https://a.com/x':", "<URL>':"),
+        ("https://a.com/x'!", "<URL>'!"),
+        ("https://a.com/x'?", "<URL>'?"),
+        ("(https://a.com/x')", "(<URL>')"),
+        ("[https://a.com/x']", "[<URL>']"),
+        ("https://x.com/a'/b?token=SECRET", "<URL>"),
+        ("https://x.com/a'&token=SECRET", "<URL>"),
+        ("['https://a.com/x','https://b.com/y']", "['<URL>','<URL>']"),
+        ("https://a.com/x'.y", "<URL>'.y"),
+        ("https://a.com/x''y", "<URL>''y"),
+        ("https://a.com/x'?q=1", "<URL>'?q=1"),
+        ("https://a.com/it's'", "<URL>'"),
+        ("https://a.com/it's'.", "<URL>'."),
+        ('"https://a.com/it\'s"', '"<URL>"'),
+        ("<https://a.com/it's>", "<<URL>>"),
+        ("https://a.com/it'sधन", "<URL>"),
+    ],
+)
+def test_an_apostrophe_inside_a_url_is_masked_with_it_and_a_closing_one_is_left(text: str, masked: str) -> None:
+    assert pii.mask(text) == masked
+    assert pii.mask(masked) == masked
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "https://example.com/users/O'Connor?token=secret",
+        "https://x.com/a?q=it's&token=SECRET",
+        "go to https://x.com/'a?token=SECRET and 'https://y.com/b's?k=SECRET2' ok",
+    ],
+)
+def test_no_secret_survives_after_an_apostrophe_in_a_url_path_or_query(text: str) -> None:
+    assert "secret" not in pii.mask(text).lower()

@@ -161,6 +161,16 @@ def test_pii_docs_and_changelog_and_docstring_do_not_overclaim_masking() -> None
 def test_pii_index_documents_the_over_masking_of_leading_delimiters() -> None:
     text = (ROOT / "docs/index.md").read_text(encoding="utf-8")
     assert "`key=val@host.com`" in text
-    assert "`ssh://git@host`" in text
+    assert "`ssh://git@host.com` loses `//`" in text
+    assert "`ssh://git@host` has no top-level domain and stays unchanged" in text
+    assert "`ssh://git@host` loses `//`" not in text
     assert "`www.x.com/a@b.com`" in text
     assert "nothing leaks" in text
+
+
+def test_pii_index_documents_the_domain_label_limit_and_url_apostrophes() -> None:
+    text = (ROOT / "docs/index.md").read_text(encoding="utf-8")
+    assert "A domain label over 63 characters is not matched" in text
+    assert "`<EMAIL>b.com`" in text
+    assert "(`a@` + 64 `b` + `.com` is unchanged)" in text
+    assert "an apostrophe inside the URL is part of it" in text
