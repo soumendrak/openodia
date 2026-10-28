@@ -1,6 +1,6 @@
 # AGENTS.md
 
-`openodia` is a Python library and command-line tool for Odia (ଓଡ଼ିଆ) text: tokenize, normalize, clean, translate, detect language, generate names, summarize, remove stopwords, n-grams and word frequency. Docs: https://openodia.soumendrak.com. Skill file: [skills/openodia/SKILL.md](skills/openodia/SKILL.md).
+`openodia` is a Python library and command-line tool for Odia (ଓଡ଼ିଆ) text: tokenize, normalize, clean, translate, detect language, generate names, summarize, remove stopwords, n-grams, word frequency and PII masking. Docs: https://openodia.soumendrak.com. Skill file: [skills/openodia/SKILL.md](skills/openodia/SKILL.md).
 
 ## Install
 
@@ -61,11 +61,17 @@ $ openodia ngrams -n 2 --json 'ରାମ ସୀତା ଘରକୁ'
 {"ngrams": [["ରାମ", "ସୀତା"], ["ସୀତା", "ଘରକୁ"]]}
 $ openodia freq --top 2 --json 'ରାମ ସୀତା ରାମ'
 {"counts": [{"token": "ରାମ", "count": 2}, {"token": "ସୀତା", "count": 1}]}
+$ openodia pii --json 'ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ।'
+{"entities": [{"type": "PHONE", "text": "୯୮୭୬୫୪୩୨୧୦", "start": 7, "end": 17, "confidence": 0.9}]}
+$ openodia pii --mask --json 'ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ।'
+{"text": "ମୋ ଫୋନ <PHONE> ।"}
 ```
 
 `name` output is random, so only its shape is fixed: `{"names": ["...", "..."]}`.
 
 `translate` answers English to Odia from an offline dictionary when it can. Every other pair calls Google Translate over the network, which can be rate limited (exit code 1) and refuses text over 5,000 characters. Language codes: `en`, `or` (Odia), and any code Google supports. `summarize` returns an empty summary for text with too few sentences.
+
+`pii` finds Indian mobile numbers, emails, URLs, Aadhaar numbers, PAN and PIN codes, in Odia or ASCII digits, offline. `pii` needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there. It does not find names, street addresses, dates or amounts, so `pii --mask` output is not anonymised. Offsets count characters of the text the command read: `--file` drops a leading BOM and turns CRLF and a lone CR into LF; `-` (stdin) drops a leading BOM only and keeps any `\r` (a Linux or macOS pipe delivers `\r\n` unchanged, so offsets from `-` can differ from `--file` by one per line break); a literal argument is used as given. `http(s)://` and `www.` match in any letter case, so `HTTPS://` and `WWW.` are found. Matches that overlap merge into one span, typed by the longest match (a tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`), so for every detected value `--mask` never leaves half of it visible; see the limits below. It repeats until nothing new appears (at most 10 passes), so masking its own output changes nothing unless the input chains more than 10 values glued together; past that, `mask` can still contain raw PII in its result. Expect false positives: any 10-digit number starting 6-9 is a `PHONE`, and any 12-digit number starting 2-9 is an `AADHAAR` at confidence 0.5. An email local part may hold letters, digits and ``. _ % + - ! # $ & ' * / = ? ^ ` { | } ~``, so `o'connor@example.com` is masked whole. One over 64 characters is not found (if it contains punctuation, only its last 64 characters may be masked, so the earlier part stays visible); this is a deliberate limit left for a follow-up. A local part that starts with non-ASCII letters, such as `ଅଭିa@x.com`, is masked only from the first ASCII character, so `ଅଭି` stays visible. A bare domain without `http(s)://` or `www.`, and digits in other scripts are not found. A PIN code is only reported after `PIN`, `Pincode` or `ପିନ`. An Aadhaar-shaped number that fails its checksum is reported with confidence 0.5 (0.95 when it passes); `--min-confidence 0.9` drops it. `--type` (repeatable) limits the types: `PHONE`, `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PINCODE`.
 
 ## JSON shapes
 
@@ -79,8 +85,9 @@ $ openodia freq --top 2 --json 'ରାମ ସୀତା ରାମ'
 | `remove-stopwords` | `{"tokens": [string]}`; with `--get-str` `{"text": string}` |
 | `ngrams` | `{"ngrams": [[string]]}`, each inner list has `n` tokens |
 | `freq` | `{"counts": [{"token": string, "count": integer}]}`, most frequent first |
+| `pii` | `{"entities": [{"type": string, "text": string, "start": integer, "end": integer, "confidence": number}]}`, by position; `text` is the raw matched value, so plain `--json` output contains the PII itself. With `--mask`, `{"text": string}` holds only the masked text |
 
-Without `--json`, `freq` prints `COUNT<TAB>TOKEN` lines, `ngrams` prints space-joined n-grams, and `detect-language` prints `odia (confidence: 0.91)` or `(empty input)`.
+Without `--json`, `pii` prints `TYPE<TAB>START<TAB>END<TAB>TEXT` lines (or the masked text with `--mask`), `freq` prints `COUNT<TAB>TOKEN` lines, `ngrams` prints space-joined n-grams, and `detect-language` prints `odia (confidence: 0.91)` or `(empty input)`.
 
 ## Exit codes and errors
 

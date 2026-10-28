@@ -1,13 +1,20 @@
 # OpenOdia
 
-> openodia is an open source Python library and command-line tool for Odia (ଓଡ଼ିଆ) text: tokenize, normalize, clean, translate, detect language, generate names, summarize, remove stopwords, n-grams and word frequency. Install with `pip install openodia` or run `uvx openodia`.
+> openodia is an open source Python library and command-line tool for Odia (ଓଡ଼ିଆ) text: tokenize, normalize, clean, translate, detect language, generate names, summarize, remove stopwords, n-grams, word frequency and PII masking. Install with `pip install openodia` or run `uvx openodia`.
 
-Version note: `--json` on every CLI subcommand (one machine-readable JSON document on stdout) needs a release newer than 0.1.14. PyPI 0.1.14 has `--json` on `detect-language` only, and other subcommands exit with code 2 there. From a source checkout, `uv run openodia <subcommand> --json` works.
+Version note: `--json` on every CLI subcommand (one machine-readable JSON document on stdout) needs a release newer than 0.1.14. PyPI 0.1.14 has `--json` on `detect-language` only, and other subcommands exit with code 2 there. From a source checkout, `uv run openodia <subcommand> --json` works. `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there; it needs a newer release too.
 
 ## Docs
 
 - [Documentation](https://openodia.soumendrak.com/): install, library API and command-line interface
 - [Applications](https://openodia.soumendrak.com/application/): worked examples such as name generation and data masking
+- [Text processing guide](https://openodia.soumendrak.com/guides/text-processing/): tokenize, sentences, stopwords, normalize, clean, detect language
+- [Script, syllables and names guide](https://openodia.soumendrak.com/guides/script-and-names/): alphabet, syllable split, name generation
+- [Numbers guide](https://openodia.soumendrak.com/guides/numbers/): number words, ordinals, dates, currency, digits
+- [Analysis guide](https://openodia.soumendrak.com/guides/analysis/): n-grams, frequency, collocations, co-occurrence, summarization
+- [Translation guide](https://openodia.soumendrak.com/guides/translation/): offline dictionary, Google Translate, translation cache
+- [Command-line guide](https://openodia.soumendrak.com/guides/cli/): every subcommand with runnable examples
+- [API reference](https://openodia.soumendrak.com/api/text/): signatures and docstrings generated from the source
 
 ## For agents
 

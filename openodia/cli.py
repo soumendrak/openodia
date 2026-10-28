@@ -4,7 +4,7 @@ Run ``openodia --help`` to see all subcommands.
 
 The CLI is intentionally thin: each subcommand maps to an existing
 Python entry point in the package. New subcommands can be added in
-:func:`build_parser` and :func:`main` without touching anything else.
+``build_parser`` and ``main`` without touching anything else.
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ import json
 import os
 import sys
 from collections.abc import Callable, Sequence
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -280,13 +281,33 @@ def _cmd_freq(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_pii(args: argparse.Namespace) -> int:
+    from openodia import pii
+
+    text = _read_input(args.text, file=args.file)
+    if args.mask:
+        masked = pii.mask(text, types=args.type, min_confidence=args.min_confidence)
+        if args.json:
+            _emit_json({"text": masked})
+        else:
+            print(masked)
+        return 0
+    entities = pii.detect(text, types=args.type, min_confidence=args.min_confidence)
+    if args.json:
+        _emit_json({"entities": [asdict(entity) for entity in entities]})
+        return 0
+    for entity in entities:
+        print(f"{entity.type}\t{entity.start}\t{entity.end}\t{entity.text}")
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # Argument parser
 # ---------------------------------------------------------------------------
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the top-level :class:`argparse.ArgumentParser`."""
+    """Build the top-level ``argparse.ArgumentParser``."""
     parser = argparse.ArgumentParser(
         prog="openodia",
         description=(
@@ -419,6 +440,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="How many top tokens to emit (default: 20)",
     )
     p.set_defaults(func=_cmd_freq)
+
+    from openodia.pii import PII_TYPES
+
+    p = sub.add_parser("pii", help="Find or mask phone, email, URL, Aadhaar, PAN and PIN code")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
+    p.add_argument("--mask", action="store_true", help="Print the text with each match replaced by <TYPE>")
+    p.add_argument("--type", action="append", choices=PII_TYPES, help="Only this PII type; repeat for several")
+    p.add_argument("--min-confidence", type=_unit_float, default=0.0, help="Drop matches below this confidence (default: 0)")
+    p.set_defaults(func=_cmd_pii)
 
     for subparser in sub.choices.values():
         subparser.add_argument("--json", action="store_true", help="Emit JSON instead of text")
