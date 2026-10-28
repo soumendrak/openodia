@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import threading
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any, TypedDict
@@ -43,12 +44,20 @@ class TranslationCache:
         if max_size < 1:
             raise ValueError(f"max_size must be >= 1, got {max_size}")
         self._max_size = max_size
+        self._lock = threading.Lock()
         self._memory: OrderedDict[Any, str] = OrderedDict()
         self._hits = 0
         self._misses = 0
         self._disk: Any | None = None
         if disk_path is not None:
             self._disk = _open_diskcache(disk_path)
+
+    def __getstate__(self) -> dict[str, Any]:
+        return {name: value for name, value in self.__dict__.items() if name != "_lock"}
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        self.__dict__.update(state)
+        self._lock = threading.Lock()
 
     # ------------------------------------------------------------------
     # Get / set
@@ -60,22 +69,24 @@ class TranslationCache:
         Hits in memory are moved to the most-recently-used position. Hits
         on disk are promoted to memory.
         """
-        if key in self._memory:
-            self._memory.move_to_end(key)
-            self._hits += 1
-            return self._memory[key]
-        if self._disk is not None:
-            value: str | None = self._disk.get(key)
-            if value is not None:
-                self._store_memory(key, value)
+        with self._lock:
+            if key in self._memory:
+                self._memory.move_to_end(key)
                 self._hits += 1
-                return value
-        self._misses += 1
-        return None
+                return self._memory[key]
+        value: str | None = self._disk.get(key) if self._disk is not None else None
+        with self._lock:
+            if value is None:
+                self._misses += 1
+                return None
+            self._store_memory(key, value)
+            self._hits += 1
+            return value
 
     def set(self, key: Any, value: str) -> None:
         """Insert into memory (and disk, if configured)."""
-        self._store_memory(key, value)
+        with self._lock:
+            self._store_memory(key, value)
         if self._disk is not None:
             self._disk[key] = value
 
@@ -91,19 +102,22 @@ class TranslationCache:
 
     def stats(self) -> CacheStats:
         """Return current hit/miss/size counters."""
+        with self._lock:
+            hits, misses, size = self._hits, self._misses, len(self._memory)
         return CacheStats(
-            hits=self._hits,
-            misses=self._misses,
-            size=len(self._memory),
+            hits=hits,
+            misses=misses,
+            size=size,
             max_size=self._max_size,
             disk_size=len(self._disk) if self._disk is not None else 0,
         )
 
     def clear(self) -> None:
         """Drop all entries (memory + disk) and reset counters."""
-        self._memory.clear()
-        self._hits = 0
-        self._misses = 0
+        with self._lock:
+            self._memory.clear()
+            self._hits = 0
+            self._misses = 0
         if self._disk is not None:
             self._disk.clear()
 
@@ -143,13 +157,19 @@ def _build_from_env() -> TranslationCache:
 # ---------------------------------------------------------------------------
 
 _cache: TranslationCache | None = None
+_singleton_lock = threading.Lock()
 
 
 def get_cache() -> TranslationCache:
-    """Return the active cache instance, building it lazily on first use."""
+    """Return the active cache instance, building it lazily on first use.
+
+    Safe to call from several threads at once: they all get the same instance.
+    """
     global _cache
     if _cache is None:
-        _cache = _build_from_env()
+        with _singleton_lock:
+            if _cache is None:
+                _cache = _build_from_env()
     return _cache
 
 
