@@ -13,7 +13,7 @@
 
 - Hunterian `from_roman` always reads `n` and `h` as the consonants `ନ` and `ହ`, so `ନ୍` endings and clusters such as `ନ୍ସ` and `ଙ୍କ` round-trip; anusvara and visarga round-trip through the explicit marks of ISO 15919 and ITRANS.
 
-- `to_roman` writes a nukta after any consonant as `·` in ISO 15919 and a backtick in ITRANS, and `from_roman` reads both back as the nukta, so those two characters are no longer passed through in these schemes (`to_roman(..., reversible=True)` quotes them). Hunterian drops the nukta.
+- `to_roman` writes a nukta after any consonant except ଡ and ଢ (which keep `ṛ`/`ṛh` in ISO 15919 and `.D`/`.Dh` in ITRANS) as `·` in ISO 15919 and a backtick in ITRANS, and `from_roman` reads both back as the nukta, so those two characters are no longer passed through in these schemes (`to_roman(..., reversible=True)` quotes them). Hunterian drops the nukta.
 
 ### Behaviour note
 
