@@ -8,7 +8,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 RUNNABLE = ["AGENTS.md", "skills/openodia/SKILL.md", "README.md"]
-DOCS = [*RUNNABLE, "docs/llms.txt", "docs/index.md"]
+DOCS = [*RUNNABLE, "docs/llms.txt", "docs/index.md", "docs/guides/cli.md"]
 FENCE = re.compile(r"^```console\n(.*?)^```", re.DOTALL | re.MULTILINE)
 
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="documented examples use a POSIX shell")
@@ -42,9 +42,12 @@ def test_documented_example_runs_as_shown(doc: str, index: int, tmp_path: Path) 
         **os.environ,
         "PATH": os.pathsep.join([str(Path(sys.executable).parent), os.environ["PATH"]]),
         "PYTHONUTF8": "1",
+        "LC_ALL": "C.UTF-8",
     }
+    script = tmp_path.with_name(f"{tmp_path.name}-step.sh")
     for command, expected in parse_steps(console_blocks(doc)[index]):
-        done = subprocess.run(["sh", "-c", command], cwd=tmp_path, env=env, capture_output=True, text=True, encoding="utf-8")
+        script.write_text(command, encoding="utf-8")
+        done = subprocess.run(["sh", str(script)], cwd=tmp_path, env=env, capture_output=True, text=True, encoding="utf-8")
         assert done.returncode == 0, f"{command}\n{done.stderr}"
         if expected:
             assert done.stdout == "\n".join(expected) + "\n", command

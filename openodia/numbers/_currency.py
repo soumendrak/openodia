@@ -24,9 +24,7 @@ def to_words_currency(
         scale: Numbering scale to use for both rupee and paisa parts.
 
     Returns:
-        For non-zero rupees and non-zero paisa::
-
-            "<rupee_words> ଟଙ୍କା <paisa_words> ପଇସା"
+        For non-zero rupees and non-zero paisa, ``"<rupee_words> ଟଙ୍କା <paisa_words> ପଇସା"``.
 
         For zero paisa, the paisa half is omitted. For zero rupees and
         non-zero paisa, the rupee half is omitted.

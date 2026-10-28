@@ -98,6 +98,19 @@ class TestTranslate:
         assert other_lang_to_odia("watch") == "ଦେଖନ୍ତୁ"
         assert translation_calls == []
 
+    @pytest.mark.parametrize("text", ["watch\n", " watch", "\twatch  \r\n", "Watch\n"])
+    @mock.patch.object(_translate, "get_dictionary", mock_get_dictionary)
+    def test_surrounding_whitespace_still_hits_the_offline_dictionary(self, text, translation_calls):
+        """Text read from a file or stdin ends in a newline; it must not fall through to Google."""
+        assert other_lang_to_odia(text) == "ଦେଖନ୍ତୁ"
+        assert translation_calls == []
+
+    @mock.patch.object(_translate, "get_dictionary", lambda: {"by ": "ଦ୍ୱାରା"})
+    def test_dictionary_key_with_trailing_space_is_still_found(self, translation_calls):
+        """A few dictionary keys carry a trailing space; an exact match wins over the stripped lookup."""
+        assert other_lang_to_odia("by ") == "ଦ୍ୱାରା"
+        assert translation_calls == []
+
     @pytest.mark.parametrize(
         "text, dest, output",
         [

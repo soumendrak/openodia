@@ -77,7 +77,7 @@ _RESTORE_RE = re.compile(r"\x00(\d+)\x00")
 
 
 def _restore(text: str, masks: list[str]) -> str:
-    """Inverse of :func:`_mask`."""
+    """Inverse of ``_mask``."""
     if not masks:
         return text
     return _RESTORE_RE.sub(lambda m: masks[int(m.group(1))], text)

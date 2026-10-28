@@ -26,6 +26,7 @@ SAMPLES = {
     "remove-stopwords": [["remove-stopwords", "ରାମ ସୀତା"], ["remove-stopwords", "--get-str", "ରାମ ସୀତା"]],
     "ngrams": [["ngrams", "-n", "2", "ରାମ ସୀତା ଘରକୁ"]],
     "freq": [["freq", "ରାମ ସୀତା ରାମ"]],
+    "pii": [["pii", "a@b.com"], ["pii", "--mask", "a@b.com"]],
 }
 
 
@@ -79,6 +80,14 @@ def test_doc_states_which_release_has_json(doc: str) -> None:
 
 
 @pytest.mark.parametrize("doc", [*DOCS, "docs/application.md"])
+def test_doc_that_mentions_pii_states_which_release_has_it(doc: str) -> None:
+    text = (ROOT / doc).read_text(encoding="utf-8")
+    if "pii" in text.lower():
+        assert "`openodia pii` exits 2 on 0.1.14" in text
+        assert "`import openodia.pii` fails" in text
+
+
+@pytest.mark.parametrize("doc", [*DOCS, "docs/application.md"])
 def test_doc_that_mentions_translate_batch_states_which_release_has_it(doc: str) -> None:
     text = (ROOT / doc).read_text(encoding="utf-8")
     if "translate_batch" in text:
@@ -124,3 +133,67 @@ def test_documented_exit_codes_match_real_behaviour(capsys: pytest.CaptureFixtur
     with pytest.raises(SystemExit) as exc:
         cli.main(["tokenize"])
     assert exc.value.code == 2
+
+
+@pytest.mark.parametrize("doc", ["AGENTS.md", "docs/index.md"])
+def test_pii_docs_say_what_stdin_does_to_offsets_and_how_far_mask_can_be_trusted(doc: str) -> None:
+    text = (ROOT / doc).read_text(encoding="utf-8")
+    assert "`-` (stdin) drops a leading BOM only" in text
+    assert "keeps any `\\r`" in text
+    assert "for `--file` and `-`" not in text
+    assert "can still contain raw PII" in text
+    assert "`HTTPS://` and `WWW.`" in text
+    assert "turns CRLF and a lone CR into LF" in text
+    assert "``. _ % + - ! # $ & ' * / = ? ^ ` { | } ~``" in text
+
+
+@pytest.mark.parametrize("doc", ["AGENTS.md", "docs/index.md"])
+def test_pii_docs_qualify_the_masking_guarantee_and_name_the_email_limits(doc: str) -> None:
+    text = (ROOT / doc).read_text(encoding="utf-8")
+    assert "for every detected value" in text
+    assert "see the limits below" in text
+    assert "never leaves half of a value visible" not in text
+    assert "no part of a value stays visible" not in text
+    assert "`ଅଭିa@x.com`" in text
+    assert "deliberate limit" in text
+    assert "quadratic" not in text
+
+
+def test_pii_docs_and_changelog_and_docstring_do_not_overclaim_masking() -> None:
+    from openodia.pii import detect
+
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert "never leaves part of a value visible" not in changelog
+    assert "for every detected value" in changelog
+    assert "see the limits below" in changelog
+    assert detect.__doc__ is not None
+    assert "no part of a value is left visible" not in detect.__doc__
+    assert "for every detected value" in detect.__doc__
+    assert "see the limits below" in detect.__doc__
+
+
+def test_pii_index_documents_the_over_masking_of_leading_delimiters() -> None:
+    text = (ROOT / "docs/index.md").read_text(encoding="utf-8")
+    assert "`key=val@host.com`" in text
+    assert "`ssh://git@host.com` loses `//`" in text
+    assert "`ssh://git@host` has no top-level domain and stays unchanged" in text
+    assert "`ssh://git@host` loses `//`" not in text
+    assert "`www.x.com/a@b.com`" in text
+    assert "nothing leaks" in text
+
+
+def test_pii_index_documents_the_domain_label_limit_and_url_apostrophes() -> None:
+    text = (ROOT / "docs/index.md").read_text(encoding="utf-8")
+    assert "A domain label over 63 characters is not matched" in text
+    assert "`<EMAIL>b.com`" in text
+    assert "(`a@` + 64 `b` + `.com` is unchanged)" in text
+    assert "an apostrophe inside the URL is part of it" in text
+
+
+def test_pii_index_says_a_closing_apostrophe_is_swallowed_when_a_url_character_follows() -> None:
+    text = (ROOT / "docs/index.md").read_text(encoding="utf-8")
+    assert "unless a URL character follows it" in text
+    assert "`'https://a.com/x'+p`" in text
+    assert "`'https://a.com/x'9876543210`" in text
+    assert "one that closes a quoted URL, ends it" not in text
+    assert "trailing `. , ; : ! ? ) ]` and `।` are left out" in text

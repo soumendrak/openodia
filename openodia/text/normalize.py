@@ -53,7 +53,7 @@ def normalize(text: str, form: UnicodeForm = "NFC") -> str:
 
 @dataclass(frozen=True)
 class CleanOptions:
-    """Options for :func:`clean`.
+    """Options for ``clean``.
 
     Attributes:
         form: Unicode normalization form applied first. Defaults to ``"NFC"``.
@@ -96,7 +96,7 @@ def clean(text: str, options: CleanOptions | None = None) -> str:
 
     Args:
         text: Input string.
-        options: Cleanup configuration. ``None`` uses :data:`DEFAULT_CLEAN`.
+        options: Cleanup configuration. ``None`` uses ``DEFAULT_CLEAN``.
 
     Returns:
         The cleaned string. ``clean(clean(x)) == clean(x)`` for any ``x``.
