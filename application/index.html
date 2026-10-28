@@ -489,6 +489,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#masking-phone-numbers-emails-aadhaar-pan-and-pin-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Masking phone numbers, emails, Aadhaar, PAN and PIN codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#masking-names" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1187,6 +1198,10 @@
 <li>In data engineering projects when you need to ingest large amount of data, you need to mask or anonymize the PI (Personal Identification) data from the data source.</li>
 <li>This is to remove bias and increase privacy on your data/model.</li>
 </ul>
+<h4 id="masking-phone-numbers-emails-aadhaar-pan-and-pin-codes">Masking phone numbers, emails, Aadhaar, PAN and PIN codes<a class="headerlink" href="#masking-phone-numbers-emails-aadhaar-pan-and-pin-codes" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>openodia.pii.mask(text)</code> replaces them with <code>&lt;PHONE&gt;</code>, <code>&lt;EMAIL&gt;</code>, <code>&lt;AADHAAR&gt;</code>, <code>&lt;PAN&gt;</code>, <code>&lt;PINCODE&gt;</code> and <code>&lt;URL&gt;</code> tags. See <a href="../#pii-detection-and-masking">PII detection and masking</a> for what it does and does not catch. It does not mask names. <code>openodia pii</code> exits 2 on 0.1.14 and <code>import openodia.pii</code> fails there; it needs a newer release.</li>
+</ul>
 <h4 id="masking-names">Masking names:<a class="headerlink" href="#masking-names" title="Permanent link">&para;</a></h4>
 <ul>
 <li>To avoid disrupting privacy of individuals, you can identify the names of people in the text and </li>
@@ -1289,7 +1304,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="October 28, 2026 06:49:09 UTC"><span class="timeago" datetime="2026-10-28T06:49:09+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 28, 2026 06:49:09 UTC">2026-10-28</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="October 28, 2026 06:50:39 UTC"><span class="timeago" datetime="2026-10-28T06:50:39+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 28, 2026 06:50:39 UTC">2026-10-28</span>
   </span>
 
     

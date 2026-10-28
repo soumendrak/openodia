@@ -571,6 +571,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pii-detection-and-masking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PII detection and masking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#odia-alphabets" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1454,6 +1465,7 @@ uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># or: pi
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#translation-cache">Translation cache configuration</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#numbers-and-words">Numbers, dates, and currency in words</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#sentence-segmenter">Sentence segmenter</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#pii-detection-and-masking">PII detection and masking</a></li>
 </ul>
 <h3 id="unicode-normalization"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m19.36 2.72 1.42 1.42-5.72 5.71c1.07 1.54 1.22 3.39.32 4.59L9.06 8.12c1.2-.9 3.05-.75 4.59.32zM5.93 17.57c-2.01-2.01-3.24-4.41-3.58-6.65l4.88-2.09 7.44 7.44-2.09 4.88c-2.24-.34-4.64-1.57-6.65-3.58"/></svg></span> Unicode normalization<a class="headerlink" href="#unicode-normalization" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1569,6 +1581,9 @@ openodia<span class="w"> </span>name<span class="w"> </span>--kind<span class="w
 <span class="c1"># Extractive summary</span>
 openodia<span class="w"> </span>summarize<span class="w"> </span>--file<span class="w"> </span>article.txt<span class="w"> </span>--threshold<span class="w"> </span><span class="m">3</span>
 
+<span class="c1"># Find or mask phone, email, Aadhaar, PAN, PIN code</span>
+openodia<span class="w"> </span>pii<span class="w"> </span><span class="s2">&quot;ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦&quot;</span><span class="w"> </span>--mask
+
 <span class="c1"># Stopword removal + corpus stats</span>
 openodia<span class="w"> </span>remove-stopwords<span class="w"> </span><span class="s2">&quot;ରାମ ଓ ସୀତା&quot;</span>
 openodia<span class="w"> </span>ngrams<span class="w"> </span><span class="s2">&quot;ରାମ ସୀତା ଲକ୍ଷ୍ମଣ&quot;</span><span class="w"> </span>-n<span class="w"> </span><span class="m">2</span>
@@ -1680,6 +1695,83 @@ extending it in a wrapper module.</p>
 <p>The pre-existing helper continues to behave exactly as before (splits
 on <code>" ।"</code> only). Adopt <code>openodia.sentences()</code> for new code.</p>
 </details>
+<h3 id="pii-detection-and-masking"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5zm0 4a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-3-3 3 3 0 0 1 3-3m5.13 12A9.7 9.7 0 0 1 12 20.92 9.7 9.7 0 0 1 6.87 17c-.34-.5-.63-1-.87-1.53 0-1.65 2.71-3 6-3s6 1.32 6 3c-.24.53-.53 1.03-.87 1.53"/></svg></span> PII detection and masking<a class="headerlink" href="#pii-detection-and-masking" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>openodia.pii</code> finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: <code>openodia pii</code> exits 2 on 0.1.14 and <code>import openodia.pii</code> fails there.</li>
+<li>Odia digits (<code>୦</code>-<code>୯</code>) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: <code>--file</code> drops a leading BOM and turns CRLF and a lone CR into LF. <code>-</code> (stdin) drops a leading BOM only and keeps any <code>\r</code>: a Linux or macOS pipe delivers <code>\r\n</code> unchanged, so offsets from <code>-</code> can differ from <code>--file</code> by one per line break.</li>
+<li>Matches that overlap merge into one span typed by the longest match, so for every detected value no part of it stays visible; see the limits below. A tie goes to the earlier of <code>EMAIL</code>, <code>URL</code>, <code>AADHAAR</code>, <code>PAN</code>, <code>PHONE</code>, <code>PINCODE</code>. <code>min_confidence</code> is applied before merging.</li>
+<li><code>openodia pii --json</code> puts the raw matched <code>text</code> in every entity, so it contains the PII. Use <code>--mask --json</code> for output that holds only the masked text.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">pii</span>
+
+<span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦, ମେଲ a@b.com, ଆଧାର ୨୩୪୫ ୬୭୮୯ ୦୧୨୪, PIN ୭୫୧୦୦୧&quot;</span>
+<span class="n">pii</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+<span class="c1"># [PIIEntity(type=&#39;PHONE&#39;, text=&#39;୯୮୭୬୫୪୩୨୧୦&#39;, start=7, end=17, confidence=0.9), ...]</span>
+<span class="n">pii</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+<span class="c1"># &#39;ମୋ ଫୋନ &lt;PHONE&gt;, ମେଲ &lt;EMAIL&gt;, ଆଧାର &lt;AADHAAR&gt;, PIN &lt;PINCODE&gt;&#39;</span>
+<span class="n">pii</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EMAIL&quot;</span><span class="p">],</span> <span class="n">placeholder</span><span class="o">=</span><span class="k">lambda</span> <span class="n">entity</span><span class="p">:</span> <span class="s2">&quot;***&quot;</span><span class="p">)</span>
+<span class="n">pii</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">min_confidence</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>What it matches</th>
+<th>Confidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PHONE</code></td>
+<td>10-digit Indian mobile starting 6-9, optional <code>+91</code>, <code>(+91)</code>, <code>0091</code>, <code>91</code> followed by a space or <code>-</code>, or <code>0</code>; optional space or <code>-</code> after the fifth digit</td>
+<td>0.9</td>
+</tr>
+<tr>
+<td><code>EMAIL</code></td>
+<td><code>local@domain.tld</code>; the local part is up to 64 characters of letters, digits and <code>. _ % + - ! # $ &amp; ' * / = ? ^ ` { | } ~</code> (RFC 5322 atext), top-level domain of two or more letters. A longer local part is not found, and if it contains punctuation only its last 64 characters may be masked, so the earlier part stays visible; this is a deliberate limit left for a follow-up. A domain label over 63 characters is not matched: if it is the first label the whole address stays visible (<code>a@</code> + 64 <code>b</code> + <code>.com</code> is unchanged), and a later one leaves a tail (<code>a@x.</code> + 64 <code>b</code> + <code>.com</code> gives <code>&lt;EMAIL&gt;b.com</code>). A local part that starts with non-ASCII letters, such as <code>ଅଭିa@x.com</code>, is masked only from the first ASCII character, so <code>ଅଭି</code> stays visible</td>
+<td>0.95</td>
+</tr>
+<tr>
+<td><code>URL</code></td>
+<td><code>http://</code>, <code>https://</code> or <code>www.</code> in any letter case, so <code>HTTPS://</code> and <code>WWW.</code> are found (not glued to a letter, digit, <code>@</code>, <code>.</code> or <code>-</code> before it) up to whitespace; an apostrophe inside the URL is part of it (<code>https://x.com/O'Connor?token=s</code> is one <code>&lt;URL&gt;</code>), but one that closes a quoted URL is left out unless a URL character follows it (<code>'https://a.com/x'+p</code>, <code>'https://a.com/x'/y</code> and <code>'https://a.com/x'9876543210</code> are masked to the end, which only over-masks), and so is one that ends the URL or comes before <code>. , ; : ! ? ) ]</code>; trailing <code>. , ; : ! ? ) ]</code> and <code>।</code> are left out</td>
+<td>0.9</td>
+</tr>
+<tr>
+<td><code>AADHAAR</code></td>
+<td>12 digits starting 2-9, contiguous or grouped 4-4-4 by one space or <code>-</code>. 0.95 when the Verhoeff checksum passes, 0.5 when it fails</td>
+<td>0.95 / 0.5</td>
+</tr>
+<tr>
+<td><code>PAN</code></td>
+<td><code>AAAPA1234A</code>: uppercase, fourth letter one of <code>PCHFATBLJG</code></td>
+<td>0.95</td>
+</tr>
+<tr>
+<td><code>PINCODE</code></td>
+<td>6 digits, first 1-9, directly after <code>PIN</code>, <code>Pincode</code>, <code>PIN code</code> or <code>ପିନ</code></td>
+<td>0.8</td>
+</tr>
+</tbody>
+</table>
+<p>The wider local-part class can mask more than the address: leading delimiters can be swallowed, so <code>key=val@host.com</code>, <code>?q=a@b.com</code>, <code>path/to/a@c.com</code> and <code>price$5@x.com</code> lose their prefix, <code>`a@b.com`</code>, <code>'a@b.com'</code> and <code>**a@b.com**</code> swallow only the leading delimiter, <code>ssh://git@host.com</code> loses <code>//</code> (<code>ssh://git@host</code> has no top-level domain and stays unchanged), and <code>www.x.com/a@b.com</code> becomes <code>&lt;EMAIL&gt;</code> instead of <code>&lt;URL&gt;</code>; nothing leaks.</p>
+<p>Confidence ranks how specific a pattern is; it is not a probability.</p>
+<details class="warning">
+<summary>What it does not catch</summary>
+<ul>
+<li><strong>Names</strong>, nicknames and addresses. A masked text can still identify a person, so this is not anonymisation.</li>
+<li>Dates of birth, amounts, bank account and card numbers, landline numbers, passport and voter IDs.</li>
+<li>Lowercase PAN, Aadhaar written with other separators or split by line breaks, and a PIN code with no <code>PIN</code> or <code>ପିନ</code> before it.</li>
+<li>Aadhaar numbers starting with 0 or 1, which UIDAI does not issue.</li>
+<li>A bare domain with no <code>http(s)://</code> or <code>www.</code>, an email whose local part is over 64 characters (see the <code>EMAIL</code> row), and digits of other scripts such as Devanagari.</li>
+<li><strong>False positives</strong>: a 10-digit number starting 6-9 (an order or account number) is reported as <code>PHONE</code> even if nobody owns it, a 12-digit number starting 2-9 as <code>AADHAAR</code> at confidence 0.5, and a PAN-shaped code as <code>PAN</code>. Filter with <code>types</code> and <code>min_confidence</code>.</li>
+<li>A bare <code>91</code> before a mobile number is taken as its country code only when a space or <code>-</code> follows it.</li>
+</ul>
+</details>
+<ul>
+<li><code>mask</code> repeats detection and replacement until nothing changes, at most 10 passes, because masking a value can expose one that was glued to it, such as a PAN written right before a URL. With the default <code>&lt;TYPE&gt;</code> tags, masking its own output therefore changes nothing, unless the input chains more than 10 glued values. Past that, the text <code>mask</code> returns can still contain raw PII, so do not rely on it for input like that. A custom <code>placeholder</code> receives entities from the later passes too, with offsets into the partly masked text, and one that returns PII-shaped text, for example one that keeps the last four digits, can keep the loop running to its limit.</li>
+<li><code>detect</code> and <code>mask</code> raise <code>TypeError</code> for a <code>text</code> that is not a <code>str</code> or <code>types</code> given as a bare string, and <code>ValueError</code> for an unknown type or a <code>min_confidence</code> outside 0 to 1.</li>
+<li>There is no pseudonymisation or reversible mapping: masking is one-way.</li>
+</ul>
 <h3 id="odia-alphabets"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.06 18a4 4 0 0 1-.2-.89c-.67.7-1.48 1.05-2.41 1.05-.83 0-1.52-.24-2.05-.71-.53-.45-.8-1.06-.8-1.79 0-.88.33-1.56 1-2.05s1.61-.73 2.83-.73h1.4v-.64q0-.735-.45-1.17c-.3-.29-.75-.43-1.33-.43-.52 0-.95.12-1.3.36-.35.25-.52.54-.52.89h-1.46c0-.43.15-.84.45-1.24.28-.4.71-.71 1.22-.94.51-.21 1.06-.35 1.69-.35.98 0 1.74.24 2.29.73s.84 1.16.86 2.02V16c0 .8.1 1.42.3 1.88V18zm-2.4-1.12c.45 0 .88-.11 1.29-.32.4-.21.7-.49.88-.83v-1.57H18.7c-1.77 0-2.66.47-2.66 1.41 0 .43.15.73.46.96.3.23.68.35 1.16.35m-12.2-3.17h4.07L7.5 8.29zM6.64 6h1.72l4.71 12h-1.93l-.97-2.57H4.82L3.86 18H1.93z"/></svg></span> Odia alphabets<a class="headerlink" href="#odia-alphabets" title="Permanent link">&para;</a></h3>
 <ul>
 <li>To get the Odia alphabets use the <code>alphabet</code> module</li>
@@ -2024,7 +2116,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="October 28, 2026 06:49:09 UTC"><span class="timeago" datetime="2026-10-28T06:49:09+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 28, 2026 06:49:09 UTC">2026-10-28</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="October 28, 2026 06:50:39 UTC"><span class="timeago" datetime="2026-10-28T06:50:39+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 28, 2026 06:50:39 UTC">2026-10-28</span>
   </span>
 
     
