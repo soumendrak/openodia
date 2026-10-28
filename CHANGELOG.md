@@ -9,6 +9,7 @@
 - `import openodia` and `openodia --help` no longer import `faker`, `deep_translator`, `requests` or `bs4`; they load on first use of `name.generate_names` or a Google translation (a cached result or an offline-dictionary hit loads nothing). `import openodia` is about 2.5x faster in this repo's measurements. The public API is unchanged.
 - `import openodia` no longer configures logging. It used to call `logging.basicConfig` with a Rich handler, which attached a root handler in the host application and printed log lines (with local variables in tracebacks) to stdout. Library logs now go to the `openodia` logger, which has a `NullHandler`; configure logging in your application to see them. The `openodia` CLI output is unchanged.
 - An invalid `name_type` in `name.generate_firstnames` logs an error without the meaningless `NoneType: None` traceback line (the `ValueError` is unchanged).
+- `openodia translate` and `other_lang_to_odia` find offline-dictionary words when the text has leading or trailing whitespace. Input from `--file` or stdin ends in a newline, so it used to miss the dictionary and call Google Translate, which failed whenever Google rate limited the request.
 
 ## 0.1.14 (2026-10-26)
 
