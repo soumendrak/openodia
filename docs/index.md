@@ -195,8 +195,10 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
 
     `Hunterian` and `ITRANS` write the Odia digits `୦`-`୯` as ASCII `0`-`9`
     (`to_roman("୨୦୨୬", "ITRANS")` gives `2026`); `from_roman` keeps ASCII
-    digits as they are. `ISO15919` keeps the Odia digits, and so does
+    digits as they are. `ISO15919` keeps the Odia digits, and so does `ITRANS` with
     `reversible=True`, because an ASCII digit could not be told from a literal one.
+    `Hunterian` ignores `reversible` and still writes ASCII digits
+    (`to_roman("୨୦୨୬", "Hunterian", reversible=True)` gives `2026`).
 
     For text that contains anything other than Odia, pass `reversible=True`:
     a literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that

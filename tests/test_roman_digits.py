@@ -25,6 +25,12 @@ class TestOdiaDigits:
         assert "୨୦୨୬" in out
         assert roman.from_roman(out, scheme) == text
 
+    def test_hunterian_reversible_still_writes_ascii_digits(self) -> None:
+        text = "୨୦୨୬ କ୧"
+        out = roman.to_roman(text, "Hunterian", reversible=True)
+        assert out == "2026 ka1"
+        assert out == roman.to_roman(text, "Hunterian")
+
     @pytest.mark.parametrize("scheme", ["ISO15919", "Hunterian", "ITRANS"])
     def test_from_roman_keeps_ascii_digits(self, scheme: Scheme) -> None:
         assert roman.from_roman("2026", scheme) == "2026"
