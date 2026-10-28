@@ -117,8 +117,8 @@ def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> t
     Only used with ``reversible=True``: ``କi`` would otherwise give ``kai``
     (``କୈ``), and ``hello`` would decode as Odia. Each maximal run of literal characters
     other than whitespace and escaped separators is written as
-    ``<sep>{run<sep>}`` when it contains a character used in Roman tokens or
-    a combining mark,
+    ``<sep>{run<sep>}`` when it contains a character used in Roman tokens, a
+    combining mark, or text that NFC changes (the ANGSTROM SIGN ``Å``),
     e.g. ``ka:{i:}``.
     """
     sep = _SEPARATORS[scheme]
@@ -131,7 +131,11 @@ def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> t
     def close_run() -> None:
         if run:
             text = "".join(run)
-            needs_quote = token_chars.intersection(text) or any(unicodedata.combining(c) for c in text)
+            needs_quote = (
+                token_chars.intersection(text)
+                or any(unicodedata.combining(c) for c in text)
+                or unicodedata.normalize("NFC", text) != text
+            )
             new_tokens.append(sep + "{" + text + sep + "}" if needs_quote else text)
             new_literal.append(True)
             run.clear()
