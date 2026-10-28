@@ -199,6 +199,12 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     and kept verbatim by `from_roman` (`roman.to_roman("କi",
     reversible=True)` gives `ka:{i:}`), so `from_roman` restores the input.
 
+    The avagraha `ଽ` is written `’` in ISO 15919, `'` in Hunterian and `.a` in
+    ITRANS. `from_roman` in ITRANS also reads the common spellings `aa`, `ii`,
+    `uu`, `R^i`, `R^I`, `L^i` and `L^I`; `to_roman` keeps writing `A`, `I`,
+    `U` and `RRi`. `from_roman` in Hunterian reads `ri` and `li` as consonant
+    plus vowel sign (`oria` gives `ଓରିଅ`), never as the vocalic `ଋ` or `ଌ`.
+
 ### :material-console: Command-line interface
 
 - Installing the package adds an `openodia` command. Each subcommand wraps a function from the library so they're scriptable from any shell.

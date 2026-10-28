@@ -200,12 +200,33 @@ _HUNTERIAN_PREFERRED: dict[str, str] = {
 }
 
 
+_ITRANS_ALIASES: dict[str, str] = {
+    "aa": "A",
+    "ii": "I",
+    "uu": "U",
+    "R^i": "RRi",
+    "R^I": "RRI",
+    "L^i": "LLi",
+    "L^I": "LLI",
+}
+
+
+def _aliases(scheme: Scheme) -> dict[str, str]:
+    return _ITRANS_ALIASES if scheme == "ITRANS" else {}
+
+
 def _first_wins(items: Iterable[tuple[str, str]]) -> dict[str, str]:
     """``roman -> odia``, keeping the first letter listed for each spelling."""
     out: dict[str, str] = {}
     for odia, roman in items:
         out.setdefault(roman, odia)
     return out
+
+
+def _is_consonant_then_vowel(spelling: str, consonants: dict[str, str], index: dict[str, tuple[str, str]]) -> bool:
+    return index[spelling][0] == "vowel" and any(
+        spelling[:cut] in consonants and index.get(spelling[cut:], ("",))[0] == "vowel" for cut in range(1, len(spelling))
+    )
 
 
 def _build_reverse_index(scheme: Scheme) -> tuple[list[str], dict[str, tuple[str, str]]]:
@@ -224,8 +245,12 @@ def _build_reverse_index(scheme: Scheme) -> tuple[list[str], dict[str, tuple[str
     consonants = _first_wins(table["consonants"].items())
     if scheme == "Hunterian":
         consonants.update(_HUNTERIAN_PREFERRED)
+        for roman in [r for r in index if _is_consonant_then_vowel(r, consonants, index)]:
+            del index[roman]
     for roman, odia in consonants.items():
         index[roman] = ("consonant", odia)
+    for alias, canonical in _aliases(scheme).items():
+        index[alias] = index[canonical]
     tokens = sorted(index, key=len, reverse=True)
     return tokens, index
 
@@ -294,6 +319,8 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901
     table = _table(scheme)
     schwa: str = table["schwa"]
     matras = _first_wins(table["matras"].items())
+    for alias, canonical in _aliases(scheme).items():
+        matras[alias] = matras[canonical]
     if scheme == "ISO15919":
         text = _normalize_outside_quotes(text, _SEPARATORS[scheme])
 
