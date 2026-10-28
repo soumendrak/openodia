@@ -11,7 +11,8 @@ from openodia.corpus.dictionary import get_dictionary
 def _search_offline_dictionary(text: str) -> str | None:
     """Search the text from offline dictionary"""
     offline_dict = get_dictionary()
-    return offline_dict.get(text.lower())
+    key = text.lower()
+    return offline_dict.get(key) or offline_dict.get(key.strip())
 
 
 def _hit_google_api(text: str, source_lang_code: str, destination_lang_code: str) -> str:
