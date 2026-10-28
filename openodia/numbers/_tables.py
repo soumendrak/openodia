@@ -2,7 +2,7 @@
 
 The 0..99 list below is the package's single source of truth for irregular
 Odia counts. Any correction by a native-speaker reviewer should land here
-and be reflected in :func:`openodia.numbers.to_words` automatically.
+and be reflected in ``openodia.numbers.to_words`` automatically.
 """
 
 from __future__ import annotations

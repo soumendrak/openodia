@@ -17,7 +17,7 @@ def _search_offline_dictionary(text: str) -> str | None:
 def _hit_google_api(text: str, source_lang_code: str, destination_lang_code: str) -> str:
     """Translate text using Google Translate.
 
-    Results are routed through :mod:`openodia.cache` so callers can resize,
+    Results are routed through ``openodia.cache`` so callers can resize,
     persist, or inspect the cache.
     """
     key = (text, source_lang_code, destination_lang_code)

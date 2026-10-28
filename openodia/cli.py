@@ -4,7 +4,7 @@ Run ``openodia --help`` to see all subcommands.
 
 The CLI is intentionally thin: each subcommand maps to an existing
 Python entry point in the package. New subcommands can be added in
-:func:`build_parser` and :func:`main` without touching anything else.
+``build_parser`` and ``main`` without touching anything else.
 """
 
 from __future__ import annotations
@@ -286,7 +286,7 @@ def _cmd_freq(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the top-level :class:`argparse.ArgumentParser`."""
+    """Build the top-level ``argparse.ArgumentParser``."""
     parser = argparse.ArgumentParser(
         prog="openodia",
         description=(
