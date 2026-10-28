@@ -2,10 +2,78 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://openodia.soumendrak.com/</loc>
-         <lastmod>2026-10-27</lastmod>
+         <lastmod>2026-10-28</lastmod>
     </url>
     <url>
          <loc>https://openodia.soumendrak.com/application/</loc>
-         <lastmod>2026-10-27</lastmod>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/alphabet/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/corpus/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/names/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/numbers/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/segment/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/stats/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/summarization/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/syllable/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/text/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/tokenizing/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/translation/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/guides/analysis/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/guides/cli/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/guides/numbers/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/guides/script-and-names/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/guides/text-processing/</loc>
+         <lastmod>2026-10-28</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/guides/translation/</loc>
+         <lastmod>2026-10-28</lastmod>
     </url>
 </urlset>
