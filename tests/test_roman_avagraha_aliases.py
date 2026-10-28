@@ -30,6 +30,16 @@ class TestHunterianRiLi:
         assert roman.from_roman(spelling, "Hunterian") == word
 
 
+class TestHunterianDiphthongsStayVowels:
+    @pytest.mark.parametrize(("spelling", "word"), [("ai", "ଐ"), ("au", "ଔ")])
+    def test_standalone_diphthong_is_one_vowel(self, spelling: str, word: str) -> None:
+        assert roman.from_roman(spelling, "Hunterian") == word
+
+    @pytest.mark.parametrize(("spelling", "word"), [("kai", "କୈ"), ("kau", "କୌ")])
+    def test_diphthong_after_consonant_is_one_vowel_sign(self, spelling: str, word: str) -> None:
+        assert roman.from_roman(spelling, "Hunterian") == word
+
+
 class TestItransAliases:
     @pytest.mark.parametrize(
         ("spelling", "word"),
