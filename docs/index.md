@@ -70,6 +70,7 @@ The tools are available in Odia language.
 - [x] [Unicode normalization & clean](#unicode-normalization)
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
+- [x] [Indic-to-Indic transliteration](#indic-transliteration)
 - [x] [Command-line interface](#command-line-interface)
 - [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
@@ -163,6 +164,32 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ??? note "Round-trip property"
     `"".join(syllable.split(word)) == word` for any input — the splitter
     is a strict tokeniser, never modifying or normalising characters.
+
+### :material-translate-variant: Indic transliteration
+
+- Script-only transliteration between Brahmic Indic scripts: **Devanagari**, **Bengali / Assamese**, **Gurmukhi**, **Gujarati**, **Odia**, **Tamil**, **Telugu**, **Kannada**, **Malayalam**.
+- Deterministic, no external dependencies. Each character is mapped by its Unicode identity (e.g. `DEVANAGARI LETTER KA` → `ORIYA LETTER KA`), with short/long e/o aligned across north and south scripts. Chillus and khanda ta expand to consonant + virama, and nukta letters map part by part. Characters with no counterpart are kept unchanged.
+- Useful for cross-script reading, ML corpus alignment, and name normalisation across regions.
+
+```python
+from openodia import indic
+
+indic.transliterate("ଓଡ଼ିଆ", from_script="odia", to_script="devanagari")
+# 'ओड़िआ'
+
+indic.transliterate("नमस्ते", from_script="devanagari", to_script="odia")
+# 'ନମସ୍ତେ'
+
+indic.SCRIPTS  # ('devanagari', 'bengali', 'assamese', 'gurmukhi', 'gujarati', 'odia', 'tamil', 'telugu', 'kannada', 'malayalam')
+```
+
+??? note "Tamil caveat"
+    Tamil's encoding has only one consonant per articulation group.
+    Devanagari/Odia aspirated or voiced consonants have no Tamil letter, so
+    they are kept in the source script rather than silently collapsed.
+    Characters are mapped by Unicode identity, not by block offset: Malayalam
+    chillus become consonant + virama, and shared marks such as the danda
+    (`।`) are kept.
 
 
 ### :material-console: Command-line interface
