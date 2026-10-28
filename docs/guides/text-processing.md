@@ -38,11 +38,11 @@ Two helpers exist and they behave differently.
 ['Hello', 'World']
 ```
 
-`ud.sentence_tokenizer` only splits on the exact string `" ।"` (a space followed by the full stop). It keeps leading spaces and returns an empty last element when the text ends with ` ।`.
+`ud.sentence_tokenizer` splits after `।`, `॥`, `?` and `!`, with or without a space after them. It trims each sentence, keeps its terminator and returns `[]` for empty text. It does not split on `.`.
 
 ```pycon
 >>> ud.sentence_tokenizer(text)
-['ରାମ ସୀତା ଘରକୁ ଯାଏ', ' ସେ ଭଲ ଲୋକ', '']
+['ରାମ ସୀତା ଘରକୁ ଯାଏ ।', 'ସେ ଭଲ ଲୋକ ।']
 ```
 
 !!! note "Gotcha: `sentences` removes the space before `।`"

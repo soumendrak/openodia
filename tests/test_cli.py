@@ -97,7 +97,7 @@ class TestTokenize:
     def test_sentence_tokenize(self, capsys: pytest.CaptureFixture[str]) -> None:
         code, out, _ = run(["tokenize", "ରାମ ଗଲା । ସୀତା ଆସିଲା ।", "--sentences"], capsys)
         assert code == 0
-        assert out == "ରାମ ଗଲା\n ସୀତା ଆସିଲା\n\n"
+        assert out == "ରାମ ଗଲା ।\nସୀତା ଆସିଲା ।\n"
 
 
 class TestDetectLanguage:

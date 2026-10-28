@@ -13,10 +13,10 @@ from openodia import cli
 ODIA = "ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ ।"
 ENGLISH = "Hello world. Bye now."
 LONG_ODIA = "ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ । ରାମ ଭଲ ପିଲା । ଓଡ଼ିଶା ଏକ ସୁନ୍ଦର ରାଜ୍ୟ । ପୁରୀରେ ଜଗନ୍ନାଥ ମନ୍ଦିର ଅଛି । ରାମ ପୁରୀକୁ ଯାଏ ।"
-LONG_SUMMARY = "ରାମ ସୀତା ଘରକୁ ଯାଏ  ସେ ଭଲ ଲୋକ  ରାମ ଭଲ ପିଲା  ରାମ ପୁରୀକୁ ଯାଏ"
+LONG_SUMMARY = "ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ । ରାମ ଭଲ ପିଲା । ରାମ ପୁରୀକୁ ଯାଏ ।"
 ODIA_TOKENS = ["ରାମ", "ସୀତା", "ଘରକୁ", "ଯାଏ", "।", "ସେ", "ଭଲ", "ଲୋକ", "।"]
 ENGLISH_TOKENS = ["Hello", "world", "Bye", "now"]
-ODIA_SENTENCES = ["ରାମ ସୀତା ଘରକୁ ଯାଏ", " ସେ ଭଲ ଲୋକ", ""]
+ODIA_SENTENCES = ["ରାମ ସୀତା ଘରକୁ ଯାଏ ।", "ସେ ଭଲ ଲୋକ ।"]
 
 CASES = {
     "tokenize-odia": (["tokenize"], ODIA, "\n".join(ODIA_TOKENS) + "\n", {"tokens": ODIA_TOKENS}),
@@ -25,11 +25,11 @@ CASES = {
     "sentences-odia": (
         ["tokenize", "--sentences"],
         ODIA,
-        "ରାମ ସୀତା ଘରକୁ ଯାଏ\n ସେ ଭଲ ଲୋକ\n\n",
+        "ରାମ ସୀତା ଘରକୁ ଯାଏ ।\nସେ ଭଲ ଲୋକ ।\n",
         {"tokens": ODIA_SENTENCES},
     ),
     "sentences-english": (["tokenize", "--sentences"], ENGLISH, ENGLISH + "\n", {"tokens": [ENGLISH]}),
-    "sentences-empty": (["tokenize", "--sentences"], "", "\n", {"tokens": [""]}),
+    "sentences-empty": (["tokenize", "--sentences"], "", "", {"tokens": []}),
     "normalize-odia": (["normalize"], ODIA, ODIA + "\n", {"text": ODIA}),
     "normalize-english": (["normalize"], ENGLISH, ENGLISH + "\n", {"text": ENGLISH}),
     "normalize-empty": (["normalize"], "", "\n", {"text": ""}),
@@ -150,7 +150,7 @@ def invoke(
 
 @pytest.mark.parametrize("mode", MODES)
 @pytest.mark.parametrize("case", CASES)
-def test_default_output_is_unchanged(case, mode, tmp_path, monkeypatch, capsys) -> None:
+def test_default_sentences_output_pins_trimmed_sentences(case, mode, tmp_path, monkeypatch, capsys) -> None:
     argv, text, expected, _ = CASES[case]
     assert invoke(argv, text, mode, tmp_path, monkeypatch, capsys) == (0, expected, "")
 
