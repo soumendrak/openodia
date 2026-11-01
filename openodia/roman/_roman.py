@@ -14,6 +14,8 @@ Scheme = Literal["ISO15919", "Hunterian", "ITRANS"]
 SCHEMES: tuple[Scheme, ...] = ("ISO15919", "Hunterian", "ITRANS")
 
 _HALANT = "୍"
+_NUKTA = "\u0b3c"
+_NUKTA_MARKS: dict[str, str] = {"ISO15919": "\u00b7", "Hunterian": "", "ITRANS": "`"}
 
 _ODIA_TO_ASCII_DIGITS = str.maketrans("୦୧୨୩୪୫୬୭୮୯", "0123456789")
 
@@ -47,6 +49,11 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
             in ``Hunterian`` and in ``ITRANS`` unless ``reversible`` is true
             (an ASCII digit could not be told from a literal one); ``ISO15919``
             keeps them.
+
+    A nukta after any consonant except ଡ and ଢ is written as ``·`` (ISO 15919)
+    or a backtick (ITRANS) right after the consonant; ``Hunterian`` drops it.
+    ଡ଼ and ଢ଼ keep their own letters: ``ṛ``/``ṛh`` (ISO 15919), ``.D``/``.Dh``
+    (ITRANS) and ``r``/``rh`` (Hunterian, where plain ଡ and ଢ give ``d``/``dh``).
 
     Returns:
         The transliterated string. Unless ``reversible`` is true, characters
@@ -109,6 +116,10 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
         elif ch == _HALANT:
             after_halant = pending_schwa
             pending_schwa = False
+        elif ch == _NUKTA:
+            mark = _NUKTA_MARKS[scheme]
+            if mark:
+                emit(mark)
         elif ch in modifiers:
             flush_schwa()
             emit(modifiers[ch])
@@ -243,7 +254,7 @@ def _is_consonant_then_vowel(spelling: str, consonants: dict[str, str], index: d
 def _build_reverse_index(scheme: Scheme) -> tuple[list[str], dict[str, tuple[str, str]]]:
     """Return ``(tokens longest-first, roman -> (kind, odia))``.
 
-    ``kind`` is ``"consonant"``, ``"vowel"`` or ``"modifier"``. For vowels
+    ``kind`` is ``"consonant"``, ``"vowel"``, ``"modifier"`` or ``"nukta"``. For vowels
     ``odia`` is the independent letter; the matching vowel sign is looked
     up separately so the decoder can choose by context.
     """
@@ -253,6 +264,8 @@ def _build_reverse_index(scheme: Scheme) -> tuple[list[str], dict[str, tuple[str
         index[roman] = ("modifier", odia)
     for roman, odia in _first_wins(table["vowels"].items()).items():
         index[roman] = ("vowel", odia)
+    if _NUKTA_MARKS[scheme]:
+        index[_NUKTA_MARKS[scheme]] = ("nukta", _NUKTA)
     consonants = _first_wins(table["consonants"].items())
     if scheme == "Hunterian":
         consonants.update(_HUNTERIAN_PREFERRED)
@@ -384,6 +397,9 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901
             continue
         kind, odia = index[match]
         i += len(match)
+        if kind == "nukta":
+            out.append(odia)
+            continue
         if kind == "vowel" and after_consonant:
             if match != schwa:
                 out.append(matras.get(match, odia))

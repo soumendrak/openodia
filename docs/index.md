@@ -184,6 +184,14 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
 ```
 
 ??? note "Round-trip"
+    The nukta `଼` has no precomposed form after most consonants, so it gets its own
+    mark: `·` (U+00B7) in ISO 15919 and `` ` `` in ITRANS (`ଖୋଜ଼` gives `khōj·a` and
+    ``khoj`a``). Hunterian drops it (`khoja`). `ଡ଼` and `ଢ଼` keep their own
+    letters in all three schemes: `ṛ`/`ṛh` in ISO 15919, `.D`/`.Dh` in ITRANS,
+    and `r`/`rh` in Hunterian (where plain `ଡ` and `ଢ` give `d`/`dh`).
+    `from_roman` reads each scheme's mark back as the nukta, so
+    `reversible=True` quotes a literal `·` (ISO 15919) or `` ` `` (ITRANS).
+
     By default, non-Odia text comes back exactly as given
     (`to_roman("file_name ନମସ୍କାର", "ITRANS")` keeps `file_name`).
     `to_roman` + `from_roman` round-trip exactly for Odia text in
