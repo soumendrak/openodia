@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from collections.abc import Iterable
+from dataclasses import dataclass, field
 from typing import Literal
 
 from openodia.roman._tables import HUNTERIAN, ISO15919, ITRANS, SchemeTable
@@ -34,21 +35,24 @@ def _writes_ascii_digits(scheme: Scheme, reversible: bool) -> bool:
     return scheme == "Hunterian" or (scheme == "ITRANS" and not reversible)
 
 
-def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False) -> str:  # noqa: C901
+def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False) -> str:
     """Transliterate Odia ``text`` to the Latin script.
 
     Args:
         text: Source Odia string.
         scheme: One of ``"ISO15919"``, ``"Hunterian"``, ``"ITRANS"``.
         reversible: For ``ISO15919`` and ``ITRANS`` only. When true, non-Odia
-            text is escaped so :func:`from_roman` restores the input exactly:
+            text is escaped so ``from_roman`` gives back the input:
             a literal separator (``:`` / ``_``) is doubled, and any non-Odia
             run that could be read as Roman letters, or that contains
             combining marks, is quoted (``କi`` gives ``ka:{i:}``). Ignored
             for ``Hunterian``. Odia digits ``୦``-``୯`` become ASCII ``0``-``9``
             in ``Hunterian`` and in ``ITRANS`` unless ``reversible`` is true
             (an ASCII digit could not be told from a literal one); ``ISO15919``
-            keeps them.
+            keeps them. With ``reversible=True``, Odia text in NFC comes back
+            from ``from_roman`` with the same code points, and Odia text
+            in any other normal form comes back in NFC (U+0B5C gives
+            U+0B21 U+0B3C); non-Odia text comes back exactly as given.
 
     A nukta after any consonant except ଡ and ଢ is written as ``·`` (ISO 15919)
     or a backtick (ITRANS) right after the consonant; ``Hunterian`` drops it.
@@ -69,68 +73,80 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
         'namaskara'
     """
     table = _table(scheme)
-    vowels: dict[str, str] = table["vowels"]
-    consonants: dict[str, str] = table["consonants"]
-    matras: dict[str, str] = table["matras"]
-    modifiers: dict[str, str] = table["modifiers"]
-    schwa: str = table["schwa"]
-
-    if _writes_ascii_digits(scheme, reversible):
-        text = text.translate(_ODIA_TO_ASCII_DIGITS)
-    text = _ODIA_RUN.sub(lambda m: unicodedata.normalize("NFC", m.group()), text)
-    text = text.replace("ଡ" + chr(0x0B3C), chr(0x0B5C))
-    text = text.replace("ଢ" + chr(0x0B3C), chr(0x0B5D))
-
-    out: list[str] = []
-    literal: list[bool] = []
-    pending_schwa = False
-    after_halant = False
     sep = _SEPARATORS.get(scheme)
     escape = reversible and sep is not None
-
-    def flush_schwa() -> None:
-        nonlocal pending_schwa
-        if pending_schwa:
-            emit(schwa)
-            pending_schwa = False
-
-    def emit(token: str, is_literal: bool = False) -> None:
-        out.append(token)
-        literal.append(is_literal)
-
-    for ch in text:
-        halant_before = after_halant
-        after_halant = False
-        if ch in consonants:
-            flush_schwa()
-            emit(consonants[ch])
-            pending_schwa = True
-        elif ch in vowels:
-            flush_schwa()
-            if halant_before and sep is not None:
-                emit(_HALANT_MARK)
-            emit(vowels[ch])
-        elif ch in matras:
-            emit(matras[ch])
-            pending_schwa = False
-        elif ch == _HALANT:
-            after_halant = pending_schwa
-            pending_schwa = False
-        elif ch == _NUKTA:
-            mark = _NUKTA_MARKS[scheme]
-            if mark:
-                emit(mark)
-        elif ch in modifiers:
-            flush_schwa()
-            emit(modifiers[ch])
-        else:
-            flush_schwa()
-            emit(ch * 2 if escape and ch == sep else ch, is_literal=True)
-
-    flush_schwa()
+    encoder = _Encoder(table, scheme, sep, escape)
+    for ch in _prepare_for_encoding(text, scheme, reversible):
+        encoder.feed(ch)
+    encoder.flush_schwa()
+    out, literal = encoder.out, encoder.literal
     if escape:
         out, literal = _quote_literals(out, literal, scheme)
     return _join_tokens(out, scheme, literal)
+
+
+def _prepare_for_encoding(text: str, scheme: Scheme, reversible: bool) -> str:
+    if _writes_ascii_digits(scheme, reversible):
+        text = text.translate(_ODIA_TO_ASCII_DIGITS)
+    text = _ODIA_RUN.sub(lambda m: unicodedata.normalize("NFC", m.group()), text)
+    text = text.replace("ଡ" + _NUKTA, chr(0x0B5C))
+    return text.replace("ଢ" + _NUKTA, chr(0x0B5D))
+
+
+@dataclass
+class _Encoder:
+    """Turns Odia characters into Roman tokens, one character at a time."""
+
+    table: SchemeTable
+    scheme: Scheme
+    sep: str | None
+    escape: bool
+    out: list[str] = field(default_factory=list)
+    literal: list[bool] = field(default_factory=list)
+    pending_schwa: bool = False
+    after_halant: bool = False
+
+    def emit(self, token: str, is_literal: bool = False) -> None:
+        self.out.append(token)
+        self.literal.append(is_literal)
+
+    def flush_schwa(self) -> None:
+        if self.pending_schwa:
+            self.emit(self.table["schwa"])
+            self.pending_schwa = False
+
+    def feed(self, ch: str) -> None:
+        halant_before = self.after_halant
+        self.after_halant = False
+        if ch in self.table["consonants"]:
+            self.flush_schwa()
+            self.emit(self.table["consonants"][ch])
+            self.pending_schwa = True
+        elif ch in self.table["vowels"]:
+            self.feed_vowel(ch, halant_before)
+        elif ch in self.table["matras"]:
+            self.emit(self.table["matras"][ch])
+            self.pending_schwa = False
+        elif ch == _HALANT:
+            self.after_halant = self.pending_schwa
+            self.pending_schwa = False
+        elif ch == _NUKTA:
+            self.emit(_NUKTA_MARKS[self.scheme])
+        else:
+            self.feed_other(ch)
+
+    def feed_vowel(self, ch: str, halant_before: bool) -> None:
+        self.flush_schwa()
+        if halant_before:
+            self.emit(_HALANT_MARK)
+        self.emit(self.table["vowels"][ch])
+
+    def feed_other(self, ch: str) -> None:
+        self.flush_schwa()
+        if ch in self.table["modifiers"]:
+            self.emit(self.table["modifiers"][ch])
+        else:
+            self.emit(ch * 2 if self.escape and ch == self.sep else ch, is_literal=True)
 
 
 def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> tuple[list[str], list[bool]]:
@@ -238,10 +254,14 @@ def _aliases(scheme: Scheme) -> dict[str, str]:
 
 
 def _first_wins(items: Iterable[tuple[str, str]]) -> dict[str, str]:
-    """``roman -> odia``, keeping the first letter listed for each spelling."""
+    """``roman -> odia``, keeping the first letter listed for each spelling.
+
+    Each ``odia`` value is NFC, so the decoder writes ଡ଼ and ଢ଼ as ``ଡ`` or
+    ``ଢ`` plus the nukta: U+0B5C and U+0B5D are composition exclusions.
+    """
     out: dict[str, str] = {}
     for odia, roman in items:
-        out.setdefault(roman, odia)
+        out.setdefault(roman, unicodedata.normalize("NFC", odia))
     return out
 
 
@@ -304,17 +324,19 @@ def _normalize_outside_quotes(text: str, sep: str) -> str:
     return "".join(parts)
 
 
-def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901
-    """Reverse of :func:`to_roman`.
+def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
+    """Reverse of ``to_roman``.
 
     Best-effort for ``Hunterian`` since that scheme is intentionally
     lossy (no diacritics). Its ``n`` and ``h`` always decode as the
     consonants ``ନ`` and ``ହ``, so ``ନ୍`` endings and clusters such as
     ``ନ୍ସ`` and ``ଙ୍କ`` come back intact; anusvara and visarga need the
     explicit marks of ``ISO15919`` (``ṁ``, ``ḥ``) or ``ITRANS`` (``M``, ``H``).
-    ``ISO15919`` and ``ITRANS`` round-trip correctly for text produced by
-    ``to_roman`` in the same scheme; for input that also contains non-Odia
-    text, use ``to_roman(..., reversible=True)``.
+    For ``ISO15919`` and ``ITRANS``, ``from_roman(to_roman(text, scheme,
+    reversible=True), scheme)`` equals ``unicodedata.normalize("NFC", text)``
+    for Odia text and keeps non-Odia text exactly as given. The output is
+    always NFC Odia, so ``ṛ`` decodes to ``ଡ଼`` as U+0B21 U+0B3C, never as
+    the precomposed U+0B5C.
 
     The decoder tracks context: a vowel straight after a consonant becomes
     a vowel sign (``ā`` after ``n`` gives ``ନା``), the inherent ``a`` adds
@@ -341,74 +363,98 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:  # noqa: C901
     """
     tokens, index = _build_reverse_index(scheme)
     table = _table(scheme)
-    schwa: str = table["schwa"]
     matras = _first_wins(table["matras"].items())
     for alias, canonical in _aliases(scheme).items():
         matras[alias] = matras[canonical]
-    if scheme == "ISO15919":
-        text = _normalize_outside_quotes(text, _SEPARATORS[scheme])
-
-    out: list[str] = []
-    after_consonant = False
-
     sep = _SEPARATORS.get(scheme)
-    prev_was_token = False
-    i = 0
-    while i < len(text):
-        if sep is not None and text.startswith(sep * 2, i):
-            if after_consonant:
-                out.append(_HALANT)
-                after_consonant = False
-            out.append(sep)
-            i += 2 * len(sep)
-            prev_was_token = False
-            continue
-        if sep is not None and text.startswith(sep + "{", i):
-            end = text.find(sep + "}", i + len(sep) + 1)
-            if end != -1:
-                if after_consonant:
-                    out.append(_HALANT)
-                    after_consonant = False
-                out.append(text[i + len(sep) + 1 : end])
-                i = end + len(sep) + 1
-                prev_was_token = False
-                continue
-        match = next((t for t in tokens if text.startswith(t, i)), None)
-        if (
-            match is None
-            and sep is not None
-            and text.startswith(sep, i)
-            and prev_was_token
-            and any(text.startswith(t, i + len(sep)) for t in tokens)
-        ):
-            i += len(sep)
-            nxt = next(t for t in tokens if text.startswith(t, i))
-            if after_consonant and index[nxt][0] == "vowel":
-                out.append(_HALANT)
-                after_consonant = False
-            continue
-        prev_was_token = match is not None
-        if match is None:
-            if after_consonant:
-                out.append(_HALANT)
-                after_consonant = False
-            out.append(text[i])
-            i += 1
-            continue
-        kind, odia = index[match]
-        i += len(match)
+    if sep is not None and scheme == "ISO15919":
+        text = _normalize_outside_quotes(text, sep)
+    decoder = _Decoder(text, tokens, index, matras, table["schwa"], sep)
+    while decoder.i < len(text):
+        decoder.step()
+    decoder.close_consonant()
+    return "".join(decoder.out)
+
+
+@dataclass
+class _Decoder:
+    """Reads Roman tokens left to right and writes the Odia text."""
+
+    text: str
+    tokens: list[str]
+    index: dict[str, tuple[str, str]]
+    matras: dict[str, str]
+    schwa: str
+    sep: str | None
+    out: list[str] = field(default_factory=list)
+    i: int = 0
+    after_consonant: bool = False
+    prev_was_token: bool = False
+
+    def close_consonant(self) -> None:
+        if self.after_consonant:
+            self.out.append(_HALANT)
+            self.after_consonant = False
+
+    def step(self) -> None:
+        if self.sep is not None and (self.read_escaped_separator(self.sep) or self.read_quoted(self.sep)):
+            return
+        match = next((t for t in self.tokens if self.text.startswith(t, self.i)), None)
+        if match is not None:
+            self.prev_was_token = True
+            self.read_token(match)
+        elif self.sep is None or not self.read_boundary(self.sep):
+            self.prev_was_token = False
+            self.read_literal()
+
+    def read_escaped_separator(self, sep: str) -> bool:
+        if not self.text.startswith(sep * 2, self.i):
+            return False
+        self.close_consonant()
+        self.out.append(sep)
+        self.i += 2 * len(sep)
+        self.prev_was_token = False
+        return True
+
+    def read_quoted(self, sep: str) -> bool:
+        if not self.text.startswith(sep + "{", self.i):
+            return False
+        end = self.text.find(sep + "}", self.i + len(sep) + 1)
+        if end == -1:
+            return False
+        self.close_consonant()
+        self.out.append(self.text[self.i + len(sep) + 1 : end])
+        self.i = end + len(sep) + 1
+        self.prev_was_token = False
+        return True
+
+    def read_boundary(self, sep: str) -> bool:
+        start = self.i + len(sep)
+        if not (self.prev_was_token and self.text.startswith(sep, self.i)):
+            return False
+        nxt = next((t for t in self.tokens if self.text.startswith(t, start)), None)
+        if nxt is None:
+            return False
+        self.i = start
+        if self.index[nxt][0] == "vowel":
+            self.close_consonant()
+        return True
+
+    def read_literal(self) -> None:
+        self.close_consonant()
+        self.out.append(self.text[self.i])
+        self.i += 1
+
+    def read_token(self, match: str) -> None:
+        kind, odia = self.index[match]
+        self.i += len(match)
         if kind == "nukta":
-            out.append(odia)
-            continue
-        if kind == "vowel" and after_consonant:
-            if match != schwa:
-                out.append(matras.get(match, odia))
-            after_consonant = False
-            continue
-        if after_consonant:
-            out.append(_HALANT)
-        out.append(odia)
-        after_consonant = kind == "consonant"
-    if after_consonant:
-        out.append(_HALANT)
-    return "".join(out)
+            self.out.append(odia)
+        elif kind == "vowel" and self.after_consonant:
+            if match != self.schwa:
+                self.out.append(self.matras.get(match, odia))
+            self.after_consonant = False
+        else:
+            self.close_consonant()
+            self.out.append(odia)
+            self.after_consonant = kind == "consonant"

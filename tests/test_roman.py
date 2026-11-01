@@ -1,4 +1,3 @@
-import unicodedata
 from typing import cast
 
 import pytest
@@ -80,17 +79,15 @@ class TestFromRomanRoundTrip:
     )
     def test_iso15919_round_trip(self, word: str) -> None:
         roman_text = roman.to_roman(word, "ISO15919")
-        decoded = roman.from_roman(roman_text, "ISO15919")
-        assert roman.to_roman(decoded, "ISO15919") == roman_text
+        assert roman.from_roman(roman_text, "ISO15919") == word
 
     @pytest.mark.parametrize(
         "word",
-        ["ନ", "ନା", "ନମ", "ନମସ୍କାର", "ଆ"],
+        ["ନ", "ନା", "ନମ", "ନମସ୍କାର", "ଆ", "ଓଡ଼ିଆ"],
     )
     def test_itrans_round_trip(self, word: str) -> None:
         roman_text = roman.to_roman(word, "ITRANS")
-        decoded = roman.from_roman(roman_text, "ITRANS")
-        assert roman.to_roman(decoded, "ITRANS") == roman_text
+        assert roman.from_roman(roman_text, "ITRANS") == word
 
 
 class TestFromRomanUnknownChars:
@@ -116,7 +113,7 @@ class TestReviewFixes:
     @pytest.mark.parametrize("word", ["ଆ", "ନା", "ନମସ୍କାର", "ସ୍ୱାଗତ", "ଦ୍ୱିତୀୟ", "କୢ", "ମଁ", "କଇ", "କ୍ହ", "ଅଉ", "କ୍"])
     def test_round_trip_with_vowel_context(self, scheme: Scheme, word: str) -> None:
         back = roman.from_roman(roman.to_roman(word, scheme), scheme)
-        assert unicodedata.normalize("NFD", back) == unicodedata.normalize("NFD", word)
+        assert back == word
 
     def test_independent_vowel_vs_matra(self) -> None:
         assert roman.from_roman("ā") == "ଆ"
