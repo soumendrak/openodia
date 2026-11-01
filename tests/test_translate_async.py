@@ -59,11 +59,21 @@ class FakeService:
 def service():
     cache.clear()
     fake = FakeService()
+    pools: list[ThreadPoolExecutor] = []
+    real_init = ThreadPoolExecutor.__init__
+
+    def recording_init(pool: ThreadPoolExecutor, *args: typing.Any, **kwargs: typing.Any) -> None:
+        real_init(pool, *args, **kwargs)
+        pools.append(pool)
+
     with (
         mock.patch.object(deep_translator, "GoogleTranslator", fake.translator),
         mock.patch.object(_translate, "get_dictionary", lambda: DICTIONARY),
+        mock.patch.object(ThreadPoolExecutor, "__init__", recording_init),
     ):
         yield fake
+    for pool in pools:
+        pool.shutdown(wait=True)
     cache.clear()
 
 
