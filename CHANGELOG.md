@@ -29,6 +29,10 @@
   `to_roman("କi")` gives `kai`, which `from_roman` reads as `କୈ`). Callers
   who need an exact round trip should pass `reversible=True`
   (`to_roman("କi", reversible=True)` gives `ka:{i:}`).
+- With `reversible=True`, `from_roman(to_roman(text, s, reversible=True), s)`
+  gives NFC Odia text back with the same code points in ISO 15919 and ITRANS,
+  and returns other Odia input in NFC. `from_roman` writes `ଡ଼` and `ଢ଼` as
+  U+0B21/U+0B22 + U+0B3C, never as the precomposed U+0B5C/U+0B5D.
 
 ## 0.1.14 (2026-10-26)
 

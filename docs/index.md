@@ -194,8 +194,13 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
 
     By default, non-Odia text comes back exactly as given
     (`to_roman("file_name ନମସ୍କାର", "ITRANS")` keeps `file_name`).
-    `to_roman` + `from_roman` round-trip exactly for Odia text in
-    `ISO15919` and `ITRANS`. `Hunterian` is intentionally lossy; decoding is
+    In `ISO15919` and `ITRANS`, `from_roman(to_roman(text, s, reversible=True), s)`
+    gives back `text` with the same code points when `text` is Odia in NFC:
+    consonants with or without the nukta, vowel signs, halant clusters,
+    independent vowels, `ଂ` `ଁ` `ଃ`, the avagraha `ଽ`, the digits `୦`-`୯`,
+    `୰` and the fraction signs. The result is always NFC, so `ଡ଼` and `ଢ଼` come
+    back as `ଡ`/`ଢ` + `଼` (U+0B21/U+0B22 U+0B3C), and NFD or precomposed
+    input (U+0B5C, U+0B5D) comes back as its NFC form. `Hunterian` is intentionally lossy; decoding is
     best-effort. Its `n` and `h` always decode as consonants (`jesan` gives
     `ଜେସନ୍`, `anka` gives `ଅନ୍କ`); use `ISO15919` or `ITRANS` to keep
     anusvara and visarga. Where two tokens would otherwise merge, a boundary mark is
@@ -213,7 +218,8 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     a literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that
     could be read as Roman letters (or that has combining marks) is quoted
     and kept verbatim by `from_roman` (`roman.to_roman("କi",
-    reversible=True)` gives `ka:{i:}`), so `from_roman` restores the input.
+    reversible=True)` gives `ka:{i:}`), so `from_roman` gives the non-Odia text
+    back exactly as given and the Odia text in NFC.
 
     The avagraha `ଽ` is written `’` in ISO 15919, `'` in Hunterian and `.a` in
     ITRANS. `from_roman` in ITRANS also reads the common spellings `aa`, `ii`,
