@@ -1,8 +1,11 @@
+import signal
+import sys
 import threading
 import time
 from collections import OrderedDict
 from collections.abc import Callable, Iterator
 from pathlib import Path
+from types import CodeType, FrameType
 from typing import Any
 from unittest import mock
 
@@ -20,6 +23,13 @@ def _isolated_cache(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 class TestTranslationCacheBasics:
+    def test_lookups_return_promptly_with_and_without_a_disk(self) -> None:
+        memory_only = cache.TranslationCache(max_size=2)
+        with_disk = _disk_cache({("d",): "on disk"})
+        assert _returns_within(lambda: memory_only.get(("miss",))) == [None]
+        assert _returns_within(lambda: with_disk.get(("d",))) == ["on disk"]
+        assert _returns_within(lambda: with_disk.get(("miss",))) == [None]
+
     def test_get_returns_none_for_miss(self) -> None:
         c = cache.get_cache()
         assert c.get("missing-key") is None
@@ -548,7 +558,6 @@ class PausingDisk:
         self.entered = threading.Event()
         self.resume = threading.Event()
         self.reads = 0
-        self.reread = threading.Event()
 
     def __reduce__(self) -> tuple[type[dict[object, str]], tuple[dict[object, str]]]:
         return dict, (dict(self.store),)
@@ -560,8 +569,6 @@ class PausingDisk:
 
     def get(self, key: object) -> str | None:
         self.reads += 1
-        if self.reads > 1:
-            self.reread.set()
         value = self.store.get(key)
         self._pause("get")
         return value
@@ -622,6 +629,9 @@ class WatchedLock:
 
     def __exit__(self, *exc: object) -> None:
         self._lock.release()
+
+    def locked(self) -> bool:
+        return self._lock.locked()
 
 
 class PauseAfterFirstRelease:
@@ -759,20 +769,19 @@ class TestRacesWithDiskIO:
         assert dict(shared._memory) == {}
         assert disk.store == {}
 
-    def test_a_get_during_a_disk_write_waits_for_it_instead_of_rereading_the_disk(self) -> None:
+    def test_a_get_during_a_disk_write_waits_for_it_instead_of_reading_the_disk(self) -> None:
         disk = PausingDisk("set")
         shared = _disk_cache(disk)
         parked = _watch_writes(shared)
-        disk.reread = parked
         writer, _ = _start(lambda: shared.set(("k",), "v"))
         assert disk.entered.wait(timeout=5)
         reader, returned = _start(lambda: shared.get(("other",)), done=parked)
         assert parked.wait(timeout=5)
-        assert (disk.reads, returned) == (1, [])
+        assert (disk.reads, returned) == (0, [])
         disk.resume.set()
         writer.join(timeout=5)
         reader.join(timeout=5)
-        assert (disk.reads, returned) == (2, [None])
+        assert (disk.reads, returned) == (1, [None])
 
     def test_a_clear_waits_for_a_set_that_is_writing_to_disk(self) -> None:
         disk = PausingDisk("set")
@@ -840,7 +849,153 @@ class TestRacesWithDiskIO:
         writer.join(timeout=5)
         reader.join(timeout=5)
         assert [str(exc) for exc in failed] == ["disk full"]
-        assert (disk.reads, returned) == (2, [None])
+        assert (disk.reads, returned) == (1, [None])
+
+
+class InterruptedDisk(dict[object, str]):
+    def __setitem__(self, key: object, value: str) -> None:
+        raise KeyboardInterrupt
+
+    def clear(self) -> None:
+        raise KeyboardInterrupt
+
+
+class HandOffDisk(dict[object, str]):
+    def __init__(self, reached: threading.Event, held: threading.Event, **entries: str) -> None:
+        super().__init__({(key,): value for key, value in entries.items()})
+        self.reached = reached
+        self.held = held
+
+    def _hand_off(self) -> None:
+        self.reached.set()
+        assert self.held.wait(timeout=5)
+
+    def __setitem__(self, key: object, value: str) -> None:
+        self._hand_off()
+        super().__setitem__(key, value)
+
+    def clear(self) -> None:
+        self._hand_off()
+        super().clear()
+
+
+def _returns_within(target: Callable[[], object], seconds: float = 1.0) -> list[object]:
+    thread, results = _start(target)
+    thread.join(timeout=seconds)
+    assert not thread.is_alive(), f"did not return within {seconds} s"
+    return results
+
+
+def _write(shared: cache.TranslationCache, write: str) -> Callable[[], object]:
+    return (lambda: shared.set(("k",), "new")) if write == "set" else shared.clear
+
+
+def _traced(codes: set[CodeType], target: Callable[[], object], on_line: Callable[[CodeType, int], None]) -> None:
+    def local(frame: FrameType, event: str, arg: object) -> Any:
+        if event == "line":
+            on_line(frame.f_code, frame.f_lineno)
+        return local
+
+    def tracer(frame: FrameType, event: str, arg: object) -> Any:
+        return local if frame.f_code in codes else None
+
+    previous = sys.gettrace()
+    sys.settrace(tracer)
+    try:
+        target()
+    finally:
+        sys.settrace(previous)
+
+
+class TestInterruptedWrites:
+    CODES = {
+        "set": {cache.TranslationCache.set.__code__, cache.TranslationCache._store_memory.__code__},
+        "clear": {cache.TranslationCache.clear.__code__},
+    }
+
+    @pytest.mark.parametrize("write", ["set", "clear"])
+    def test_a_disk_write_interrupted_by_keyboardinterrupt_leaves_the_cache_usable(self, write: str) -> None:
+        disk = InterruptedDisk({("d",): "on disk"})
+        shared = _disk_cache(disk)
+        with pytest.raises(KeyboardInterrupt):
+            _write(shared, write)()
+        assert _returns_within(lambda: shared.get(("d",))) == ["on disk"]
+        assert _returns_within(lambda: shared.get(("other",))) == [None]
+
+    @pytest.mark.parametrize("write", ["set", "clear"])
+    def test_a_keyboardinterrupt_at_any_line_of_a_write_leaves_the_cache_usable(self, write: str) -> None:
+        codes = self.CODES[write]
+        lines: list[tuple[CodeType, int]] = []
+
+        def record(code: CodeType, line: int) -> None:
+            if (code, line) not in lines:
+                lines.append((code, line))
+
+        _traced(codes, _write(_disk_cache({("d",): "on disk"}), write), record)
+        assert len(lines) >= {"set": 8, "clear": 6}[write]
+        for spot in lines:
+            disk: dict[object, str] = {("d",): "on disk"}
+            shared = _disk_cache(disk)
+            fired: list[tuple[CodeType, int]] = []
+
+            def interrupt(code: CodeType, line: int, spot: tuple[CodeType, int] = spot) -> None:
+                if (code, line) == spot and not fired:
+                    fired.append(spot)
+                    raise KeyboardInterrupt
+
+            with pytest.raises(KeyboardInterrupt):
+                _traced(codes, _write(shared, write), interrupt)
+            assert fired == [spot]
+            assert _returns_within(lambda: shared.get(("d",))) == [disk.get(("d",))], spot[1]
+            shared.set(("k",), "after")
+            assert _returns_within(lambda: shared.get(("k",))) == ["after"]
+
+    @pytest.mark.skipif(sys.platform == "win32", reason="signal.pthread_kill is POSIX-only")
+    @pytest.mark.parametrize("moment", ["while waiting for the lock to update memory", "after the disk write"])
+    @pytest.mark.parametrize("write", ["set", "clear"])
+    def test_a_real_sigint_during_a_write_leaves_the_cache_usable(self, write: str, moment: str) -> None:
+        reached, held, returned, interrupted = threading.Event(), threading.Event(), threading.Event(), threading.Event()
+        disk = HandOffDisk(reached, held, d="on disk")
+        shared = _disk_cache(disk)
+        main = threading.main_thread().ident
+        assert main is not None
+        code = getattr(cache.TranslationCache, write).__code__
+
+        def main_is_waiting() -> bool:
+            frame = sys._current_frames().get(main)
+            return returned.is_set() or (frame is not None and frame.f_code is code)
+
+        def hold() -> None:
+            assert reached.wait(timeout=5)
+            with shared._lock:
+                held.set()
+                deadline = time.monotonic() + 5
+                while not main_is_waiting() and time.monotonic() < deadline:
+                    time.sleep(0.001)
+                time.sleep(0.05)
+                signal.pthread_kill(main, signal.SIGINT)
+                interrupted.wait(timeout=2)
+
+        holder = threading.Thread(target=hold, daemon=True)
+        previous = signal.signal(signal.SIGINT, signal.default_int_handler)
+        try:
+            holder.start()
+            if moment.startswith("while"):
+                reached.set()
+                assert held.wait(timeout=5)
+            try:
+                _write(shared, write)()
+                returned.set()
+                threading.Event().wait(timeout=5)
+            except KeyboardInterrupt:
+                interrupted.set()
+        finally:
+            signal.signal(signal.SIGINT, previous)
+        holder.join(timeout=5)
+        assert interrupted.is_set()
+        assert _returns_within(lambda: shared.get(("d",))) == [disk.get(("d",))]
+        shared.set(("k",), "after")
+        assert _returns_within(lambda: shared.get(("k",))) == ["after"]
 
 
 class TestCopiesDuringWrites:
