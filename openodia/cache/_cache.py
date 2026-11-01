@@ -36,6 +36,9 @@ class TranslationCache:
         max_size: Maximum number of entries to keep in memory. Must be ≥ 1.
         disk_path: Optional directory for persistent storage. Requires
             ``diskcache`` (install with ``pip install openodia[cache]``).
+
+    Pickled and copied caches (``copy.copy`` included) get their own
+    snapshot of the memory entries, taken under the lock, and their own locks.
     """
 
     def __init__(
@@ -57,7 +60,10 @@ class TranslationCache:
             self._disk = _open_diskcache(disk_path)
 
     def __getstate__(self) -> dict[str, Any]:
-        return {name: value for name, value in self.__dict__.items() if name not in _UNPICKLED}
+        with self._lock:
+            state = {name: value for name, value in self.__dict__.items() if name not in _UNPICKLED}
+            state["_memory"] = OrderedDict(self._memory)
+        return state
 
     def __setstate__(self, state: dict[str, Any]) -> None:
         self.__dict__.update(state)
@@ -97,15 +103,21 @@ class TranslationCache:
                 pass
 
     def set(self, key: Any, value: str) -> None:
-        """Insert into memory (and disk, if configured)."""
+        """Insert into memory (and disk, if configured).
+
+        If the disk write raises, the error propagates, the memory entry stays,
+        and the cache remains usable.
+        """
         with self._write_lock:
             with self._lock:
                 self._store_memory(key, value)
                 self._generation += 1
-            if self._disk is not None:
-                self._disk[key] = value
-            with self._lock:
-                self._generation += 1
+            try:
+                if self._disk is not None:
+                    self._disk[key] = value
+            finally:
+                with self._lock:
+                    self._generation += 1
 
     def _store_memory(self, key: Any, value: str) -> None:
         self._memory[key] = value
@@ -130,17 +142,23 @@ class TranslationCache:
         )
 
     def clear(self) -> None:
-        """Drop all entries (memory + disk) and reset counters."""
+        """Drop all entries (memory + disk) and reset counters.
+
+        If clearing the disk raises, the error propagates, memory stays empty,
+        and the cache remains usable.
+        """
         with self._write_lock:
             with self._lock:
                 self._memory.clear()
                 self._hits = 0
                 self._misses = 0
                 self._generation += 1
-            if self._disk is not None:
-                self._disk.clear()
-            with self._lock:
-                self._generation += 1
+            try:
+                if self._disk is not None:
+                    self._disk.clear()
+            finally:
+                with self._lock:
+                    self._generation += 1
 
     @property
     def max_size(self) -> int:
