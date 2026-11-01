@@ -41,8 +41,10 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
             combining marks, is quoted (``କi`` gives ``ka:{i:}``). Ignored
             for ``Hunterian``.
 
-    A nukta after a consonant is written as ``·`` (ISO 15919) or a backtick
-    (ITRANS) before the vowel; ``Hunterian`` drops it.
+    A nukta after any consonant except ଡ and ଢ is written as ``·`` (ISO 15919)
+    or a backtick (ITRANS) right after the consonant; ``Hunterian`` drops it.
+    ଡ଼ and ଢ଼ keep their own letters: ``ṛ``/``ṛh`` (ISO 15919), ``.D``/``.Dh``
+    (ITRANS) and ``r``/``rh`` (Hunterian, where plain ଡ and ଢ give ``d``/``dh``).
 
     Returns:
         The transliterated string. Unless ``reversible`` is true, characters
