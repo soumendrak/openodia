@@ -438,20 +438,44 @@ def test_backoff_doubles_on_each_retry(service: FakeService, monkeypatch: pytest
     assert sleeps == [1, 2, 4]
 
 
-def test_a_retryable_failure_that_runs_out_of_retries_stops_the_queued_retries_of_other_texts(service: FakeService) -> None:
-    seen: dict[str, int] = {}
+def test_a_retryable_failure_that_runs_out_of_retries_stops_the_queued_retries_of_other_texts(
+    service: FakeService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    a_retry_queued = threading.Event()
+    started: dict[tuple[typing.Any, ...], threading.Event] = {}
+    finished: dict[tuple[typing.Any, ...], threading.Event] = {}
 
     def gate(text: str) -> None:
-        seen[text] = seen.get(text, 0) + 1
-        if (text, seen[text]) in {("b", 1), ("a", 2)}:
-            time.sleep(0.1)
+        if text == "b":
+            a_retry_queued.wait(5)
 
     service.gate = gate
     service.failures["a"] = [TooManyRequests(), TooManyRequests()]
     service.failures["b"] = [TooManyRequests()]
+
+    class WatchedPool(ThreadPoolExecutor):
+        def submit(self, fn: Callable[..., typing.Any], /, *args: typing.Any, **kwargs: typing.Any) -> Future[typing.Any]:
+            began = started.setdefault(args, threading.Event())
+            ended = finished.setdefault(args, threading.Event())
+
+            def run(*inner: typing.Any) -> typing.Any:
+                began.set()
+                try:
+                    return fn(*inner)
+                finally:
+                    ended.set()
+
+            future = super().submit(run, *args, **kwargs)
+            if args == ("a", 1):
+                a_retry_queued.set()
+            if args == ("b", 1):
+                began.wait(5)
+            return future
+
+    monkeypatch.setattr(_translate_async, "ThreadPoolExecutor", WatchedPool)
     with pytest.raises(TooManyRequests):
         asyncio.run(openodia.translate_batch(["a", "b"], concurrency=1, retries=1, backoff=0))
-    time.sleep(0.3)
+    assert finished[("b", 1)].wait(5)
     assert [call[0] for call in service.calls] == ["a", "b", "a"]
 
 
