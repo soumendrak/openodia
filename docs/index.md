@@ -19,7 +19,7 @@
 
 - Set up the library from PyPI using the following command in your terminal or command prompt.
 - Requires **Python 3.11 or higher**.
-- The library is tested on Python 3.11, 3.12, 3.13, and 3.14.
+- The library is tested on Python 3.11, 3.12, 3.13, 3.14, and 3.15.
     
     ??? hint "Python Installation instruction"
         You can download Python from [Python official website](https://www.python.org/downloads/) and install on your system. 
@@ -75,6 +75,7 @@ The tools are available in Odia language.
 - [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
 - [x] [Sentence segmenter](#sentence-segmenter)
+- [x] [PII detection and masking](#pii-detection-and-masking)
 
 
 ### :material-broom: Unicode normalization
@@ -202,6 +203,7 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
 ### :material-console: Command-line interface
 
 - Installing the package adds an `openodia` command. Each subcommand wraps a function from the library so they're scriptable from any shell.
+- Add `--json` to a subcommand for one machine-readable JSON document on stdout. This needs a release newer than 0.1.14: PyPI 0.1.14 has `--json` on `detect-language` only, and other subcommands exit with code 2 there. See [AGENTS.md](https://github.com/soumendrak/openodia/blob/main/AGENTS.md) for the JSON shapes and exit codes, and [llms.txt](llms.txt) for an index aimed at AI agents.
 - Pass `-` as the text argument to read from stdin. Pass `--file` to read the text argument from a UTF-8 file; without it, an argument is always literal text, even if it matches a file name.
 
 ```sh
@@ -227,6 +229,9 @@ openodia name --kind first --count 5
 
 # Extractive summary
 openodia summarize --file article.txt --threshold 3
+
+# Find or mask phone, email, Aadhaar, PAN, PIN code
+openodia pii "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦" --mask
 
 # Stopword removal + corpus stats
 openodia remove-stopwords "ରାମ ଓ ସୀତା"
@@ -337,9 +342,55 @@ sentences("Hello. World!", keep_terminators=False)
     vocabulary (e.g. trade names, place abbreviations) can be added by
     extending it in a wrapper module.
 
-??? note "Existing `ud.sentence_tokenizer` is unchanged"
-    The pre-existing helper continues to behave exactly as before (splits
-    on `" ।"` only). Adopt `openodia.sentences()` for new code.
+??? note "`ud.sentence_tokenizer` and `sentences()` differ"
+    `ud.sentence_tokenizer` splits on `।`, `॥`, `?` and `!` only.
+    `openodia.sentences()` also splits on `.` and `…` and knows Odia
+    abbreviations. `summarize` and `tokenize --sentences` use the former.
+
+### :material-shield-account: PII detection and masking
+
+- `openodia.pii` finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there.
+- Odia digits (`୦`-`୯`) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: `--file` drops a leading BOM and turns CRLF and a lone CR into LF. `-` (stdin) drops a leading BOM only and keeps any `\r`: a Linux or macOS pipe delivers `\r\n` unchanged, so offsets from `-` can differ from `--file` by one per line break.
+- Matches that overlap merge into one span typed by the longest match, so for every detected value no part of it stays visible; see the limits below. A tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`. `min_confidence` is applied before merging.
+- `openodia pii --json` puts the raw matched `text` in every entity, so it contains the PII. Use `--mask --json` for output that holds only the masked text.
+
+```python
+from openodia import pii
+
+text = "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦, ମେଲ a@b.com, ଆଧାର ୨୩୪୫ ୬୭୮୯ ୦୧୨୪, PIN ୭୫୧୦୦୧"
+pii.detect(text)
+# [PIIEntity(type='PHONE', text='୯୮୭୬୫୪୩୨୧୦', start=7, end=17, confidence=0.9), ...]
+pii.mask(text)
+# 'ମୋ ଫୋନ <PHONE>, ମେଲ <EMAIL>, ଆଧାର <AADHAAR>, PIN <PINCODE>'
+pii.mask(text, types=["EMAIL"], placeholder=lambda entity: "***")
+pii.detect(text, min_confidence=0.9)
+```
+
+| Type | What it matches | Confidence |
+| --- | --- | --- |
+| `PHONE` | 10-digit Indian mobile starting 6-9, optional `+91`, `(+91)`, `0091`, `91` followed by a space or `-`, or `0`; optional space or `-` after the fifth digit | 0.9 |
+| `EMAIL` | `local@domain.tld`; the local part is up to 64 characters of letters, digits and ``. _ % + - ! # $ & ' * / = ? ^ ` { | } ~`` (RFC 5322 atext), top-level domain of two or more letters. A longer local part is not found, and if it contains punctuation only its last 64 characters may be masked, so the earlier part stays visible; this is a deliberate limit left for a follow-up. A domain label over 63 characters is not matched: if it is the first label the whole address stays visible (`a@` + 64 `b` + `.com` is unchanged), and a later one leaves a tail (`a@x.` + 64 `b` + `.com` gives `<EMAIL>b.com`). A local part that starts with non-ASCII letters, such as `ଅଭିa@x.com`, is masked only from the first ASCII character, so `ଅଭି` stays visible | 0.95 |
+| `URL` | `http://`, `https://` or `www.` in any letter case, so `HTTPS://` and `WWW.` are found (not glued to a letter, digit, `@`, `.` or `-` before it) up to whitespace; an apostrophe inside the URL is part of it (`https://x.com/O'Connor?token=s` is one `<URL>`), but one that closes a quoted URL is left out unless a URL character follows it (`'https://a.com/x'+p`, `'https://a.com/x'/y` and `'https://a.com/x'9876543210` are masked to the end, which only over-masks), and so is one that ends the URL or comes before `. , ; : ! ? ) ]`; trailing `. , ; : ! ? ) ]` and `।` are left out | 0.9 |
+| `AADHAAR` | 12 digits starting 2-9, contiguous or grouped 4-4-4 by one space or `-`. 0.95 when the Verhoeff checksum passes, 0.5 when it fails | 0.95 / 0.5 |
+| `PAN` | `AAAPA1234A`: uppercase, fourth letter one of `PCHFATBLJG` | 0.95 |
+| `PINCODE` | 6 digits, first 1-9, directly after `PIN`, `Pincode`, `PIN code` or `ପିନ` | 0.8 |
+
+The wider local-part class can mask more than the address: leading delimiters can be swallowed, so `key=val@host.com`, `?q=a@b.com`, `path/to/a@c.com` and `price$5@x.com` lose their prefix, `` `a@b.com` ``, `'a@b.com'` and `**a@b.com**` swallow only the leading delimiter, `ssh://git@host.com` loses `//` (`ssh://git@host` has no top-level domain and stays unchanged), and `www.x.com/a@b.com` becomes `<EMAIL>` instead of `<URL>`; nothing leaks.
+
+Confidence ranks how specific a pattern is; it is not a probability.
+
+??? warning "What it does not catch"
+    - **Names**, nicknames and addresses. A masked text can still identify a person, so this is not anonymisation.
+    - Dates of birth, amounts, bank account and card numbers, landline numbers, passport and voter IDs.
+    - Lowercase PAN, Aadhaar written with other separators or split by line breaks, and a PIN code with no `PIN` or `ପିନ` before it.
+    - Aadhaar numbers starting with 0 or 1, which UIDAI does not issue.
+    - A bare domain with no `http(s)://` or `www.`, an email whose local part is over 64 characters (see the `EMAIL` row), and digits of other scripts such as Devanagari.
+    - **False positives**: a 10-digit number starting 6-9 (an order or account number) is reported as `PHONE` even if nobody owns it, a 12-digit number starting 2-9 as `AADHAAR` at confidence 0.5, and a PAN-shaped code as `PAN`. Filter with `types` and `min_confidence`.
+    - A bare `91` before a mobile number is taken as its country code only when a space or `-` follows it.
+
+- `mask` repeats detection and replacement until nothing changes, at most 10 passes, because masking a value can expose one that was glued to it, such as a PAN written right before a URL. With the default `<TYPE>` tags, masking its own output therefore changes nothing, unless the input chains more than 10 glued values. Past that, the text `mask` returns can still contain raw PII, so do not rely on it for input like that. A custom `placeholder` receives entities from the later passes too, with offsets into the partly masked text, and one that returns PII-shaped text, for example one that keeps the last four digits, can keep the loop running to its limit.
+- `detect` and `mask` raise `TypeError` for a `text` that is not a `str` or `types` given as a bare string, and `ValueError` for an unknown type or a `min_confidence` outside 0 to 1.
+- There is no pseudonymisation or reversible mapping: masking is one-way.
 
 ### :material-format-letter-case: Odia alphabets 
 
@@ -385,7 +436,7 @@ alphabet.numbers
 ['୦', '୧', '୨', '୩', '୪', '୫', '୬', '୭', '୮', '୯']
 '''
 
-alphabet.matra
+alphabet.matras
 '''
 ['ଁ', 'ଂ', 'ଃ', '଼', 'ଽ', 'ା', 'ି', 'ୀ', 'ୁ', 'ୂ', 
  'ୃ', 'ୄ', 'େ', 'ୈ', 'ୋ', 'ୌ', '୍', 'ୖ', 'ୗ', '୰', 'ୱ', '୲']
@@ -463,14 +514,14 @@ ud.detect_language("hey how are you?")
 
 ud.detect_language("hey how are you? ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ")
 '''
-{'language': 'odia', 'confidence_score': 0.66666}
+{'language': 'odia', 'confidence_score': 0.67}
 '''
 
 ud.detect_language(
     "hey how are you? ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ", 
     threshold=0.7)
 '''
-{'language': 'non-odia', 'confidence_score': 0.333333}
+{'language': 'non-odia', 'confidence_score': 0.33}
 '''
 
 ud.detect_language(
@@ -478,7 +529,7 @@ ud.detect_language(
     "ଆର୍ଟିଫିସିଆଲ ଇଣ୍ଟେଲିଜେନ୍ସର ସେହି ବିଭାଗକୁ କୁହାଯ ାଏ ଯାହା" \ 
     "ମନୁଷ୍ୟର ଭାଷାଗୁଡ଼ିକ ସହ କମ୍ପ୍ୟୁଟରର କଥାବାର୍ତ୍ତାକୁ ବୁଝାଇଥାଏ।")
 '''
-{'language': 'odia', 'confidence_score': 0.99404}
+{'language': 'odia', 'confidence_score': 0.99}
 '''
 ```
 - For more info on Odia language detection, please visit the blog post on this at [blog.soumendrak.com](https://blog.soumendrak.com/odia-language-detection).
@@ -503,11 +554,18 @@ ud.word_tokenizer(
 ### :material-call-split: Sentence Tokenizer
 
 - Tokenize a paragraph into multiple sentences.
-- Only working on full stop.
+- Splits after `।`, `॥`, `?` and `!`, with or without a space after them, and keeps the terminator on each sentence.
+- A `?` or `!` directly followed by an ASCII letter, digit or one of `=&%#/_` (as in `a?id=5` or `Yahoo!Mail`) is not a boundary. A closing quote or bracket stays with its sentence.
+- A full stop `.` is not a boundary here; use `openodia.sentences()` for that.
+- A terminator with no words of its own (as in `ରାମ ଗଲା । । ସୀତା`) joins the sentence before it, or the sentence after it when it comes first. Text with no words at all gives `[]`.
+- Empty or whitespace-only text gives `[]`.
 
 ```python
 from openodia import ud
-ud.sentence_tokenizer()
+ud.sentence_tokenizer("ଏକ ଦୁଇ । ତିନି ଚାରି ।")
+'''
+['ଏକ ଦୁଇ ।', 'ତିନି ଚାରି ।']
+'''
 ```
 
 ### :material-eye-remove: Remove stopwords
@@ -620,26 +678,23 @@ wf = WordFrequency(
 
 wf.get_summary() # Auto threshold calculation
 '''
-'ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ
-ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି 
-ଭାରତର ମୁଖ୍ୟ ବିଚାରପତି ଏହାର ମୁଖ୍ୟ ଅଟନ୍ତି  ତତ୍ସହିତ ଏଥିରେ ସର୍ବାଧିକ ୩୪ ଜଣ ବିଚାରପତି ଅଛନ୍ତି 
-ମୁଖ୍ୟ, ଅପିଲୀୟ ତଥା ପରାମର୍ଶିକ ଆଦି ଅଧିକାରକ୍ଷେତ୍ର ମାଧ୍ୟମରେ ଏହାର ବିସ୍ତୃତ କ୍ଷମତା ରହିଛି  
-ଏହା ଭାରତରେ ସବୁଠାରୁ ଶକ୍ତିଶାଳୀ ଲୋକାନୁଷ୍ଠାନ ବୋଲି ଧରାଯାଇଅଛି  
-ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ 
-ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ  
-ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ 
-ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ  
-ଏକ ପରାମର୍ଶଦାତା ହିସାବରେ, ଏହା ଭାରତୀୟ ସମ୍ବିଧାନ ଅନୁସାରେ ରାଷ୍ଟ୍ରପତିଙ୍କଦ୍ୱାରା ସୂଚୀତ ବିଭିନ୍ନ ବିଷୟବସ୍ତୁ ଉପରେ ଶୁଣାଣି କରିଥାଏ'
+'ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ ।
+ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି ।
+ଭାରତର ମୁଖ୍ୟ ବିଚାରପତି ଏହାର ମୁଖ୍ୟ ଅଟନ୍ତି ।
+ତତ୍ସହିତ ଏଥିରେ ସର୍ବାଧିକ ୩୪ ଜଣ ବିଚାରପତି ଅଛନ୍ତି ।
+ମୁଖ୍ୟ, ଅପିଲୀୟ ତଥା ପରାମର୍ଶିକ ଆଦି ଅଧିକାରକ୍ଷେତ୍ର ମାଧ୍ୟମରେ ଏହାର ବିସ୍ତୃତ କ୍ଷମତା ରହିଛି ।
+ଏହା ଭାରତରେ ସବୁଠାରୁ ଶକ୍ତିଶାଳୀ ଲୋକାନୁଷ୍ଠାନ ବୋଲି ଧରାଯାଇଅଛି ।
+ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ ।
+ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ ।
+ଏକ ପରାମର୍ଶଦାତା ହିସାବରେ, ଏହା ଭାରତୀୟ ସମ୍ବିଧାନ ଅନୁସାରେ ରାଷ୍ଟ୍ରପତିଙ୍କଦ୍ୱାରା ସୂଚୀତ ବିଭିନ୍ନ ବିଷୟବସ୍ତୁ ଉପରେ ଶୁଣାଣି କରିଥାଏ ।'
 '''
 
 wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
 '''
-'ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ  
-ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି  
-ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ 
-ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ  
-ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ 
-ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ'
+'ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ ।
+ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି ।
+ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ ।
+ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ ।'
 '''
 
 ```

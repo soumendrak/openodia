@@ -15,7 +15,7 @@
 ## Install
 
 - Requires **Python 3.11 or higher**.
-- The library is tested on Python 3.11, 3.12, 3.13, and 3.14.
+- The library is tested on Python 3.11, 3.12, 3.13, 3.14, and 3.15.
 
 ### Using pip
 
@@ -64,6 +64,25 @@ cat input.txt | python -m openodia tokenize -
 Text arguments are literal text, even when they match an existing filename.
 Use `--file` to read a UTF-8 file explicitly (implicit file detection has been
 removed). Pass `-` without `--file` to read UTF-8 text from stdin.
+
+### Use from an AI agent
+
+Every subcommand takes `--json` and prints one UTF-8 JSON document on stdout. Errors go to stderr with a nonzero exit code.
+
+> **Version note:** `--json` on every subcommand needs a release newer than 0.1.14; PyPI 0.1.14 has it on `detect-language` only, so `uvx openodia tokenize --json` fails there with exit code 2. From a source checkout, `uv run openodia ...` has it. The examples below need that newer release or a source checkout; only `detect-language --json` works on 0.1.14.
+
+```console
+$ openodia tokenize --json 'ରାମ ସୀତା ଘରକୁ ଯାଏ ।'
+{"tokens": ["ରାମ", "ସୀତା", "ଘରକୁ", "ଯାଏ", "।"]}
+$ printf 'ରାମ ସୀତା ଘରକୁ ଯାଏ ।' | openodia detect-language - --json
+{"language": "odia", "confidence_score": 0.93}
+```
+
+See [AGENTS.md](AGENTS.md) for every subcommand with JSON shapes and exit codes, [skills/openodia/SKILL.md](skills/openodia/SKILL.md) for an agent skill, and [llms.txt](https://openodia.soumendrak.com/llms.txt) for the docs index.
+
+## Sponsor
+
+If this project helps you, consider [sponsoring my work on GitHub](https://github.com/sponsors/soumendrak). Your support helps fund maintenance, documentation, and continued development.
 
 ## License
 

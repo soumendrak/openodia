@@ -22,4 +22,5 @@ def get_dictionary() -> dict[str, str]:
     dict_file = os.path.join(os.path.dirname(__file__), "En-Or_word_pairs_v3.json")
     LOGGER.debug(f"Getting offline dictionary data from: {dict_file}")
     with open(dict_file, encoding="utf-8") as dh:
-        return json.load(dh)
+        dictionary: dict[str, str] = json.load(dh)
+    return dictionary

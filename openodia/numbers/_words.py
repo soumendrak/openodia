@@ -69,7 +69,7 @@ def _compose(n: int, multipliers: tuple[tuple[int, str], ...]) -> str:
 def from_words(words: str, scale: NumberingScale = "indian") -> int:
     """Parse an Odia number-words string back to an integer.
 
-    The inverse of :func:`to_words`. Accepts the output produced by this
+    The inverse of ``to_words``. Accepts the output produced by this
     package; tolerates extra whitespace.
 
     Args:

@@ -58,6 +58,17 @@ plugins:
   - search
   - git-revision-date-localized:
       type: timeago
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_root_heading: true
+            show_root_full_path: false
+            show_source: false
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
 
 markdown_extensions:
   - admonition
@@ -117,3 +128,22 @@ extra:
 nav:
   - Documentation: index.md
   - Application: application.md
+  - Guides:
+      - guides/text-processing.md
+      - guides/script-and-names.md
+      - guides/numbers.md
+      - guides/analysis.md
+      - guides/translation.md
+      - guides/cli.md
+  - API reference:
+      - api/text.md
+      - api/tokenizing.md
+      - api/segment.md
+      - api/syllable.md
+      - api/numbers.md
+      - api/stats.md
+      - api/translation.md
+      - api/summarization.md
+      - api/alphabet.md
+      - api/names.md
+      - api/corpus.md

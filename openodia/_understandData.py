@@ -1,6 +1,6 @@
 import re
 from collections.abc import Container
-from typing import Any
+from typing import Any, Literal, overload
 
 from openodia.common.constants import STOPWORDS
 from openodia.common.utility import LOGGER
@@ -8,6 +8,13 @@ from openodia.common.utility import LOGGER
 # Odia Unicode block range (U+0B01 to U+0B72)
 ODIA_UNICODE_START = 0x0B01  # 2817
 ODIA_UNICODE_END = 0x0B72  # 2930
+
+_SENTENCE = re.compile(
+    r"""(?: [^।॥?!]+ | [?!](?=[A-Za-z0-9=&%\#/_]) )*
+        (?: [।॥?!]+ [)\]}>"'”’»›]* | \Z )""",
+    re.VERBOSE,
+)
+_WORD = re.compile(r"[^\W_]")
 
 
 class UnderstandData:
@@ -24,10 +31,51 @@ class UnderstandData:
 
     @classmethod
     def sentence_tokenizer(cls, text: str) -> list[str]:
-        """Split the text into sentences"""
-        sent_list = text.split(" ।")
-        LOGGER.debug(f"{len(sent_list)} sentences have been formed using ' ।' splitter.")
+        """Split the text into sentences at ।, ॥, ? and !, keeping each terminator."""
+        sent_list: list[str] = []
+        stray: list[str] = []
+        for match in _SENTENCE.finditer(text):
+            part = match.group().strip()
+            if not _WORD.search(part):
+                stray.append("".join(part.split()))
+                continue
+            if sent_list:
+                sent_list[-1] += "".join(stray)
+            elif stray:
+                part = f"{''.join(stray)} {part}"
+            sent_list.append(part)
+            stray.clear()
+        if sent_list:
+            sent_list[-1] += "".join(stray)
+        LOGGER.debug(f"{len(sent_list)} sentences have been formed.")
         return sent_list
+
+    @overload
+    @classmethod
+    def remove_stopwords(
+        cls,
+        text: str | list[str],
+        get_str: Literal[False] = False,
+        stopwords: Container[str] | None = None,
+    ) -> list[str]: ...
+
+    @overload
+    @classmethod
+    def remove_stopwords(
+        cls,
+        text: str | list[str],
+        get_str: Literal[True],
+        stopwords: Container[str] | None = None,
+    ) -> str: ...
+
+    @overload
+    @classmethod
+    def remove_stopwords(
+        cls,
+        text: str | list[str],
+        get_str: bool,
+        stopwords: Container[str] | None = None,
+    ) -> list[str] | str: ...
 
     @classmethod
     def remove_stopwords(
@@ -38,13 +86,14 @@ class UnderstandData:
     ) -> list[str] | str:
         """Remove frequently used words from the text.
 
-        :param text: It can take both tokens and text string as input.
-        :param get_str: Whether the output should be a single string instead
-            of a list of tokens.
-        :param stopwords: Optional custom container. Anything that supports
-            ``token in stopwords`` works — :class:`openodia.Stopwords`,
-            ``frozenset[str]``, ``set[str]``, ``list[str]``, etc. Defaults
-            to the bundled :data:`openodia.STOPWORDS`.
+        Args:
+            text: It can take both tokens and text string as input.
+            get_str: Whether the output should be a single string instead
+                of a list of tokens.
+            stopwords: Optional custom container. Anything that supports
+                ``token in stopwords`` works: ``openodia.Stopwords``,
+                ``frozenset[str]``, ``set[str]``, ``list[str]``, etc. Defaults
+                to the bundled ``openodia.STOPWORDS``.
         """
         if stopwords is None:
             stopwords = STOPWORDS
@@ -55,8 +104,10 @@ class UnderstandData:
     @classmethod
     def detect_language(cls, text: str, threshold: float = 0.5) -> dict[str, Any]:
         """Detect language if it is Odia or non-Odia
-        :param text: text to detect language
-        :param threshold: confidence score which if crossed will be determined as Odia
+
+        Args:
+            text: text to detect language
+            threshold: confidence score which if crossed will be determined as Odia
         """
         if len(text) == 0:
             LOGGER.warning("No text detected")

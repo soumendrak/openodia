@@ -15,7 +15,7 @@ def to_words_date(value: date, scale: NumberingScale = "indian") -> str:
     Output format: ``"<day_ordinal> <month_name>, <year_words>"``.
 
     Args:
-        value: A :class:`datetime.date` (or :class:`datetime.datetime`).
+        value: A ``datetime.date`` (or ``datetime.datetime``).
         scale: Numbering scale for the year portion.
 
     Returns:

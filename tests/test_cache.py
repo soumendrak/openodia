@@ -198,7 +198,7 @@ class TestTranslationIntegration:
         What is under test is the caching behaviour, not the wording Google
         returns, so a fixed reply is enough.
         """
-        from openodia import _translate
+        import deep_translator
 
         class FakeGoogleTranslator:
             def __init__(self, source: str, target: str) -> None:
@@ -207,7 +207,7 @@ class TestTranslationIntegration:
             def translate(self, text: str) -> str:
                 return "Hello! Sounds good?"
 
-        with mock.patch.object(_translate, "GoogleTranslator", FakeGoogleTranslator):
+        with mock.patch.object(deep_translator, "GoogleTranslator", FakeGoogleTranslator):
             yield
 
     def test_first_lookup_is_a_miss(self) -> None:

@@ -65,7 +65,7 @@ class TranslationCache:
             self._hits += 1
             return self._memory[key]
         if self._disk is not None:
-            value = self._disk.get(key)
+            value: str | None = self._disk.get(key)
             if value is not None:
                 self._store_memory(key, value)
                 self._hits += 1
@@ -127,7 +127,13 @@ def _open_diskcache(disk_path: Path | str) -> Any:
 
 
 def _build_from_env() -> TranslationCache:
-    max_size = int(os.environ.get(_ENV_MAX_SIZE, DEFAULT_MAX_SIZE))
+    raw_size = os.environ.get(_ENV_MAX_SIZE, str(DEFAULT_MAX_SIZE))
+    try:
+        max_size = int(raw_size)
+    except ValueError:
+        max_size = 0
+    if max_size < 1:
+        raise ValueError(f"{_ENV_MAX_SIZE} must be an integer >= 1, got {raw_size!r}")
     disk_path = os.environ.get(_ENV_DISK) or None
     return TranslationCache(max_size=max_size, disk_path=disk_path)
 

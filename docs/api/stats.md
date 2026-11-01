@@ -1,0 +1,3 @@
+# Corpus statistics
+
+::: openodia.stats

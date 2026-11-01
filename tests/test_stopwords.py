@@ -62,6 +62,11 @@ class TestFromFile:
         sw = Stopwords.from_file(f)
         assert sw == {"ଓ", "ଆଉ"}
 
+    def test_bom_is_not_part_of_first_word(self, tmp_path: Path) -> None:
+        f = tmp_path / "sw.txt"
+        f.write_bytes("\ufeffଓ\nଆଉ\n".encode())
+        assert Stopwords.from_file(f) == {"ଓ", "ଆଉ"}
+
     def test_missing_file_raises(self, tmp_path: Path) -> None:
         with pytest.raises(FileNotFoundError):
             Stopwords.from_file(tmp_path / "does_not_exist.txt")

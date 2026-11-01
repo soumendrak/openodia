@@ -41,14 +41,14 @@ def ngrams(tokens_or_text: Sequence[str] | str, n: int) -> Iterator[tuple[str, .
         yield tuple(tokens[i : i + n])
 
 
-class FreqDist(Counter):
-    """Token frequency distribution backed by :class:`collections.Counter`.
+class FreqDist(Counter[str]):
+    """Token frequency distribution backed by ``collections.Counter``.
 
     Adds three light convenience methods:
 
-    * :meth:`hapaxes` — words occurring exactly once.
-    * :meth:`entropy` — Shannon entropy of the distribution in bits.
-    * :attr:`ttr` — type-token ratio (vocabulary / total count).
+    * ``hapaxes`` — words occurring exactly once.
+    * ``entropy`` — Shannon entropy of the distribution in bits.
+    * ``ttr`` — type-token ratio (vocabulary / total count).
 
     All other ``Counter`` operations (``most_common``, ``+``, ``&``, ...) work
     unchanged.
@@ -97,11 +97,7 @@ def collocations(
 ) -> list[tuple[tuple[str, str], float]]:
     """Top-scoring bigram collocations.
 
-    Uses pointwise mutual information (PMI):
-
-    .. math::
-
-        \\mathrm{PMI}(w_1, w_2) = \\log_2 \\frac{P(w_1, w_2)}{P(w_1) \\, P(w_2)}
+    Uses pointwise mutual information (PMI), ``log2(P(w1, w2) / (P(w1) * P(w2)))``.
 
     Args:
         tokens_or_text: Pre-tokenized sequence or raw text.
@@ -151,7 +147,7 @@ def cooccurrence(
     tokens_or_text: Sequence[str] | str,
     window: int = 5,
     symmetric: bool = True,
-) -> Counter:
+) -> Counter[tuple[str, ...]]:
     """Count word co-occurrences within a sliding window.
 
     Args:
@@ -164,7 +160,7 @@ def cooccurrence(
             is preserved.
 
     Returns:
-        :class:`collections.Counter` mapping pair → co-occurrence count.
+        ``collections.Counter`` mapping pair → co-occurrence count.
 
     Raises:
         ValueError: If ``window < 1``.
@@ -173,7 +169,7 @@ def cooccurrence(
         raise ValueError(f"window must be >= 1, got {window}")
 
     tokens = _as_tokens(tokens_or_text)
-    counts: Counter = Counter()
+    counts: Counter[tuple[str, ...]] = Counter()
     n = len(tokens)
     for i in range(n):
         end = min(n, i + window + 1)
