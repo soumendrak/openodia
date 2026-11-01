@@ -79,9 +79,12 @@ class TranslationCache:
         """Return a cached value or ``None`` if missing.
 
         Hits in memory are moved to the most-recently-used position. Hits
-        on disk are promoted to memory. The disk is read outside the lock; if
-        a ``set`` or ``clear`` started or was running meanwhile, the value is
-        discarded and the lookup runs again once that call has finished.
+        on disk are promoted to memory. The disk is read outside the lock.
+        While a ``set`` or ``clear`` is running, the lookup waits for it
+        instead of reading the disk; a value read while one started is
+        discarded and looked up again. The wait is on the lock those calls
+        hold, so one that is interrupted, by ``KeyboardInterrupt`` too,
+        releases the waiting lookups.
         """
         while True:
             with self._lock:
@@ -90,15 +93,17 @@ class TranslationCache:
                     self._hits += 1
                     return self._memory[key]
                 generation = self._generation
-            value: str | None = self._disk.get(key) if self._disk is not None else None
-            with self._lock:
-                if generation == self._generation and generation % 2 == 0:
-                    if value is None:
-                        self._misses += 1
-                        return None
-                    self._store_memory(key, value)
-                    self._hits += 1
-                    return value
+                writing = self._write_lock.locked()
+            if not writing:
+                value: str | None = self._disk.get(key) if self._disk is not None else None
+                with self._lock:
+                    if generation == self._generation:
+                        if value is None:
+                            self._misses += 1
+                            return None
+                        self._store_memory(key, value)
+                        self._hits += 1
+                        return value
             with self._write_lock:
                 pass
 
@@ -106,18 +111,14 @@ class TranslationCache:
         """Insert into memory (and disk, if configured).
 
         If the disk write raises, the error propagates, the memory entry stays,
-        and the cache remains usable.
+        and the cache remains usable, whatever the exception.
         """
         with self._write_lock:
             with self._lock:
                 self._store_memory(key, value)
                 self._generation += 1
-            try:
-                if self._disk is not None:
-                    self._disk[key] = value
-            finally:
-                with self._lock:
-                    self._generation += 1
+            if self._disk is not None:
+                self._disk[key] = value
 
     def _store_memory(self, key: Any, value: str) -> None:
         self._memory[key] = value
@@ -145,7 +146,7 @@ class TranslationCache:
         """Drop all entries (memory + disk) and reset counters.
 
         If clearing the disk raises, the error propagates, memory stays empty,
-        and the cache remains usable.
+        and the cache remains usable, whatever the exception.
         """
         with self._write_lock:
             with self._lock:
@@ -153,12 +154,8 @@ class TranslationCache:
                 self._hits = 0
                 self._misses = 0
                 self._generation += 1
-            try:
-                if self._disk is not None:
-                    self._disk.clear()
-            finally:
-                with self._lock:
-                    self._generation += 1
+            if self._disk is not None:
+                self._disk.clear()
 
     @property
     def max_size(self) -> int:
