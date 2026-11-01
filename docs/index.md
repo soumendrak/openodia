@@ -204,7 +204,7 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     U+0B5C gives U+0B21 U+0B3C. Non-Odia characters that `from_roman` does not decode
     are left as given, except that `ISO15919` applies NFC to its input outside quotes.
     `Hunterian` is intentionally lossy; decoding is best-effort.
-    Hunterian `from_roman` never writes anusvara, candrabindu or visarga: an `n` or `h` that is not part of a longer letter such as `ng` or `kh` decodes as the consonant `ନ` or `ହ`.
+    Hunterian `from_roman` decodes no Roman spelling as anusvara, candrabindu or visarga: an `n` or `h` that is not part of a longer letter such as `ng` or `kh` decodes as the consonant `ନ` or `ହ`. Odia `ଂ`, `ଁ` and `ଃ` in the input pass through.
     For example, `jesan` gives `ଜେସନ୍` and `anka` gives `ଅନ୍କ`; use `ISO15919` or
     `ITRANS` to keep anusvara and visarga. Where two tokens would otherwise merge, a boundary mark is
     written (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS). The same mark
@@ -228,7 +228,7 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     ITRANS. `from_roman` in ITRANS also reads the common spellings `aa`, `ii`,
     `uu`, `R^i`, `R^I`, `L^i` and `L^I`; `to_roman` keeps writing `A`, `I`,
     `U` and `RRi`. `from_roman` in Hunterian reads `ri` and `li` as consonant
-    plus vowel sign (`oria` gives `ଓରିଅ`), never as the vocalic `ଋ` or `ଌ`.
+    plus vowel sign (`oria` gives `ଓରିଅ`), not as the vocalic `ଋ` or `ଌ`.
 
 ### :material-console: Command-line interface
 

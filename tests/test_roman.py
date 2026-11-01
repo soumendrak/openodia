@@ -262,6 +262,31 @@ class TestHunterianConsonantNH:
     def test_round_trip(self, word: str) -> None:
         assert roman.from_roman(roman.to_roman(word, "Hunterian"), "Hunterian") == word
 
+    def test_no_ascii_spelling_decodes_as_a_modifier(self) -> None:
+        printable = [chr(c) for c in range(0x20, 0x7F)]
+        spellings = printable + [a + b for a in printable for b in printable]
+        decoded = "".join(roman.from_roman(s, "Hunterian") for s in spellings)
+        assert sorted({c for c in decoded if c in "\u0b01\u0b02\u0b03"}) == []
+        assert len(spellings) == 9120
+
+    @pytest.mark.parametrize(
+        ("text", "expected"),
+        [
+            ("\u0b02", ["U+0B02"]),
+            ("\u0b01", ["U+0B01"]),
+            ("\u0b03", ["U+0B03"]),
+            ("\u0b15\u0b02", ["U+0B15", "U+0B02"]),
+            ("an\u0b03", ["U+0B05", "U+0B28", "U+0B4D", "U+0B03"]),
+        ],
+    )
+    def test_odia_modifiers_in_the_input_pass_through(self, text: str, expected: list[str]) -> None:
+        assert [f"U+{ord(c):04X}" for c in roman.from_roman(text, "Hunterian")] == expected
+
+    @pytest.mark.parametrize("spelling", ["ri", "li", "kri", "kli", "ari", "ali", "rii", "lii", "riti", "rhi"])
+    def test_ri_and_li_are_not_vocalic(self, spelling: str) -> None:
+        decoded = roman.from_roman(spelling, "Hunterian")
+        assert sorted({f"U+{ord(c):04X}" for c in decoded if c in "\u0b0b\u0b0c\u0b60\u0b61\u0b43\u0b44\u0b62\u0b63"}) == []
+
     @pytest.mark.parametrize("scheme", ["ISO15919", "ITRANS"])
     @pytest.mark.parametrize("word", ["ସଂସ୍କୃତ", "ଦୁଃଖ", "ଏବଂ", "ସଂଗୀତ", "ସିଂହ", "ଅଁ", "ଜେସନ୍", "ଅଙ୍କ"])
     def test_marked_modifiers_round_trip(self, word: str, scheme: Scheme) -> None:
