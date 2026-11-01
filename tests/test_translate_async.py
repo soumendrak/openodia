@@ -5,6 +5,7 @@ import threading
 import time
 import typing
 from collections.abc import Callable
+from concurrent.futures import Future, ThreadPoolExecutor
 from unittest import mock
 
 import deep_translator
@@ -142,7 +143,7 @@ def test_first_error_is_raised_and_queued_work_never_starts(service: FakeService
 def test_return_exceptions_keeps_every_slot(service: FakeService) -> None:
     failure = LanguageNotSupportedException("xx")
     service.failures["bad"] = [failure]
-    result = asyncio.run(openodia.translate_batch(["a", "bad", "b"], return_exceptions=True))
+    result = asyncio.run(openodia.translate_batch(["a", "bad", "b"], concurrency=1, return_exceptions=True))
     assert result == ["a:or>en", failure, "b:or>en"]
 
 
@@ -219,6 +220,48 @@ def test_first_failure_stops_a_single_worker_from_taking_the_next_text(service: 
     with pytest.raises(LanguageNotSupportedException):
         asyncio.run(openodia.translate_batch(["bad", "a", "b", "c", "d"], concurrency=1))
     assert [call[0] for call in service.calls] == ["bad"]
+
+
+class Interrupted(BaseException):
+    pass
+
+
+def test_a_base_exception_from_the_translator_stops_the_queued_texts(
+    service: FakeService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    release = threading.Event()
+
+    def gate(text: str) -> None:
+        if text == "t0":
+            raise Interrupted
+        if text == "t1":
+            release.wait(5)
+
+    service.gate = gate
+    finished: list[threading.Event] = []
+
+    class WatchedPool(ThreadPoolExecutor):
+        def submit(self, fn: Callable[..., typing.Any], /, *args: typing.Any, **kwargs: typing.Any) -> Future[typing.Any]:
+            done = threading.Event()
+            finished.append(done)
+
+            def run(*inner: typing.Any) -> typing.Any:
+                try:
+                    return fn(*inner)
+                finally:
+                    done.set()
+
+            return super().submit(run, *args, **kwargs)
+
+        def shutdown(self, wait: bool = True, *, cancel_futures: bool = False) -> None:
+            release.set()
+            assert finished[2].wait(5)
+            super().shutdown(wait=wait, cancel_futures=cancel_futures)
+
+    monkeypatch.setattr(_translate_async, "ThreadPoolExecutor", WatchedPool)
+    with pytest.raises(Interrupted):
+        asyncio.run(openodia.translate_batch(["t0", "t1", "t2", "t3"], concurrency=1))
+    assert [call[0] for call in service.calls if call[0] != "t1"] == ["t0"]
 
 
 def test_a_retryable_failure_does_not_stop_the_other_texts(service: FakeService) -> None:
