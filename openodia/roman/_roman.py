@@ -49,10 +49,14 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
             for ``Hunterian``. Odia digits ``୦``-``୯`` become ASCII ``0``-``9``
             in ``Hunterian`` and in ``ITRANS`` unless ``reversible`` is true
             (an ASCII digit could not be told from a literal one); ``ISO15919``
-            keeps them. With ``reversible=True``, Odia text in NFC comes back
-            from ``from_roman`` with the same code points, and Odia text
-            in any other normal form comes back in NFC (U+0B5C gives
-            U+0B21 U+0B3C); non-Odia text comes back exactly as given.
+            keeps them. A vowel sign or virama that follows no consonant
+            is written as itself (``ଓା`` gives ``ōା``).
+
+    In ``ISO15919`` and ``ITRANS``, ``from_roman(to_roman(text, scheme,
+    reversible=True), scheme)`` gives back ``text`` with each run of Odia characters
+    (U+0B00-U+0B7F) in NFC and all other characters unchanged. NFC Odia therefore comes
+    back with the same code points, including vowel signs, viramas and nuktas that
+    follow no consonant or follow ZWJ/ZWNJ.
 
     A nukta after any consonant except ଡ and ଢ is written as ``·`` (ISO 15919)
     or a backtick (ITRANS) right after the consonant; ``Hunterian`` drops it.
@@ -124,16 +128,22 @@ class _Encoder:
             self.pending_schwa = True
         elif ch in self.table["vowels"]:
             self.feed_vowel(ch, halant_before)
-        elif ch in self.table["matras"]:
-            self.emit(self.table["matras"][ch])
-            self.pending_schwa = False
-        elif ch == _HALANT:
-            self.after_halant = self.pending_schwa
-            self.pending_schwa = False
+        elif ch in self.table["matras"] or ch == _HALANT:
+            self.feed_sign(ch)
         elif ch == _NUKTA:
             self.emit(_NUKTA_MARKS[self.scheme])
         else:
             self.feed_other(ch)
+
+    def feed_sign(self, ch: str) -> None:
+        if self.escape and not self.pending_schwa:
+            self.emit(ch, is_literal=True)
+        elif ch == _HALANT:
+            self.after_halant = self.pending_schwa
+            self.pending_schwa = False
+        else:
+            self.emit(self.table["matras"][ch])
+            self.pending_schwa = False
 
     def feed_vowel(self, ch: str, halant_before: bool) -> None:
         self.flush_schwa()
@@ -259,14 +269,10 @@ def _aliases(scheme: Scheme) -> dict[str, str]:
 
 
 def _first_wins(items: Iterable[tuple[str, str]]) -> dict[str, str]:
-    """``roman -> odia``, keeping the first letter listed for each spelling.
-
-    Each ``odia`` value is NFC, so the decoder writes ଡ଼ and ଢ଼ as ``ଡ`` or
-    ``ଢ`` plus the nukta: U+0B5C and U+0B5D are composition exclusions.
-    """
+    """``roman -> odia``, keeping the first letter listed for each spelling."""
     out: dict[str, str] = {}
     for odia, roman in items:
-        out.setdefault(roman, unicodedata.normalize("NFC", odia))
+        out.setdefault(roman, odia)
     return out
 
 
@@ -337,11 +343,16 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
     consonants ``ନ`` and ``ହ``, so ``ନ୍`` endings and clusters such as
     ``ନ୍ସ`` and ``ଙ୍କ`` come back intact; anusvara and visarga need the
     explicit marks of ``ISO15919`` (``ṁ``, ``ḥ``) or ``ITRANS`` (``M``, ``H``).
-    For ``ISO15919`` and ``ITRANS``, ``from_roman(to_roman(text, scheme,
-    reversible=True), scheme)`` equals ``unicodedata.normalize("NFC", text)``
-    for Odia text and keeps non-Odia text exactly as given. The output is
-    always NFC Odia, so ``ṛ`` decodes to ``ଡ଼`` as U+0B21 U+0B3C, never as
-    the precomposed U+0B5C.
+    In ``ISO15919`` and ``ITRANS``, ``from_roman(to_roman(text, scheme,
+    reversible=True), scheme)`` gives back ``text`` with each run of Odia characters
+    (U+0B00-U+0B7F) in NFC and all other characters unchanged. NFC Odia therefore comes
+    back with the same code points, including vowel signs, viramas and nuktas that
+    follow no consonant or follow ZWJ/ZWNJ.
+
+    In all three schemes, each run of Odia characters (U+0B00-U+0B7F) in the output of
+    ``from_roman`` is in NFC, including Odia passed through or quoted in the input, so
+    U+0B5C gives U+0B21 U+0B3C. Non-Odia characters that ``from_roman`` does not decode
+    are left as given, except that ``ISO15919`` applies NFC to its input outside quotes.
 
     The decoder tracks context: a vowel straight after a consonant becomes
     a vowel sign (``ā`` after ``n`` gives ``ନା``), the inherent ``a`` adds
@@ -353,7 +364,8 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
         scheme: Scheme to decode against.
 
     Returns:
-        Best-effort Odia output. Unknown characters pass through unchanged.
+        Best-effort Odia output. Unknown characters pass through, with runs of
+        Odia characters in NFC.
 
     Raises:
         ValueError: If ``scheme`` is not recognised.
@@ -378,7 +390,7 @@ def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
     while decoder.i < len(text):
         decoder.step()
     decoder.close_consonant()
-    return "".join(decoder.out)
+    return _ODIA_RUN.sub(lambda m: unicodedata.normalize("NFC", m.group()), "".join(decoder.out))
 
 
 @dataclass
