@@ -55,7 +55,7 @@ def _unless_stopped(
             return ""
         try:
             return translate(text)
-        except Exception as exc:
+        except BaseException as exc:
             if not return_exceptions and not (_is_retryable(exc) and attempt < retries):
                 stopped.set()
             raise

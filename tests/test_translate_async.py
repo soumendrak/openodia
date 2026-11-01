@@ -1,4 +1,5 @@
 import asyncio
+import concurrent.futures
 import inspect
 import math
 import threading
@@ -262,6 +263,93 @@ def test_a_base_exception_from_the_translator_stops_the_queued_texts(
     with pytest.raises(Interrupted):
         asyncio.run(openodia.translate_batch(["t0", "t1", "t2", "t3"], concurrency=1))
     assert [call[0] for call in service.calls if call[0] != "t1"] == ["t0"]
+
+
+@pytest.mark.parametrize("failure", [Interrupted(), LanguageNotSupportedException("xx")], ids=["BaseException", "Exception"])
+def test_a_failing_text_stops_the_queued_texts_before_the_worker_takes_the_next_one(
+    service: FakeService, monkeypatch: pytest.MonkeyPatch, failure: BaseException
+) -> None:
+    next_text_ran = threading.Event()
+    submitted: list[Future[typing.Any]] = []
+
+    class WatchedPool(ThreadPoolExecutor):
+        def submit(self, fn: Callable[..., typing.Any], /, *args: typing.Any, **kwargs: typing.Any) -> Future[typing.Any]:
+            def run(text: str, attempt: int) -> typing.Any:
+                try:
+                    return fn(text, attempt)
+                finally:
+                    if text != "t0":
+                        next_text_ran.set()
+
+            future = super().submit(run, *args, **kwargs)
+            submitted.append(future)
+            return future
+
+    monkeypatch.setattr(_translate_async, "ThreadPoolExecutor", WatchedPool)
+
+    async def scenario() -> None:
+        loop = asyncio.get_running_loop()
+
+        def gate(text: str) -> None:
+            if text == "t0":
+                loop.call_soon_threadsafe(next_text_ran.wait, 5)
+                raise failure
+
+        service.gate = gate
+        await openodia.translate_batch(["t0", "t1", "t2"], concurrency=1)
+
+    with pytest.raises(type(failure)):
+        asyncio.run(scenario())
+    concurrent.futures.wait(submitted, timeout=5)
+    assert [call[0] for call in service.calls] == ["t0"]
+
+
+def test_a_failed_batch_returns_to_the_event_loop_without_waiting_for_requests_still_running(
+    service: FakeService,
+) -> None:
+    slow_started = threading.Event()
+    release_slow = threading.Event()
+    slow_finished = threading.Event()
+
+    def gate(text: str) -> None:
+        if text == "slow":
+            slow_started.set()
+            release_slow.wait(5)
+            slow_finished.set()
+        if text == "bad":
+            assert slow_started.wait(5)
+
+    service.gate = gate
+    service.failures["bad"] = [LanguageNotSupportedException("xx")]
+
+    async def scenario() -> tuple[bool, int, int]:
+        ticks = 0
+
+        async def ticker() -> None:
+            nonlocal ticks
+            while True:
+                await asyncio.sleep(0)
+                ticks += 1
+
+        ticking = asyncio.ensure_future(ticker())
+        with pytest.raises(LanguageNotSupportedException):
+            await openodia.translate_batch(["slow", "bad"], concurrency=2)
+        slow_running = not slow_finished.is_set()
+        at_raise = ticks
+        for _ in range(3):
+            await asyncio.sleep(0)
+        after = ticks
+        release_slow.set()
+        ticking.cancel()
+        return slow_running, at_raise, after
+
+    try:
+        slow_running, at_raise, after = asyncio.run(scenario())
+    finally:
+        release_slow.set()
+        assert slow_finished.wait(5)
+    assert slow_running
+    assert after > at_raise
 
 
 def test_a_retryable_failure_does_not_stop_the_other_texts(service: FakeService) -> None:
