@@ -1,3 +1,6 @@
+import threading
+import time
+from collections import OrderedDict
 from collections.abc import Iterator
 from pathlib import Path
 from unittest import mock
@@ -225,3 +228,296 @@ class TestTranslationIntegration:
         odia_to_other_lang("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?")
         odia_to_other_lang("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?")
         assert cache.stats()["hits"] >= 1
+
+
+def test_concurrent_use_keeps_counters_exact_and_never_raises() -> None:
+    import sys
+    import threading
+
+    previous = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)
+    shared = cache.TranslationCache(max_size=2)
+    errors: list[BaseException] = []
+    rounds = 3000
+
+    def hammer() -> None:
+        try:
+            for i in range(rounds):
+                key = (i % 3,)
+                if shared.get(key) is None:
+                    shared.set(key, "v")
+        except BaseException as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=hammer) for _ in range(8)]
+    try:
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+    finally:
+        sys.setswitchinterval(previous)
+    stats = shared.stats()
+    assert errors == []
+    assert stats["hits"] + stats["misses"] == 8 * rounds
+    assert stats["size"] <= 2
+
+
+def test_cache_survives_pickle_and_deepcopy() -> None:
+    import copy
+    import pickle
+
+    original = cache.TranslationCache(max_size=3)
+    original.set(("a",), "x")
+    for clone in (pickle.loads(pickle.dumps(original)), copy.deepcopy(original)):
+        assert clone.get(("a",)) == "x"
+        clone.set(("b",), "y")
+        assert original.get(("b",)) is None
+
+
+class RecordingLock:
+    def __init__(self) -> None:
+        self.held = False
+        self.acquisitions = 0
+
+    def __enter__(self) -> None:
+        assert not self.held
+        self.held = True
+        self.acquisitions += 1
+
+    def __exit__(self, *exc: object) -> None:
+        self.held = False
+
+
+class GuardedCache(cache.TranslationCache):
+    GUARDED = frozenset({"_hits", "_misses"})
+
+    def __getattribute__(self, name: str) -> object:
+        if name in GuardedCache.GUARDED:
+            lock = object.__getattribute__(self, "_lock")
+            assert not isinstance(lock, RecordingLock) or lock.held, f"read {name} without the lock"
+        return super().__getattribute__(name)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        lock = self.__dict__.get("_lock")
+        if name in GuardedCache.GUARDED and isinstance(lock, RecordingLock):
+            assert lock.held, f"wrote {name} without the lock"
+        super().__setattr__(name, value)
+
+
+class GuardedMemory(OrderedDict[object, str]):
+    def __init__(self, lock: RecordingLock) -> None:
+        super().__init__()
+        self.lock = lock
+
+    def touch(self) -> None:
+        assert self.lock.held, "memory touched without the lock"
+
+    def __contains__(self, key: object) -> bool:
+        self.touch()
+        return super().__contains__(key)
+
+    def __getitem__(self, key: object) -> str:
+        self.touch()
+        return super().__getitem__(key)
+
+    def __setitem__(self, key: object, value: str) -> None:
+        self.touch()
+        super().__setitem__(key, value)
+
+    def __len__(self) -> int:
+        self.touch()
+        return super().__len__()
+
+    def move_to_end(self, key: object, last: bool = True) -> None:
+        self.touch()
+        super().move_to_end(key, last)
+
+    def popitem(self, last: bool = True) -> tuple[object, str]:
+        self.touch()
+        return super().popitem(last)
+
+    def clear(self) -> None:
+        self.touch()
+        super().clear()
+
+
+class UnlockedDisk(dict[object, str]):
+    def __init__(self, lock: RecordingLock) -> None:
+        super().__init__()
+        self.lock = lock
+
+    def get(self, key: object, default: str | None = None) -> str | None:
+        assert not self.lock.held, "disk read while holding the lock"
+        return super().get(key, default)
+
+    def __setitem__(self, key: object, value: str) -> None:
+        assert not self.lock.held, "disk write while holding the lock"
+        super().__setitem__(key, value)
+
+    def __len__(self) -> int:
+        assert not self.lock.held, "disk size read while holding the lock"
+        return super().__len__()
+
+    def clear(self) -> None:
+        assert not self.lock.held, "disk clear while holding the lock"
+        super().clear()
+
+
+@pytest.fixture
+def guarded() -> GuardedCache:
+    instance = GuardedCache(max_size=2)
+    lock = RecordingLock()
+    instance._lock = lock
+    instance._memory = GuardedMemory(lock)
+    instance._disk = UnlockedDisk(lock)
+    return instance
+
+
+def test_get_set_stats_and_clear_each_take_the_lock_around_every_shared_access(guarded: GuardedCache) -> None:
+    lock: RecordingLock = guarded._lock
+    steps = [
+        lambda: guarded.get(("miss",)),
+        lambda: guarded.set(("a",), "x"),
+        lambda: guarded.get(("a",)),
+        lambda: guarded.set(("b",), "y"),
+        lambda: guarded.set(("c",), "z"),
+        lambda: guarded.stats(),
+        lambda: guarded.clear(),
+    ]
+    for step in steps:
+        before = lock.acquisitions
+        step()
+        assert lock.acquisitions > before
+        assert not lock.held
+
+
+def test_a_disk_hit_is_promoted_to_memory_under_the_lock(guarded: GuardedCache) -> None:
+    guarded._disk["k"] = "v"
+    assert guarded.get("k") == "v"
+    assert guarded.get("k") == "v"
+    assert guarded.stats() == {"hits": 2, "misses": 0, "size": 1, "max_size": 2, "disk_size": 1}
+
+
+def test_disk_io_never_happens_while_the_lock_is_held(guarded: GuardedCache) -> None:
+    guarded.set("a", "x")
+    guarded.clear()
+    guarded.get("a")
+    guarded._disk["b"] = "y"
+    guarded.get("b")
+    assert guarded.stats()["disk_size"] == 1
+    guarded.clear()
+
+
+def test_every_instance_has_its_own_lock() -> None:
+    first, second = cache.TranslationCache(), cache.TranslationCache()
+    assert first._lock is not second._lock
+
+
+def test_clones_get_their_own_lock() -> None:
+    import copy
+    import pickle
+
+    original = cache.TranslationCache(max_size=3)
+    original.set(("a",), "x")
+    for clone in (pickle.loads(pickle.dumps(original)), copy.deepcopy(original), copy.copy(original)):
+        assert clone._lock is not original._lock
+        with original._lock:
+            assert clone._lock.acquire(blocking=False)
+            clone._lock.release()
+        assert clone.get(("a",)) == "x"
+
+
+def test_clones_do_not_share_a_lock_with_each_other() -> None:
+    import copy
+    import pickle
+
+    originals = [cache.TranslationCache(), cache.TranslationCache()]
+    clones = [
+        make(original)
+        for original in originals
+        for make in (lambda c: pickle.loads(pickle.dumps(c)), copy.deepcopy, copy.copy, copy.copy)
+    ]
+    locks = [clone._lock for clone in clones] + [original._lock for original in originals]
+    assert len({id(lock) for lock in locks}) == len(locks)
+
+
+def test_a_shallow_copy_shares_the_memory_dict() -> None:
+    import copy
+
+    original = cache.TranslationCache(max_size=3)
+    assert copy.copy(original)._memory is original._memory
+
+
+class TestSingletonConstruction:
+    THREADS = 8
+
+    @pytest.fixture
+    def unbuilt(self, monkeypatch: pytest.MonkeyPatch) -> tuple[list[cache.TranslationCache], threading.Event]:
+        from openodia.cache import _cache as cache_module
+
+        built: list[cache.TranslationCache] = []
+        release = threading.Event()
+
+        def slow_factory() -> cache.TranslationCache:
+            release.wait(timeout=5)
+            instance = cache.TranslationCache(max_size=5)
+            built.append(instance)
+            return instance
+
+        monkeypatch.setattr(cache_module, "_cache", None)
+        monkeypatch.setattr(cache_module, "_build_from_env", slow_factory)
+        return built, release
+
+    def test_threads_making_the_first_call_together_share_one_instance(
+        self, unbuilt: tuple[list[cache.TranslationCache], threading.Event]
+    ) -> None:
+        built, release = unbuilt
+        gate = threading.Barrier(self.THREADS + 1)
+        seen: list[cache.TranslationCache] = []
+
+        def first_call() -> None:
+            gate.wait(timeout=5)
+            seen.append(cache.get_cache())
+
+        workers = [threading.Thread(target=first_call) for _ in range(self.THREADS)]
+        for worker in workers:
+            worker.start()
+        gate.wait(timeout=5)
+        time.sleep(0.2)
+        release.set()
+        for worker in workers:
+            worker.join(timeout=5)
+        assert len(built) == 1
+        assert len(seen) == self.THREADS
+        assert all(instance is built[0] for instance in seen)
+        assert cache.get_cache() is built[0]
+
+    def test_a_built_singleton_is_returned_without_taking_the_lock(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from openodia.cache import _cache as cache_module
+
+        lock = RecordingLock()
+        monkeypatch.setattr(cache_module, "_singleton_lock", lock)
+        built = cache.get_cache()
+        assert cache.get_cache() is built
+        assert lock.acquisitions == 0
+
+    def test_the_first_call_builds_under_the_module_lock_and_checks_again_inside_it(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from openodia.cache import _cache as cache_module
+
+        winner = cache.TranslationCache(max_size=7)
+
+        def rival_wins_the_race() -> cache.TranslationCache:
+            raise AssertionError("built a second instance")
+
+        class WinsWhileWaiting(RecordingLock):
+            def __enter__(self) -> None:
+                monkeypatch.setattr(cache_module, "_cache", winner)
+                super().__enter__()
+
+        monkeypatch.setattr(cache_module, "_cache", None)
+        monkeypatch.setattr(cache_module, "_build_from_env", rival_wins_the_race)
+        monkeypatch.setattr(cache_module, "_singleton_lock", WinsWhileWaiting())
+        assert cache.get_cache() is winner
