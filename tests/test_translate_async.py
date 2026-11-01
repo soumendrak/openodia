@@ -13,7 +13,7 @@ import requests
 from deep_translator.exceptions import LanguageNotSupportedException, RequestError, TooManyRequests
 
 import openodia
-from openodia import _translate, _translate_async, cache
+from openodia import _translate, _translate_async, cache, cli
 
 DICTIONARY = {"watch": "ଦେଖନ୍ତୁ"}
 
@@ -254,6 +254,7 @@ def http_error(status: int) -> requests.HTTPError:
         http_error(400),
         http_error(403),
         http_error(404),
+        http_error(600),
         PermissionError("denied"),
         FileNotFoundError("missing"),
         OSError("disk"),
@@ -368,3 +369,76 @@ def test_the_item_error_names_the_type_and_does_not_echo_the_value(service: Fake
 def test_a_non_iterable_is_a_type_error(service: FakeService) -> None:
     with pytest.raises(TypeError):
         asyncio.run(openodia.translate_batch(anything(5)))
+
+
+def test_a_status_of_600_is_not_a_server_error(service: FakeService) -> None:
+    class Upstream(Exception):
+        status_code = 600
+
+    service.failures["a"] = [Upstream()] * 3
+    with pytest.raises(Upstream):
+        asyncio.run(openodia.translate_batch(["a"], retries=2, backoff=0))
+    assert len(service.calls) == 1
+
+
+def test_backoff_doubles_on_each_retry(service: FakeService, monkeypatch: pytest.MonkeyPatch) -> None:
+    sleeps: list[float] = []
+    real_sleep = asyncio.sleep
+
+    async def record(delay: float) -> None:
+        sleeps.append(delay)
+        await real_sleep(0)
+
+    monkeypatch.setattr(asyncio, "sleep", record)
+    service.failures["a"] = [TooManyRequests(), TooManyRequests(), TooManyRequests()]
+    assert asyncio.run(openodia.translate_batch(["a"], retries=3, backoff=1)) == ["a:or>en"]
+    assert sleeps == [1, 2, 4]
+
+
+def test_a_retryable_failure_that_runs_out_of_retries_stops_the_queued_retries_of_other_texts(service: FakeService) -> None:
+    seen: dict[str, int] = {}
+
+    def gate(text: str) -> None:
+        seen[text] = seen.get(text, 0) + 1
+        if (text, seen[text]) in {("b", 1), ("a", 2)}:
+            time.sleep(0.1)
+
+    service.gate = gate
+    service.failures["a"] = [TooManyRequests(), TooManyRequests()]
+    service.failures["b"] = [TooManyRequests()]
+    with pytest.raises(TooManyRequests):
+        asyncio.run(openodia.translate_batch(["a", "b"], concurrency=1, retries=1, backoff=0))
+    time.sleep(0.3)
+    assert [call[0] for call in service.calls] == ["a", "b", "a"]
+
+
+def test_no_retry_is_left_waiting_after_the_batch_raises(service: FakeService) -> None:
+    service.failures["a"] = [TooManyRequests()] * 4
+    service.failures["b"] = [ValueError("permanent")]
+
+    async def scenario() -> list[asyncio.Task[object]]:
+        with pytest.raises(ValueError, match="permanent"):
+            await openodia.translate_batch(["a", "b"], concurrency=2, retries=3, backoff=0.3)
+        await asyncio.sleep(0.05)
+        return [task for task in asyncio.all_tasks() if task is not asyncio.current_task()]
+
+    assert asyncio.run(scenario()) == []
+
+
+@pytest.mark.parametrize(("source", "to"), [("or", "or"), ("or", "en"), ("en", "or"), ("hi", "or"), ("en", "hi")])
+def test_batch_picks_the_same_function_as_the_cli(
+    source: str, to: str, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    fakes = {
+        "odia_to_other_lang": lambda text, dest_language_code="en": "odia_to_other_lang",
+        "other_lang_to_odia": lambda text, source_language_code="en": "other_lang_to_odia",
+        "universal_translation": lambda text, source_language_code="en", dest_language_code="or": "universal_translation",
+    }
+    for name, fake in fakes.items():
+        monkeypatch.setattr(_translate_async, name, fake)
+        monkeypatch.setattr(openodia, name, fake)
+    assert cli.main(["translate", "text", "--from", source, "--to", to]) == 0
+    from_cli = capsys.readouterr().out.strip()
+    assert asyncio.run(openodia.translate_batch(["text"], source=source, to=to)) == [from_cli]
+    if (source, to) == ("or", "or"):
+        assert from_cli == "odia_to_other_lang"
