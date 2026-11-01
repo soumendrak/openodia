@@ -4,7 +4,8 @@ Schemes:
 
 * ISO 15919 — academic / library transliteration with diacritics. Reversible.
 * Hunterian — Govt-of-India transliteration, no diacritics, lossy.
-* ITRANS    — ASCII-only, designed for keyboard input. Reversible.
+* ITRANS    — ASCII spellings for every letter and sign in its tables, designed for
+  keyboard input. Reversible.
 
 Each scheme provides:
 

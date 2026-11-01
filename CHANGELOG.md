@@ -29,10 +29,16 @@
   `to_roman("କi")` gives `kai`, which `from_roman` reads as `କୈ`). Callers
   who need an exact round trip should pass `reversible=True`
   (`to_roman("କi", reversible=True)` gives `ka:{i:}`).
-- With `reversible=True`, `from_roman(to_roman(text, s, reversible=True), s)`
-  gives NFC Odia text back with the same code points in ISO 15919 and ITRANS,
-  and returns other Odia input in NFC. `from_roman` writes `ଡ଼` and `ଢ଼` as
-  U+0B21/U+0B22 + U+0B3C, never as the precomposed U+0B5C/U+0B5D.
+- In `ISO15919` and `ITRANS`, `from_roman(to_roman(text, scheme,
+  reversible=True), scheme)` gives back `text` with each run of Odia characters
+  (U+0B00-U+0B7F) in NFC and all other characters unchanged. NFC Odia therefore
+  comes back with the same code points, including vowel signs, viramas and
+  nuktas that follow no consonant or follow ZWJ/ZWNJ.
+- In all three schemes, each run of Odia characters (U+0B00-U+0B7F) in the
+  output of `from_roman` is in NFC, including Odia passed through or quoted in
+  the input, so U+0B5C gives U+0B21 U+0B3C. Non-Odia characters that
+  `from_roman` does not decode are left as given, except that `ISO15919` applies
+  NFC to its input outside quotes.
 
 ## 0.1.14 (2026-10-26)
 
