@@ -1,7 +1,7 @@
 import threading
 import time
 from collections import OrderedDict
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from unittest import mock
 
@@ -521,3 +521,125 @@ class TestSingletonConstruction:
         monkeypatch.setattr(cache_module, "_build_from_env", rival_wins_the_race)
         monkeypatch.setattr(cache_module, "_singleton_lock", WinsWhileWaiting())
         assert cache.get_cache() is winner
+
+
+class PausingDisk:
+    def __init__(self, pause_on: str, **entries: str) -> None:
+        self.store: dict[object, str] = {(key,): value for key, value in entries.items()}
+        self.pause_on = pause_on
+        self.entered = threading.Event()
+        self.resume = threading.Event()
+
+    def _pause(self, operation: str) -> None:
+        if operation == self.pause_on and not self.entered.is_set():
+            self.entered.set()
+            assert self.resume.wait(timeout=5)
+
+    def get(self, key: object) -> str | None:
+        value = self.store.get(key)
+        self._pause("get")
+        return value
+
+    def __setitem__(self, key: object, value: str) -> None:
+        self._pause("set")
+        self.store[key] = value
+
+    def clear(self) -> None:
+        self._pause("clear")
+        self.store.clear()
+
+    def __len__(self) -> int:
+        return len(self.store)
+
+
+def _disk_cache(disk: PausingDisk) -> cache.TranslationCache:
+    instance = cache.TranslationCache(max_size=4)
+    instance._disk = disk
+    return instance
+
+
+def _start(target: Callable[[], object]) -> tuple[threading.Thread, list[object]]:
+    results: list[object] = []
+    thread = threading.Thread(target=lambda: results.append(target()), daemon=True)
+    thread.start()
+    return thread, results
+
+
+class TestRacesWithDiskIO:
+    def test_clear_during_a_paused_disk_read_leaves_nothing_behind(self) -> None:
+        disk = PausingDisk("get", k="old")
+        shared = _disk_cache(disk)
+        reader, returned = _start(lambda: shared.get(("k",)))
+        assert disk.entered.wait(timeout=5)
+        shared.clear()
+        disk.resume.set()
+        reader.join(timeout=5)
+        assert returned == [None]
+        assert dict(shared._memory) == {}
+        assert disk.store == {}
+        assert shared.get(("k",)) is None
+        assert shared.stats() == {"hits": 0, "misses": 2, "size": 0, "max_size": 4, "disk_size": 0}
+
+    def test_set_during_a_paused_disk_read_leaves_the_new_value_in_memory_and_on_disk(self) -> None:
+        disk = PausingDisk("get", k="v1")
+        shared = _disk_cache(disk)
+        reader, returned = _start(lambda: shared.get(("k",)))
+        assert disk.entered.wait(timeout=5)
+        shared.set(("k",), "v2")
+        disk.resume.set()
+        reader.join(timeout=5)
+        assert returned == ["v2"]
+        assert dict(shared._memory) == {("k",): "v2"}
+        assert disk.store == {("k",): "v2"}
+        assert shared.get(("k",)) == "v2"
+        assert shared.stats()["hits"] == 2
+
+    def test_a_disk_read_that_starts_during_a_clear_is_not_promoted(self) -> None:
+        disk = PausingDisk("clear", k="old")
+        shared = _disk_cache(disk)
+        clearer, _ = _start(shared.clear)
+        assert disk.entered.wait(timeout=5)
+        reader, returned = _start(lambda: shared.get(("k",)))
+        reader.join(timeout=0.2)
+        disk.resume.set()
+        clearer.join(timeout=5)
+        reader.join(timeout=5)
+        assert returned == [None]
+        assert dict(shared._memory) == {}
+        assert disk.store == {}
+
+    def test_a_clear_waits_for_a_set_that_is_writing_to_disk(self) -> None:
+        disk = PausingDisk("set")
+        shared = _disk_cache(disk)
+        writer, _ = _start(lambda: shared.set(("k",), "v"))
+        assert disk.entered.wait(timeout=5)
+        clearer, _ = _start(shared.clear)
+        clearer.join(timeout=0.2)
+        disk.resume.set()
+        writer.join(timeout=5)
+        clearer.join(timeout=5)
+        assert dict(shared._memory) == {}
+        assert disk.store == {}
+
+    def test_two_sets_of_one_key_leave_memory_and_disk_agreeing(self) -> None:
+        disk = PausingDisk("set")
+        shared = _disk_cache(disk)
+        first, _ = _start(lambda: shared.set(("k",), "a"))
+        assert disk.entered.wait(timeout=5)
+        second, _ = _start(lambda: shared.set(("k",), "b"))
+        second.join(timeout=0.2)
+        disk.resume.set()
+        first.join(timeout=5)
+        second.join(timeout=5)
+        assert disk.store == dict(shared._memory)
+
+    def test_a_clone_taken_during_a_write_can_still_miss(self) -> None:
+        import copy
+        import pickle
+
+        original = cache.TranslationCache(max_size=4)
+        original._generation += 1
+        for clone in (pickle.loads(pickle.dumps(original)), copy.deepcopy(original), copy.copy(original)):
+            reader, returned = _start(lambda: clone.get(("missing",)))
+            reader.join(timeout=5)
+            assert returned == [None]
