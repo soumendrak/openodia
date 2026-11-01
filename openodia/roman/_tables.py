@@ -11,7 +11,7 @@ Each scheme provides:
 * ``vowels``: independent-vowel codepoint → roman.
 * ``consonants``: bare consonant (no schwa) → roman.
 * ``matras``: vowel-sign → roman (replaces the inherent schwa).
-* ``modifiers``: anusvara / chandrabindu / visarga → roman.
+* ``modifiers``: anusvara / chandrabindu / visarga / avagraha → roman.
 * ``schwa``: the romanised inherent schwa (usually ``"a"``).
 """
 
@@ -109,6 +109,7 @@ ISO15919: SchemeTable = {
         "ଁ": "m̐",
         "ଂ": "ṁ",
         "ଃ": "ḥ",
+        "ଽ": "\u2019",
     },
 }
 
@@ -189,6 +190,7 @@ HUNTERIAN: SchemeTable = {
         "ଁ": "n",
         "ଂ": "n",
         "ଃ": "h",
+        "ଽ": "'",
     },
 }
 
@@ -269,6 +271,7 @@ ITRANS: SchemeTable = {
         "ଁ": ".N",
         "ଂ": "M",
         "ଃ": "H",
+        "ଽ": ".a",
     },
 }
 
