@@ -338,11 +338,12 @@ def _normalize_outside_quotes(text: str, sep: str) -> str:
 def from_roman(text: str, scheme: Scheme = "ISO15919") -> str:
     """Reverse of ``to_roman``.
 
-    Best-effort for ``Hunterian`` since that scheme is intentionally
-    lossy (no diacritics). Its ``n`` and ``h`` always decode as the
-    consonants ``ନ`` and ``ହ``, so ``ନ୍`` endings and clusters such as
-    ``ନ୍ସ`` and ``ଙ୍କ`` come back intact; anusvara and visarga need the
-    explicit marks of ``ISO15919`` (``ṁ``, ``ḥ``) or ``ITRANS`` (``M``, ``H``).
+    Best-effort for ``Hunterian`` since that scheme is intentionally lossy (no
+    diacritics). Hunterian ``from_roman`` never writes anusvara, candrabindu or visarga:
+    an ``n`` or ``h`` that is not part of a longer letter such as ``ng`` or ``kh``
+    decodes as the consonant ``ନ`` or ``ହ``. ``ନ୍`` endings and clusters such as ``ନ୍ସ``
+    and ``ଙ୍କ`` come back intact; anusvara and visarga need the explicit marks of
+    ``ISO15919`` (``ṁ``, ``ḥ``) or ``ITRANS`` (``M``, ``H``).
     In ``ISO15919`` and ``ITRANS``, ``from_roman(to_roman(text, scheme,
     reversible=True), scheme)`` gives back ``text`` with each run of Odia characters
     (U+0B00-U+0B7F) in NFC and all other characters unchanged. NFC Odia therefore comes

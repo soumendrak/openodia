@@ -203,10 +203,10 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     `from_roman` is in NFC, including Odia passed through or quoted in the input, so
     U+0B5C gives U+0B21 U+0B3C. Non-Odia characters that `from_roman` does not decode
     are left as given, except that `ISO15919` applies NFC to its input outside quotes.
-    `Hunterian` is intentionally lossy; decoding is
-    best-effort. Its `n` and `h` always decode as consonants (`jesan` gives
-    `ଜେସନ୍`, `anka` gives `ଅନ୍କ`); use `ISO15919` or `ITRANS` to keep
-    anusvara and visarga. Where two tokens would otherwise merge, a boundary mark is
+    `Hunterian` is intentionally lossy; decoding is best-effort.
+    Hunterian `from_roman` never writes anusvara, candrabindu or visarga: an `n` or `h` that is not part of a longer letter such as `ng` or `kh` decodes as the consonant `ନ` or `ହ`.
+    For example, `jesan` gives `ଜେସନ୍` and `anka` gives `ଅନ୍କ`; use `ISO15919` or
+    `ITRANS` to keep anusvara and visarga. Where two tokens would otherwise merge, a boundary mark is
     written (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS). The same mark
     after a consonant means a halant before a vowel (`k:a` for `କ୍ଅ`).
 
