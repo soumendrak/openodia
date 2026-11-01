@@ -203,6 +203,59 @@ def test_cancelling_a_batch_stops_queued_work_and_leaves_the_cache_usable(servic
     assert openodia.odia_to_other_lang("b", "en") == "b:or>en"
 
 
+def test_cancelling_a_batch_stops_a_text_that_a_worker_has_taken_but_not_started(
+    service: FakeService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    a_started = threading.Event()
+    release_a = threading.Event()
+    b_taken = threading.Event()
+    release_b = threading.Event()
+    b_done = threading.Event()
+
+    def gate(text: str) -> None:
+        if text == "a":
+            a_started.set()
+            release_a.wait(5)
+
+    service.gate = gate
+
+    class WatchedPool(ThreadPoolExecutor):
+        def submit(self, fn: Callable[..., typing.Any], /, *args: typing.Any, **kwargs: typing.Any) -> Future[typing.Any]:
+            def run(text: str, attempt: int) -> typing.Any:
+                if text != "b":
+                    return fn(text, attempt)
+                b_taken.set()
+                release_b.wait(5)
+                try:
+                    return fn(text, attempt)
+                finally:
+                    b_done.set()
+
+            return super().submit(run, *args, **kwargs)
+
+        def shutdown(self, wait: bool = True, *, cancel_futures: bool = False) -> None:
+            release_b.set()
+            assert b_done.wait(5)
+            super().shutdown(wait=wait, cancel_futures=cancel_futures)
+
+    monkeypatch.setattr(_translate_async, "ThreadPoolExecutor", WatchedPool)
+
+    async def scenario() -> None:
+        task = asyncio.ensure_future(openodia.translate_batch(["a", "b"], concurrency=2))
+        assert await asyncio.to_thread(a_started.wait, 5)
+        assert await asyncio.to_thread(b_taken.wait, 5)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+    try:
+        asyncio.run(scenario())
+    finally:
+        release_a.set()
+        release_b.set()
+    assert [call[0] for call in service.calls] == ["a"]
+
+
 def test_stopped_worker_skips_the_network_call() -> None:
     stopped = threading.Event()
     stopped.set()
