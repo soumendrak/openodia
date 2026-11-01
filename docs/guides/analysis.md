@@ -81,9 +81,9 @@ Counter({('ରାମ', 'ସୀତା'): 1, ('ସୀତା', 'ରାମ'): 1, ('�
 >>> text = "ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ । ରାମ ଭଲ ପିଲା । ଓଡ଼ିଶା ଏକ ସୁନ୍ଦର ରାଜ୍ୟ । ପୁରୀରେ ଜଗନ୍ନାଥ ମନ୍ଦିର ଅଛି । ରାମ ପୁରୀକୁ ଯାଏ ।"
 >>> wf = WordFrequency(text)
 >>> wf.get_summary()
-'ରାମ ସୀତା ଘରକୁ ଯାଏ  ସେ ଭଲ ଲୋକ  ରାମ ଭଲ ପିଲା  ରାମ ପୁରୀକୁ ଯାଏ'
+'ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ । ରାମ ଭଲ ପିଲା । ରାମ ପୁରୀକୁ ଯାଏ ।'
 >>> wf.get_summary(threshold=2)
-'ରାମ ସୀତା ଘରକୁ ଯାଏ  ରାମ ଭଲ ପିଲା  ରାମ ପୁରୀକୁ ଯାଏ'
+'ରାମ ସୀତା ଘରକୁ ଯାଏ । ରାମ ଭଲ ପିଲା । ରାମ ପୁରୀକୁ ଯାଏ ।'
 >>> wf.get_summary(threshold=3)
 ''
 ```
@@ -91,10 +91,10 @@ Counter({('ରାମ', 'ସୀତା'): 1, ('ସୀତା', 'ରାମ'): 1, ('�
 A higher threshold gives a shorter summary, and a threshold above every word count gives an empty string.
 
 !!! note "Gotchas"
-    - The summary drops the `।` terminators and joins the kept sentences with two spaces.
+    - The summary keeps the `।`, `॥`, `?` or `!` that ends each sentence and joins the kept sentences with one space.
     - A word matches a sentence by substring, so `ରାମ` also selects a sentence that only contains a longer word starting with `ରାମ`.
     - `threshold=0` means "not given" and falls back to the automatic value.
-    - Sentences are split with `ud.sentence_tokenizer`, so the text must use ` ।` (a space, then the full stop) between sentences.
+    - Sentences are split with `ud.sentence_tokenizer`, so `।`, `॥`, `?` and `!` end a sentence and `.` does not.
 
 ## Next
 
