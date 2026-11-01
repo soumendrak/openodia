@@ -37,7 +37,7 @@ One example per subcommand:
 
 ```console
 $ openodia tokenize --sentences --json 'ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ ।'
-{"tokens": ["ରାମ ସୀତା ଘରକୁ ଯାଏ", " ସେ ଭଲ ଲୋକ", ""]}
+{"tokens": ["ରାମ ସୀତା ଘରକୁ ଯାଏ ।", "ସେ ଭଲ ଲୋକ ।"]}
 $ openodia normalize --form NFC --json 'ଡ଼'
 {"text": "ଡ଼"}
 $ openodia clean --odia-to-latin --json 'ଓଡ଼ିଶା  ୧୨୩'
@@ -52,7 +52,7 @@ $ openodia detect-language --json ''
 {}
 $ openodia name --kind surname --count 2 --json
 $ openodia summarize --json 'ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ । ରାମ ଭଲ ପିଲା । ଓଡ଼ିଶା ଏକ ସୁନ୍ଦର ରାଜ୍ୟ । ପୁରୀରେ ଜଗନ୍ନାଥ ମନ୍ଦିର ଅଛି । ରାମ ପୁରୀକୁ ଯାଏ ।'
-{"summary": "ରାମ ସୀତା ଘରକୁ ଯାଏ  ସେ ଭଲ ଲୋକ  ରାମ ଭଲ ପିଲା  ରାମ ପୁରୀକୁ ଯାଏ"}
+{"summary": "ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ । ରାମ ଭଲ ପିଲା । ରାମ ପୁରୀକୁ ଯାଏ ।"}
 $ openodia remove-stopwords --json 'ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ ।'
 {"tokens": ["ରାମ", "ସୀତା", "ଘରକୁ", "ଯାଏ", "ସେ", "ଭଲ", "ଲୋକ"]}
 $ openodia remove-stopwords --get-str --json 'ରାମ ସୀତା ଘରକୁ ଯାଏ । ସେ ଭଲ ଲୋକ ।'
@@ -77,7 +77,7 @@ $ openodia pii --mask --json 'ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ �
 
 | Subcommand | stdout with `--json` |
 | --- | --- |
-| `tokenize` | `{"tokens": [string]}`; with `--sentences` segments may have leading spaces or be `""` |
+| `tokenize` | `{"tokens": [string]}`; with `--sentences` one trimmed sentence per entry, each keeping its `।`, `॥`, `?` or `!`; empty input gives `[]` |
 | `normalize`, `clean`, `translate` | `{"text": string}` |
 | `detect-language` | `{"language": "odia" or "non-odia", "confidence_score": number}`, or `{}` for empty input |
 | `name` | `{"names": [string]}` |
