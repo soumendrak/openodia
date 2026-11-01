@@ -103,12 +103,41 @@ class TestEveryOdiaInputClassRoundTrips:
 
     @pytest.mark.parametrize("scheme", REVERSIBLE_SCHEMES)
     @pytest.mark.parametrize(
-        "other", ["hello", "1:2", "file_name", "e\u0301", "\u00b7", "`", "ṛ", "\u212b", ":{x:}", "_{x_}", ".D", "k", " "]
+        "other",
+        [
+            "hello",
+            "1:2",
+            "file_name",
+            "e\u0301",
+            "\u00b7",
+            "`",
+            "ṛ",
+            "\u212b",
+            "\u2000",
+            "\u2001",
+            "x\u2000y",
+            ":{x:}",
+            "_{x_}",
+            ".D",
+            "k",
+            " ",
+        ],
     )
     def test_odia_mixed_with_other_text(self, scheme: Scheme, other: str) -> None:
         for word in [*NEIGHBOURS, "ଓ" + DDA_NUKTA + "ିଆ", "ନମସ୍କାର", "କ" + NUKTA + HALANT]:
             for text in (word + other + word, other + word + other):
                 assert round_trip(text, scheme) == text
+
+
+class TestWhitespaceThatNfcChanges:
+    @pytest.mark.parametrize("space", ["\u2000", "\u2001"])
+    def test_space_is_quoted_and_kept(self, space: str) -> None:
+        text = "କ" + space + "ଖ"
+        assert roman.to_roman(text, reversible=True) == "ka:{" + space + ":}kha"
+        assert code_points(round_trip(text, "ISO15919")) == code_points(text)
+
+    def test_ordinary_whitespace_is_not_quoted(self) -> None:
+        assert roman.to_roman("କ \u2002\tଖ", reversible=True) == "ka \u2002\tkha"
 
 
 class TestSeparatorBeforeNonRomanText:

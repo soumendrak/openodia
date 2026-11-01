@@ -149,12 +149,17 @@ class _Encoder:
             self.emit(ch * 2 if self.escape and ch == self.sep else ch, is_literal=True)
 
 
+def _is_stable_space(ch: str) -> bool:
+    """Whether ``ch`` is whitespace that NFC leaves alone (U+2000 and U+2001 change)."""
+    return ch.isspace() and unicodedata.normalize("NFC", ch) == ch
+
+
 def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> tuple[list[str], list[bool]]:
     """Quote pass-through runs that the decoder would read as Roman tokens.
 
     Only used with ``reversible=True``: ``କi`` would otherwise give ``kai``
     (``କୈ``), and ``hello`` would decode as Odia. Each maximal run of literal characters
-    other than whitespace and escaped separators is written as
+    other than NFC-stable whitespace and escaped separators is written as
     ``<sep>{run<sep>}`` when it contains a character used in Roman tokens, a
     combining mark, or text that NFC changes (the ANGSTROM SIGN ``Å``),
     e.g. ``ka:{i:}``.
@@ -179,7 +184,7 @@ def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> t
             run.clear()
 
     for tok, is_lit in zip(tokens, literal):
-        if is_lit and len(tok) == 1 and tok != sep and not tok.isspace():
+        if is_lit and len(tok) == 1 and tok != sep and not _is_stable_space(tok):
             run.append(tok)
             continue
         close_run()
