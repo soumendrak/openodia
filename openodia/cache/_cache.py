@@ -13,6 +13,8 @@ DEFAULT_MAX_SIZE: int = 10_000
 _ENV_MAX_SIZE: str = "OPENODIA_CACHE_MAX_SIZE"
 _ENV_DISK: str = "OPENODIA_CACHE_DISK"
 
+_UNPICKLED: frozenset[str] = frozenset({"_lock", "_write_lock"})
+
 
 class CacheStats(TypedDict):
     """Snapshot of cache counters."""
@@ -45,6 +47,8 @@ class TranslationCache:
             raise ValueError(f"max_size must be >= 1, got {max_size}")
         self._max_size = max_size
         self._lock = threading.Lock()
+        self._write_lock = threading.Lock()
+        self._generation = 0
         self._memory: OrderedDict[Any, str] = OrderedDict()
         self._hits = 0
         self._misses = 0
@@ -53,11 +57,13 @@ class TranslationCache:
             self._disk = _open_diskcache(disk_path)
 
     def __getstate__(self) -> dict[str, Any]:
-        return {name: value for name, value in self.__dict__.items() if name != "_lock"}
+        return {name: value for name, value in self.__dict__.items() if name not in _UNPICKLED}
 
     def __setstate__(self, state: dict[str, Any]) -> None:
         self.__dict__.update(state)
         self._lock = threading.Lock()
+        self._write_lock = threading.Lock()
+        self._generation = 0
 
     # ------------------------------------------------------------------
     # Get / set
@@ -67,28 +73,39 @@ class TranslationCache:
         """Return a cached value or ``None`` if missing.
 
         Hits in memory are moved to the most-recently-used position. Hits
-        on disk are promoted to memory.
+        on disk are promoted to memory. The disk is read outside the lock; if
+        a ``set`` or ``clear`` started or was running meanwhile, the value is
+        discarded and the lookup runs again once that call has finished.
         """
-        with self._lock:
-            if key in self._memory:
-                self._memory.move_to_end(key)
-                self._hits += 1
-                return self._memory[key]
-        value: str | None = self._disk.get(key) if self._disk is not None else None
-        with self._lock:
-            if value is None:
-                self._misses += 1
-                return None
-            self._store_memory(key, value)
-            self._hits += 1
-            return value
+        while True:
+            with self._lock:
+                if key in self._memory:
+                    self._memory.move_to_end(key)
+                    self._hits += 1
+                    return self._memory[key]
+                generation = self._generation
+            value: str | None = self._disk.get(key) if self._disk is not None else None
+            with self._lock:
+                if generation == self._generation and generation % 2 == 0:
+                    if value is None:
+                        self._misses += 1
+                        return None
+                    self._store_memory(key, value)
+                    self._hits += 1
+                    return value
+            with self._write_lock:
+                pass
 
     def set(self, key: Any, value: str) -> None:
         """Insert into memory (and disk, if configured)."""
-        with self._lock:
-            self._store_memory(key, value)
-        if self._disk is not None:
-            self._disk[key] = value
+        with self._write_lock:
+            with self._lock:
+                self._store_memory(key, value)
+                self._generation += 1
+            if self._disk is not None:
+                self._disk[key] = value
+            with self._lock:
+                self._generation += 1
 
     def _store_memory(self, key: Any, value: str) -> None:
         self._memory[key] = value
@@ -114,12 +131,16 @@ class TranslationCache:
 
     def clear(self) -> None:
         """Drop all entries (memory + disk) and reset counters."""
-        with self._lock:
-            self._memory.clear()
-            self._hits = 0
-            self._misses = 0
-        if self._disk is not None:
-            self._disk.clear()
+        with self._write_lock:
+            with self._lock:
+                self._memory.clear()
+                self._hits = 0
+                self._misses = 0
+                self._generation += 1
+            if self._disk is not None:
+                self._disk.clear()
+            with self._lock:
+                self._generation += 1
 
     @property
     def max_size(self) -> int:
