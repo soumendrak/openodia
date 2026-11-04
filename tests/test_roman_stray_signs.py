@@ -51,9 +51,23 @@ class TestStraySignsRoundTrip:
             ("ITRANS", "କ୍୍", "k_{୍_}"),
             ("ISO15919", "କ\u200c୍ଷ", "ka:{\u200c୍:}ṣa"),
             ("ITRANS", "ଓା", "oା"),
+            ("ISO15919", "ଓା", "ōା"),
         ],
     )
     def test_stray_sign_is_written_as_itself(self, scheme: Scheme, text: str, expected: str) -> None:
+        assert roman.to_roman(text, scheme, reversible=True) == expected
+
+    @pytest.mark.parametrize(
+        ("scheme", "text", "expected"),
+        [
+            ("ISO15919", "ଅ୍", "a:{୍:}"),
+            ("ITRANS", "ଅ୍", "a_{୍_}"),
+            ("ISO15919", "୍", ":{୍:}"),
+            ("ISO15919", "୍ା", ":{୍ା:}"),
+            ("ITRANS", "୍ା", "_{୍ା_}"),
+        ],
+    )
+    def test_stray_virama_is_quoted(self, scheme: Scheme, text: str, expected: str) -> None:
         assert roman.to_roman(text, scheme, reversible=True) == expected
 
     @pytest.mark.parametrize(

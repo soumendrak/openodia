@@ -4,7 +4,7 @@ import pytest
 
 from openodia import roman
 from openodia.roman import SCHEMES
-from openodia.roman._roman import Scheme
+from openodia.roman._roman import Scheme, _build_reverse_index
 
 
 class TestSchemesConstant:
@@ -268,6 +268,11 @@ class TestHunterianConsonantNH:
         decoded = "".join(roman.from_roman(s, "Hunterian") for s in spellings)
         assert sorted({c for c in decoded if c in "\u0b01\u0b02\u0b03"}) == []
         assert len(spellings) == 9120
+
+    def test_no_reverse_index_entry_decodes_as_a_modifier(self) -> None:
+        _, index = _build_reverse_index("Hunterian")
+        assert sorted(key for key, (_, odia) in index.items() if set(odia) & set("\u0b01\u0b02\u0b03")) == []
+        assert index["'"] == ("modifier", "\u0b3d")
 
     @pytest.mark.parametrize(
         ("text", "expected"),

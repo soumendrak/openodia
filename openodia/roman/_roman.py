@@ -49,8 +49,12 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
             for ``Hunterian``. Odia digits ``୦``-``୯`` become ASCII ``0``-``9``
             in ``Hunterian`` and in ``ITRANS`` unless ``reversible`` is true
             (an ASCII digit could not be told from a literal one); ``ISO15919``
-            keeps them. A vowel sign or virama that follows no consonant
-            is written as itself (``ଓା`` gives ``ōା``).
+            keeps them. A vowel sign or virama that follows no consonant is
+            passed through like non-Odia text and quoted by the same rule: a
+            virama has a nonzero combining class, so it is quoted (``ଅ୍``
+            gives ``a:{୍:}``); a vowel sign has combining class 0 and is
+            written as itself (``ଓା`` gives ``ōା``) unless its run is quoted
+            (``୍ା`` gives ``:{୍ା:}``).
 
     In ``ISO15919`` and ``ITRANS``, ``from_roman(to_roman(text, scheme,
     reversible=True), scheme)`` gives back ``text`` with each run of Odia characters

@@ -222,7 +222,12 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
     could be read as Roman letters (or that has combining marks) is quoted
     and kept verbatim by `from_roman` (`roman.to_roman("କi",
     reversible=True)` gives `ka:{i:}`). A vowel sign or virama that follows no
-    consonant is written as itself (`to_roman("ଓା", reversible=True)` gives `ōା`).
+    consonant is passed through like non-Odia text and quoted by the same rule:
+    a virama has a nonzero combining class, so it is quoted
+    (`to_roman("ଅ୍", reversible=True)` gives `a:{୍:}`); a vowel sign has
+    combining class 0 and is written as itself
+    (`to_roman("ଓା", reversible=True)` gives `ōା`) unless its run is quoted
+    (`to_roman("୍ା", reversible=True)` gives `:{୍ା:}`).
 
     The avagraha `ଽ` is written `’` in ISO 15919, `'` in Hunterian and `.a` in
     ITRANS. `from_roman` in ITRANS also reads the common spellings `aa`, `ii`,
