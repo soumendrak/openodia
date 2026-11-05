@@ -219,11 +219,12 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
 
     For text that contains anything other than Odia, pass `reversible=True`:
     a literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that
-    could be read as Roman letters (or that has combining marks) is quoted
+    could be read as Roman letters (or that has a character with a nonzero
+    canonical combining class, `unicodedata.combining(c) != 0`) is quoted
     and kept verbatim by `from_roman` (`roman.to_roman("କi",
     reversible=True)` gives `ka:{i:}`). A vowel sign or virama that follows no
     consonant is passed through like non-Odia text and quoted by the same rule:
-    a virama has a nonzero combining class, so it is quoted
+    a virama has a nonzero canonical combining class, so it is quoted
     (`to_roman("ଅ୍", reversible=True)` gives `a:{୍:}`); a vowel sign has
     combining class 0 and is written as itself
     (`to_roman("ଓା", reversible=True)` gives `ōା`) unless its run is quoted

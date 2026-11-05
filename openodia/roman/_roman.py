@@ -44,16 +44,18 @@ def to_roman(text: str, scheme: Scheme = "ISO15919", *, reversible: bool = False
         reversible: For ``ISO15919`` and ``ITRANS`` only. When true, non-Odia
             text is escaped so ``from_roman`` gives back the input:
             a literal separator (``:`` / ``_``) is doubled, and any non-Odia
-            run that could be read as Roman letters, or that contains
-            combining marks, is quoted (``କi`` gives ``ka:{i:}``). Ignored
+            run that could be read as Roman letters, or that contains a
+            character with a nonzero canonical combining class
+            (``unicodedata.combining(c) != 0``), is quoted (``କi`` gives
+            ``ka:{i:}``). Ignored
             for ``Hunterian``. Odia digits ``୦``-``୯`` become ASCII ``0``-``9``
             in ``Hunterian`` and in ``ITRANS`` unless ``reversible`` is true
             (an ASCII digit could not be told from a literal one); ``ISO15919``
             keeps them. A vowel sign or virama that follows no consonant is
             passed through like non-Odia text and quoted by the same rule: a
-            virama has a nonzero combining class, so it is quoted (``ଅ୍``
-            gives ``a:{୍:}``); a vowel sign has combining class 0 and is
-            written as itself (``ଓା`` gives ``ōା``) unless its run is quoted
+            virama has a nonzero canonical combining class, so it is quoted
+            (``ଅ୍`` gives ``a:{୍:}``); a vowel sign has combining class 0 and
+            is written as itself (``ଓା`` gives ``ōା``) unless its run is quoted
             (``୍ା`` gives ``:{୍ା:}``).
 
     In ``ISO15919`` and ``ITRANS``, ``from_roman(to_roman(text, scheme,
@@ -175,8 +177,9 @@ def _quote_literals(tokens: list[str], literal: list[bool], scheme: Scheme) -> t
     (``କୈ``), and ``hello`` would decode as Odia. Each maximal run of literal characters
     other than NFC-stable whitespace and escaped separators is written as
     ``<sep>{run<sep>}`` when it contains a character used in Roman tokens, a
-    combining mark, or text that NFC changes (the ANGSTROM SIGN ``Å``),
-    e.g. ``ka:{i:}``.
+    character with a nonzero canonical combining class
+    (``unicodedata.combining(c) != 0``), or text that NFC changes
+    (the ANGSTROM SIGN ``Å``), e.g. ``ka:{i:}``.
     """
     sep = _SEPARATORS[scheme]
     roman_tokens, _ = _build_reverse_index(scheme)
