@@ -70,6 +70,7 @@ The tools are available in Odia language.
 - [x] [Unicode normalization & clean](#unicode-normalization)
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
+- [x] [Phonetic matching](#phonetic-matching)
 - [x] [Command-line interface](#command-line-interface)
 - [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
@@ -164,6 +165,44 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
     `"".join(syllable.split(word)) == word` for any input — the splitter
     is a strict tokeniser, never modifying or normalising characters.
 
+### :material-music-note: Phonetic matching
+
+These are Odia-adapted variants, not classic Soundex or Metaphone.
+Soundex preserves the first Odia letter, including a leading vowel, and
+pads or truncates to four characters. Both encoders normalize NFC.
+Vowels and matras reset duplicate suppression; halant, nukta and zero-width
+joiners do not. For example, `ପାପା` gives Soundex `ପ600` and Metaphone `ପପ`.
+Nonempty input with no Odia letters raises `ValueError`, including Latin-only
+input, and `soundex()`/`metaphone()` raise `TypeError` for a non-str such as
+`None`. In mixed input, non-Odia characters emit nothing but reset duplicate
+suppression, like vowels. Empty input produces empty keys. `similarity()`
+does not raise for non-Odia input: it returns 0.0 when either side is `None`
+or has no Odia letters (Latin or whitespace-only), and `similarity("", "")`
+is 0.0. Any other type (`int`, `bytes`, `list`) raises `TypeError`. It
+assigns 0.5 to Soundex equality and 0.5 to normalized Metaphone edit
+similarity.
+
+- Two encoders for finding spelling variants of the same name / word:
+  - **Soundex** — fixed 4-character code based on place-of-articulation groups.
+  - **Metaphone** — variable-length consonant skeleton, aspirated/voiced pairs collapsed.
+- A `similarity()` score that combines both into a single `[0, 1]` value.
+
+```python
+from openodia import phonetic
+
+phonetic.soundex("ସୋମେନ୍ଦ୍ର")             # 'ସ657'  (4 chars)
+phonetic.soundex("ସୋମେନ୍ଦ୍ର") == phonetic.soundex("ସୌମେନ୍ଦ୍ର")  # True
+
+phonetic.metaphone("ସୋମେନ୍ଦ୍ର")           # 'ସପତର'
+
+phonetic.similarity("ସୋମେନ୍ଦ୍ର", "ସୌମେନ୍ଦ୍ର")   # 1.0
+phonetic.similarity("ସୀତା", "ବିଜୟ")             # ~ 0.0
+```
+
+??? note "When to use which"
+    Soundex maximises recall (more collisions, broader match). Metaphone
+    is finer-grained. `similarity()` averages them so the score behaves
+    well as a sortable threshold for fuzzy-match queries.
 
 ### :material-console: Command-line interface
 
