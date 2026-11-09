@@ -1,24 +1,4 @@
-"""Brahmic-script transliteration by Unicode character identity.
-
-The Indic Unicode blocks (Devanagari, Bengali, Gurmukhi, Gujarati, Odia,
-Tamil, Telugu, Kannada, Malayalam) mostly share a parallel layout, but
-not completely: some scripts have letters the others lack (Malayalam
-chillus, Odia WA), and shared marks such as the danda live only in the
-Devanagari block. A blanket block offset would turn those into unrelated
-or unassigned codepoints.
-
-So each character is mapped by its Unicode name instead: ``DEVANAGARI
-LETTER KA`` becomes ``ORIYA LETTER KA``. Malayalam chillus expand to the
-base consonant plus virama (``ൻ`` → ``न्``). Characters with no
-counterpart in the target script are kept unchanged. That includes
-Latin, digits, punctuation, the shared danda, and e.g. Devanagari ``ख``
-when targeting Tamil, which has no aspirated consonants.
-
-Two formal Unicode names are corrected before matching, because they are
-known mistakes: Tamil U+0B83 is aytham, not visarga, and Kannada U+0CDE is
-LLLA, not FA. An anusvara aimed at Gurmukhi is written as tippi or bindi
-according to the vowel it follows.
-"""
+"""Tamil U+0B83 is aytham, not visarga, and Kannada U+0CDE is LLLA, not FA."""
 
 from __future__ import annotations
 
@@ -59,24 +39,13 @@ SCRIPTS: tuple[Script, ...] = tuple(_SCRIPT_OFFSETS.keys())
 
 
 def transliterate(text: str, from_script: Script, to_script: Script) -> str:
-    """Transliterate ``text`` from one Indic script to another.
+    """Only codepoints in ``from_script`` change. Everything else is kept.
 
-    Only the codepoints belonging to ``from_script`` are translated;
-    everything else (whitespace, Latin letters, digits, punctuation,
-    characters in other Indic blocks) is preserved verbatim.
-
-    Args:
-        text: Source string.
-        from_script: Name of the source script.
-        to_script: Name of the destination script.
-
-    Returns:
-        The transliterated string. Translated characters are in NFC, so a
-        composition-excluded nukta letter is consonant + nukta. Characters
-        without a counterpart in ``to_script`` are kept as they are.
-
-    Raises:
-        ValueError: If either script name is unknown.
+    Translated characters are in NFC. A composition-excluded nukta letter
+    is consonant + nukta, except Gurmukhi flap RRA and a target LLA, SHA,
+    or YYA, which stay one letter. Characters without a counterpart in
+    ``to_script`` are kept as they are. An unknown script name raises
+    ``ValueError``.
     """
     if from_script not in _SCRIPT_OFFSETS:
         raise ValueError(f"unknown from_script {from_script!r}; supported: {tuple(_SCRIPT_OFFSETS)}")
@@ -338,5 +307,14 @@ def _map_char(ch: str, src_names: dict[str, str], dst_chars: dict[str, str]) -> 
     if len(parts) > 1 and all(p in src_names for p in parts):
         mapped = [_map_char(p, src_names, dst_chars) for p in parts]
         if all(m != p for m, p in zip(mapped, parts)):
-            return "".join(mapped)
+            return _drop_repeated_mark(mapped)
     return ch
+
+
+def _drop_repeated_mark(mapped: list[str]) -> str:
+    out = mapped[0]
+    for piece in mapped[1:]:
+        if len(piece) == 1 and unicodedata.combining(piece) and out.endswith(piece):
+            continue
+        out += piece
+    return out

@@ -127,6 +127,11 @@ class TestNfcRoundTrip:
         assert unicodedata.normalize("NFC", out) == out
         assert indic.transliterate(out, from_script=script, to_script="odia") == source
 
+    def test_precomposed_exclusion_keeps_the_letters_before_it(self) -> None:
+        assert indic.transliterate("\u0b15\u0b5c", "odia", "devanagari") == "\u0915\u0921\u093c"
+        assert indic.transliterate("\u0b13\u0b5c\u0b3f\u0b06", "odia", "devanagari") == "\u0913\u0921\u093c\u093f\u0906"
+        assert indic.transliterate("\u0915\u0958", "devanagari", "odia") == "\u0b15\u0b15\u0b3c"
+
 
 class TestLength:
     """A chillu grows by a virama. A nukta letter can shrink."""
@@ -169,6 +174,11 @@ class TestPublicAPI:
         bullet = next(line for line in changelog.splitlines() if line.startswith("- `openodia.indic`"))
         assert "composition-excluded" in bullet
         assert "precomposed nukta letter" not in bullet
+        for name in ("Gurmukhi", "RRA", "LLA", "SHA", "YYA"):
+            assert name in bullet
+        assert indic.transliterate("\u095c", "devanagari", "gurmukhi") == "\u0a5c"
+        assert indic.transliterate("\u0a33", "gurmukhi", "devanagari") == "\u0933"
+        assert indic.transliterate("\u0958", "devanagari", "bengali") == "\u0995\u09bc"
 
 
 class TestCharacterIdentity:
@@ -210,6 +220,31 @@ class TestCharacterIdentity:
         assert indic.transliterate("खक", from_script="devanagari", to_script="tamil") == "खக"
         assert indic.transliterate("\u0958", from_script="devanagari", to_script="tamil") == "\u0958"
         assert indic.transliterate("\u0934", from_script="devanagari", to_script="bengali") == "\u0934"
+
+    def test_llla_to_gurmukhi_has_one_nukta(self) -> None:
+        out = indic.transliterate("\u0934", from_script="devanagari", to_script="gurmukhi")
+        assert out == "\u0a32\u0a3c"
+        assert out != "\u0a32\u0a3c\u0a3c"
+        nuktas = [c for c in out if "SIGN NUKTA" in unicodedata.name(c, "")]
+        assert len(nuktas) < 2
+
+    def test_no_assigned_character_emits_two_nuktas_in_a_row(self) -> None:
+        for src in SCRIPTS:
+            start = _SCRIPT_OFFSETS[src]
+            for cp in range(start, start + 0x80):
+                if not unicodedata.name(chr(cp), ""):
+                    continue
+                for dst in SCRIPTS:
+                    if src == dst:
+                        continue
+                    out = indic.transliterate(chr(cp), from_script=src, to_script=dst)
+                    marks = [c for c in out if "SIGN NUKTA" in unicodedata.name(c, "")]
+                    consecutive = any(
+                        "SIGN NUKTA" in unicodedata.name(a, "") and "SIGN NUKTA" in unicodedata.name(b, "")
+                        for a, b in zip(out, out[1:])
+                    )
+                    assert not consecutive, (src, dst, hex(cp), out)
+                    assert len(marks) < 2
 
     def test_unassigned_codepoint_passes_through(self) -> None:
         assert indic.transliterate("\u0984", from_script="bengali", to_script="devanagari") == "\u0984"
