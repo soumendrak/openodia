@@ -527,6 +527,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#romanisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Romanisation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#command-line-interface" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1381,6 +1392,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/roman/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Romanisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1472,6 +1511,7 @@ uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># or: pi
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#unicode-normalization">Unicode normalization &amp; clean</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#corpus-statistics">Corpus statistics</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#syllabifier">Syllabifier (akshara)</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#romanisation">Romanisation</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#command-line-interface">Command-line interface</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#translation-cache">Translation cache configuration</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#numbers-and-words">Numbers, dates, and currency in words</a></li>
@@ -1562,6 +1602,71 @@ or sprinkle through a pipeline without compounding side-effects.</p>
 <summary>Round-trip property</summary>
 <p><code>"".join(syllable.split(word)) == word</code> for any input — the splitter
 is a strict tokeniser, never modifying or normalising characters.</p>
+</details>
+<h3 id="romanisation"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 0-2 2v8h2v-4h2v4h2V9a2 2 0 0 0-2-2zm0 2h2v2H3m12-.5V9a2 2 0 0 0-2-2H9v10h4a2 2 0 0 0 2-2v-1.5a1.54 1.54 0 0 0-1.5-1.5 1.54 1.54 0 0 0 1.5-1.5M13 15h-2v-2h2zm0-4h-2V9h2m6-2a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-1h-2v1h-2V9h2v1h2V9a2 2 0 0 0-2-2Z"/></svg></span> Romanisation<a class="headerlink" href="#romanisation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Three schemes — pick by use case:</li>
+<li><strong>ISO 15919</strong> — academic / library transliteration, reversible, uses diacritics.</li>
+<li><strong>Hunterian</strong> — Govt-of-India transliteration, ASCII, lossy (no diacritics).</li>
+<li><strong>ITRANS</strong> — ASCII spellings for every letter and sign in its tables, keyboard-friendly, reversible.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">roman</span>
+
+<span class="n">roman</span><span class="o">.</span><span class="n">to_roman</span><span class="p">(</span><span class="s2">&quot;ଓଡ଼ିଆ&quot;</span><span class="p">,</span> <span class="s2">&quot;ISO15919&quot;</span><span class="p">)</span>   <span class="c1"># &#39;ōṛiā&#39;</span>
+<span class="n">roman</span><span class="o">.</span><span class="n">to_roman</span><span class="p">(</span><span class="s2">&quot;ଓଡ଼ିଆ&quot;</span><span class="p">,</span> <span class="s2">&quot;Hunterian&quot;</span><span class="p">)</span>  <span class="c1"># &#39;oria&#39;</span>
+<span class="n">roman</span><span class="o">.</span><span class="n">to_roman</span><span class="p">(</span><span class="s2">&quot;ଓଡ଼ିଆ&quot;</span><span class="p">,</span> <span class="s2">&quot;ITRANS&quot;</span><span class="p">)</span>     <span class="c1"># &#39;o.DiA&#39;</span>
+
+<span class="n">roman</span><span class="o">.</span><span class="n">from_roman</span><span class="p">(</span><span class="s2">&quot;namaskara&quot;</span><span class="p">,</span> <span class="s2">&quot;Hunterian&quot;</span><span class="p">)</span>  <span class="c1"># &#39;ନମସ୍କର&#39; (best-effort: Hunterian drops ā)</span>
+</code></pre></div>
+<details class="note">
+<summary>Round-trip</summary>
+<p>The nukta <code>଼</code> has no precomposed form after most consonants, so it gets its own
+mark: <code>·</code> (U+00B7) in ISO 15919 and <code>`</code> in ITRANS (<code>ଖୋଜ଼</code> gives <code>khōj·a</code> and
+<code>khoj`a</code>). Hunterian drops it (<code>khoja</code>). <code>ଡ଼</code> and <code>ଢ଼</code> keep their own
+letters in all three schemes: <code>ṛ</code>/<code>ṛh</code> in ISO 15919, <code>.D</code>/<code>.Dh</code> in ITRANS,
+and <code>r</code>/<code>rh</code> in Hunterian (where plain <code>ଡ</code> and <code>ଢ</code> give <code>d</code>/<code>dh</code>).
+<code>from_roman</code> reads each scheme's mark back as the nukta, so
+<code>reversible=True</code> quotes a literal <code>·</code> (ISO 15919) or <code>`</code> (ITRANS).</p>
+<p>By default, non-Odia text comes back exactly as given
+(<code>to_roman("file_name ନମସ୍କାର", "ITRANS")</code> keeps <code>file_name</code>).
+In <code>ISO15919</code> and <code>ITRANS</code>, <code>from_roman(to_roman(text, scheme, reversible=True),
+scheme)</code> gives back <code>text</code> with each run of Odia characters (U+0B00-U+0B7F) in NFC
+and all other characters unchanged. NFC Odia therefore comes back with the same code
+points, including vowel signs, viramas and nuktas that follow no consonant or follow
+ZWJ/ZWNJ.
+In all three schemes, each run of Odia characters (U+0B00-U+0B7F) in the output of
+<code>from_roman</code> is in NFC, including Odia passed through or quoted in the input, so
+U+0B5C gives U+0B21 U+0B3C. Non-Odia characters that <code>from_roman</code> does not decode
+are left as given, except that <code>ISO15919</code> applies NFC to its input outside quotes.
+<code>Hunterian</code> is intentionally lossy; decoding is best-effort.
+Hunterian <code>from_roman</code> decodes no Roman spelling as anusvara, candrabindu or visarga: an <code>n</code> or <code>h</code> that is not part of a longer letter such as <code>ng</code> or <code>kh</code> decodes as the consonant <code>ନ</code> or <code>ହ</code>. Odia <code>ଂ</code>, <code>ଁ</code> and <code>ଃ</code> in the input pass through.
+For example, <code>jesan</code> gives <code>ଜେସନ୍</code> and <code>anka</code> gives <code>ଅନ୍କ</code>; use <code>ISO15919</code> or
+<code>ITRANS</code> to keep anusvara and visarga. Where two tokens would otherwise merge, a boundary mark is
+written (<code>ka:i</code> for <code>କଇ</code> in ISO 15919, <code>ka_i</code> in ITRANS). The same mark
+after a consonant means a halant before a vowel (<code>k:a</code> for <code>କ୍ଅ</code>).</p>
+<p><code>Hunterian</code> and <code>ITRANS</code> write the Odia digits <code>୦</code>-<code>୯</code> as ASCII <code>0</code>-<code>9</code>
+(<code>to_roman("୨୦୨୬", "ITRANS")</code> gives <code>2026</code>); <code>from_roman</code> keeps ASCII
+digits as they are. <code>ISO15919</code> keeps the Odia digits, and so does <code>ITRANS</code> with
+<code>reversible=True</code>, because an ASCII digit could not be told from a literal one.
+<code>Hunterian</code> ignores <code>reversible</code> and still writes ASCII digits
+(<code>to_roman("୨୦୨୬", "Hunterian", reversible=True)</code> gives <code>2026</code>).</p>
+<p>For text that contains anything other than Odia, pass <code>reversible=True</code>:
+a literal <code>:</code> (ISO) or <code>_</code> (ITRANS) is doubled, and a non-Odia run that
+could be read as Roman letters (or that has a character with a nonzero
+canonical combining class, <code>unicodedata.combining(c) != 0</code>) is quoted
+and kept verbatim by <code>from_roman</code> (<code>roman.to_roman("କi",
+reversible=True)</code> gives <code>ka:{i:}</code>). A vowel sign or virama that follows no
+consonant is passed through like non-Odia text and quoted by the same rule:
+a virama has a nonzero canonical combining class, so it is quoted
+(<code>to_roman("ଅ୍", reversible=True)</code> gives <code>a:{୍:}</code>); a vowel sign has
+combining class 0 and is written as itself
+(<code>to_roman("ଓା", reversible=True)</code> gives <code>ōା</code>) unless its run is quoted
+(<code>to_roman("୍ା", reversible=True)</code> gives <code>:{୍ା:}</code>).</p>
+<p>The avagraha <code>ଽ</code> is written <code>’</code> in ISO 15919, <code>'</code> in Hunterian and <code>.a</code> in
+ITRANS. <code>from_roman</code> in ITRANS also reads the common spellings <code>aa</code>, <code>ii</code>,
+<code>uu</code>, <code>R^i</code>, <code>R^I</code>, <code>L^i</code> and <code>L^I</code>; <code>to_roman</code> keeps writing <code>A</code>, <code>I</code>,
+<code>U</code> and <code>RRi</code>. <code>from_roman</code> in Hunterian reads <code>ri</code> and <code>li</code> as consonant
+plus vowel sign (<code>oria</code> gives <code>ଓରିଅ</code>), not as the vocalic <code>ଋ</code> or <code>ଌ</code>.</p>
 </details>
 <h3 id="command-line-interface"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12zm0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm-7 14v-2h5v2zm-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59z"/></svg></span> Command-line interface<a class="headerlink" href="#command-line-interface" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2146,7 +2251,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 9, 2026 19:27:19 UTC"><span class="timeago" datetime="2026-11-09T19:27:19+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 9, 2026 19:27:19 UTC">2026-11-09</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 9, 2026 21:53:31 UTC"><span class="timeago" datetime="2026-11-09T21:53:31+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 9, 2026 21:53:31 UTC">2026-11-09</span>
   </span>
 
     
