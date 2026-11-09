@@ -71,8 +71,9 @@ def transliterate(text: str, from_script: Script, to_script: Script) -> str:
         to_script: Name of the destination script.
 
     Returns:
-        The transliterated string. Characters without a counterpart in
-        ``to_script`` are kept as they are.
+        The transliterated string. Translated characters are in NFC, so a
+        composition-excluded nukta letter is consonant + nukta. Characters
+        without a counterpart in ``to_script`` are kept as they are.
 
     Raises:
         ValueError: If either script name is unknown.
@@ -259,7 +260,7 @@ def _exclusions(start: int) -> dict[str, str]:
 
 @cache
 def _chars_by_name(script: Script) -> dict[str, str]:
-    table = {name: ch for ch, name in _block_entries(_SCRIPT_OFFSETS[script])}
+    table = {name: unicodedata.normalize("NFC", ch) for ch, name in _block_entries(_SCRIPT_OFFSETS[script])}
     if script == "assamese":
         table.update(_ASSAMESE_TARGET)
     elif script == "bengali":

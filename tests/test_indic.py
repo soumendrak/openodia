@@ -103,8 +103,17 @@ class TestEmpty:
         assert indic.transliterate("", "odia", "devanagari") == ""
 
 
+class TestNfcRoundTrip:
+    def test_nfc_nukta_word_round_trips(self) -> None:
+        source = "ଓଡ଼ିଆ"
+        devanagari = indic.transliterate(source, from_script="odia", to_script="devanagari")
+        assert devanagari == "ओड़िआ"
+        assert unicodedata.normalize("NFC", devanagari) == devanagari
+        assert indic.transliterate(devanagari, from_script="devanagari", to_script="odia") == source
+
+
 class TestLength:
-    """Codepoint count must be preserved."""
+    """Length is unchanged when nothing expands. A chillu grows by a virama."""
 
     @pytest.mark.parametrize(
         "text, from_, to_",
@@ -115,6 +124,12 @@ class TestLength:
     )
     def test_length_unchanged(self, text: str, from_: Script, to_: Script) -> None:
         assert len(indic.transliterate(text, from_, to_)) == len(text)
+
+    def test_chillu_expands(self) -> None:
+        text = "ൻ"
+        out = indic.transliterate(text, from_script="malayalam", to_script="devanagari")
+        assert out == "न्"
+        assert len(out) == len(text) + 1
 
 
 class TestPublicAPI:
@@ -138,9 +153,9 @@ class TestCharacterIdentity:
     def test_shared_danda_is_preserved(self) -> None:
         assert indic.transliterate("नमस्ते।", from_script="devanagari", to_script="odia") == "ନମସ୍ତେ।"
 
-    def test_odia_flap_rra_maps_to_devanagari_dddha(self) -> None:
-        assert indic.transliterate("\u0b5c", from_script="odia", to_script="devanagari") == "\u095c"
-        assert indic.transliterate("\u095c", from_script="devanagari", to_script="odia") == "\u0b5c"
+    def test_odia_flap_rra_is_dda_plus_nukta(self) -> None:
+        assert indic.transliterate("\u0b5c", from_script="odia", to_script="devanagari") == "\u0921\u093c"
+        assert indic.transliterate("\u095c", from_script="devanagari", to_script="odia") == "\u0b21\u0b3c"
         assert indic.transliterate("\u0931", from_script="devanagari", to_script="odia") == "\u0b30\u0b3c"
 
     def test_odia_wa_maps_to_va(self) -> None:
@@ -297,8 +312,10 @@ class TestNormalization:
         decomposed = unicodedata.normalize("NFD", letter)
         assert indic.transliterate(decomposed, "devanagari", "tamil") == expected
 
-    def test_excluded_nukta_letter_recomposes(self) -> None:
-        assert indic.transliterate("\u0b21\u0b3c", "odia", "devanagari") == "\u095c"
+    def test_excluded_nukta_letter_is_nfc(self) -> None:
+        nfc = "\u0921\u093c"
+        assert indic.transliterate("\u0b21\u0b3c", "odia", "devanagari") == nfc
+        assert indic.transliterate("\u0b5c", "odia", "devanagari") == nfc
 
 
 _DEVANAGARI_BINDI = [
