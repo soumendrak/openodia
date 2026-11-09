@@ -1,4 +1,4 @@
-"""The :class:`Stopwords` container."""
+"""The ``Stopwords`` container."""
 
 from __future__ import annotations
 
@@ -32,14 +32,14 @@ class Stopwords:
         return cls(STOPWORDS)
 
     @classmethod
-    def from_file(cls, path: Path | str, encoding: str = "utf-8") -> Stopwords:
+    def from_file(cls, path: Path | str, encoding: str = "utf-8-sig") -> Stopwords:
         """Load stopwords from a text file (one word per line).
 
         Blank lines and lines starting with ``#`` are skipped.
 
         Args:
             path: File to read.
-            encoding: File encoding. Defaults to UTF-8.
+            encoding: File encoding. Defaults to UTF-8, with a leading BOM ignored.
 
         Raises:
             FileNotFoundError: If ``path`` does not exist.
