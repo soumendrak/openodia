@@ -18,6 +18,9 @@
 
 ### Added
 
+- `openodia.phonetic`: Odia-adapted phonetic matching (`soundex`, `metaphone`,
+  and `similarity`).
+
 - `openodia.roman`: Odia romanisation (`to_roman` / `from_roman`) with the
   ISO 15919, Hunterian and ITRANS schemes.
 
