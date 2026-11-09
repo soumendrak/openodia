@@ -16,6 +16,33 @@
 - An invalid `name_type` in `name.generate_firstnames` logs an error without the meaningless `NoneType: None` traceback line (the `ValueError` is unchanged).
 - `openodia translate` and `other_lang_to_odia` find offline-dictionary words when the text has leading or trailing whitespace. Input from `--file` or stdin ends in a newline, so it used to miss the dictionary and call Google Translate, which failed whenever Google rate limited the request.
 
+### Added
+
+- `openodia.roman`: Odia romanisation (`to_roman` / `from_roman`) with the
+  ISO 15919, Hunterian and ITRANS schemes.
+
+- Hunterian `from_roman` decodes no Roman spelling as anusvara, candrabindu or visarga: an `n` or `h` that is not part of a longer letter such as `ng` or `kh` decodes as the consonant `ନ` or `ହ`. Odia `ଂ`, `ଁ` and `ଃ` in the input pass through. `ନ୍` endings and clusters such as `ନ୍ସ` and `ଙ୍କ` round-trip; anusvara and visarga round-trip through the explicit marks of ISO 15919 and ITRANS.
+
+- `to_roman` writes a nukta after any consonant except ଡ and ଢ as `·` in ISO 15919 and a backtick in ITRANS, and drops it in Hunterian. ଡ଼ and ଢ଼ keep their own letters in all three schemes: `ṛ`/`ṛh` in ISO 15919, `.D`/`.Dh` in ITRANS, and `r`/`rh` in Hunterian (where plain ଡ and ଢ give `d`/`dh`). `from_roman` reads each scheme's mark back as the nukta, so `to_roman(..., reversible=True)` now quotes a literal `·` (ISO 15919) or backtick (ITRANS) instead of passing it through.
+
+### Behaviour note
+
+- By default, `to_roman` returns non-Odia text exactly as given, so its output
+  no longer round-trips text that mixes Odia with other text (for example
+  `to_roman("କi")` gives `kai`, which `from_roman` reads as `କୈ`). Callers
+  who need an exact round trip should pass `reversible=True`
+  (`to_roman("କi", reversible=True)` gives `ka:{i:}`).
+- In `ISO15919` and `ITRANS`, `from_roman(to_roman(text, scheme,
+  reversible=True), scheme)` gives back `text` with each run of Odia characters
+  (U+0B00-U+0B7F) in NFC and all other characters unchanged. NFC Odia therefore
+  comes back with the same code points, including vowel signs, viramas and
+  nuktas that follow no consonant or follow ZWJ/ZWNJ.
+- In all three schemes, each run of Odia characters (U+0B00-U+0B7F) in the
+  output of `from_roman` is in NFC, including Odia passed through or quoted in
+  the input, so U+0B5C gives U+0B21 U+0B3C. Non-Odia characters that
+  `from_roman` does not decode are left as given, except that `ISO15919` applies
+  NFC to its input outside quotes.
+
 ## 0.1.14 (2026-10-26)
 
 - `python -m openodia` now runs the CLI.

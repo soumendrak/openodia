@@ -71,6 +71,7 @@ The tools are available in Odia language.
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
 - [x] [Phonetic matching](#phonetic-matching)
+- [x] [Romanisation](#romanisation)
 - [x] [Command-line interface](#command-line-interface)
 - [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
@@ -203,6 +204,76 @@ phonetic.similarity("ସୀତା", "ବିଜୟ")             # ~ 0.0
     Soundex maximises recall (more collisions, broader match). Metaphone
     is finer-grained. `similarity()` averages them so the score behaves
     well as a sortable threshold for fuzzy-match queries.
+
+### :material-alphabetical-variant: Romanisation
+
+- Three schemes — pick by use case:
+  - **ISO 15919** — academic / library transliteration, reversible, uses diacritics.
+  - **Hunterian** — Govt-of-India transliteration, ASCII, lossy (no diacritics).
+  - **ITRANS** — ASCII spellings for every letter and sign in its tables, keyboard-friendly, reversible.
+
+```python
+from openodia import roman
+
+roman.to_roman("ଓଡ଼ିଆ", "ISO15919")   # 'ōṛiā'
+roman.to_roman("ଓଡ଼ିଆ", "Hunterian")  # 'oria'
+roman.to_roman("ଓଡ଼ିଆ", "ITRANS")     # 'o.DiA'
+
+roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort: Hunterian drops ā)
+```
+
+??? note "Round-trip"
+    The nukta `଼` has no precomposed form after most consonants, so it gets its own
+    mark: `·` (U+00B7) in ISO 15919 and `` ` `` in ITRANS (`ଖୋଜ଼` gives `khōj·a` and
+    ``khoj`a``). Hunterian drops it (`khoja`). `ଡ଼` and `ଢ଼` keep their own
+    letters in all three schemes: `ṛ`/`ṛh` in ISO 15919, `.D`/`.Dh` in ITRANS,
+    and `r`/`rh` in Hunterian (where plain `ଡ` and `ଢ` give `d`/`dh`).
+    `from_roman` reads each scheme's mark back as the nukta, so
+    `reversible=True` quotes a literal `·` (ISO 15919) or `` ` `` (ITRANS).
+
+    By default, non-Odia text comes back exactly as given
+    (`to_roman("file_name ନମସ୍କାର", "ITRANS")` keeps `file_name`).
+    In `ISO15919` and `ITRANS`, `from_roman(to_roman(text, scheme, reversible=True),
+    scheme)` gives back `text` with each run of Odia characters (U+0B00-U+0B7F) in NFC
+    and all other characters unchanged. NFC Odia therefore comes back with the same code
+    points, including vowel signs, viramas and nuktas that follow no consonant or follow
+    ZWJ/ZWNJ.
+    In all three schemes, each run of Odia characters (U+0B00-U+0B7F) in the output of
+    `from_roman` is in NFC, including Odia passed through or quoted in the input, so
+    U+0B5C gives U+0B21 U+0B3C. Non-Odia characters that `from_roman` does not decode
+    are left as given, except that `ISO15919` applies NFC to its input outside quotes.
+    `Hunterian` is intentionally lossy; decoding is best-effort.
+    Hunterian `from_roman` decodes no Roman spelling as anusvara, candrabindu or visarga: an `n` or `h` that is not part of a longer letter such as `ng` or `kh` decodes as the consonant `ନ` or `ହ`. Odia `ଂ`, `ଁ` and `ଃ` in the input pass through.
+    For example, `jesan` gives `ଜେସନ୍` and `anka` gives `ଅନ୍କ`; use `ISO15919` or
+    `ITRANS` to keep anusvara and visarga. Where two tokens would otherwise merge, a boundary mark is
+    written (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS). The same mark
+    after a consonant means a halant before a vowel (`k:a` for `କ୍ଅ`).
+
+    `Hunterian` and `ITRANS` write the Odia digits `୦`-`୯` as ASCII `0`-`9`
+    (`to_roman("୨୦୨୬", "ITRANS")` gives `2026`); `from_roman` keeps ASCII
+    digits as they are. `ISO15919` keeps the Odia digits, and so does `ITRANS` with
+    `reversible=True`, because an ASCII digit could not be told from a literal one.
+    `Hunterian` ignores `reversible` and still writes ASCII digits
+    (`to_roman("୨୦୨୬", "Hunterian", reversible=True)` gives `2026`).
+
+    For text that contains anything other than Odia, pass `reversible=True`:
+    a literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that
+    could be read as Roman letters (or that has a character with a nonzero
+    canonical combining class, `unicodedata.combining(c) != 0`) is quoted
+    and kept verbatim by `from_roman` (`roman.to_roman("କi",
+    reversible=True)` gives `ka:{i:}`). A vowel sign or virama that follows no
+    consonant is passed through like non-Odia text and quoted by the same rule:
+    a virama has a nonzero canonical combining class, so it is quoted
+    (`to_roman("ଅ୍", reversible=True)` gives `a:{୍:}`); a vowel sign has
+    combining class 0 and is written as itself
+    (`to_roman("ଓା", reversible=True)` gives `ōା`) unless its run is quoted
+    (`to_roman("୍ା", reversible=True)` gives `:{୍ା:}`).
+
+    The avagraha `ଽ` is written `’` in ISO 15919, `'` in Hunterian and `.a` in
+    ITRANS. `from_roman` in ITRANS also reads the common spellings `aa`, `ii`,
+    `uu`, `R^i`, `R^I`, `L^i` and `L^I`; `to_roman` keeps writing `A`, `I`,
+    `U` and `RRi`. `from_roman` in Hunterian reads `ri` and `li` as consonant
+    plus vowel sign (`oria` gives `ଓରିଅ`), not as the vocalic `ଋ` or `ଌ`.
 
 ### :material-console: Command-line interface
 
