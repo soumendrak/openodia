@@ -11,6 +11,7 @@ than Soundex.
 from __future__ import annotations
 
 import unicodedata
+from typing import TypeGuard
 
 _HALANT = "\u0b4d"
 _NUKTA = "\u0b3c"
@@ -138,7 +139,7 @@ def _require_str(word: object) -> None:
         raise TypeError(f"expected str, got {type(word).__name__}")
 
 
-def _scorable(word: str | None) -> bool:
+def _scorable(word: str | None) -> TypeGuard[str]:
     """True for ``""`` or a string with an Odia letter; False otherwise."""
     return word is not None and (not word or any(map(_is_odia_letter, word)))
 
