@@ -19,7 +19,7 @@
 
 - Set up the library from PyPI using the following command in your terminal or command prompt.
 - Requires **Python 3.11 or higher**.
-- The library is tested on Python 3.11, 3.12, 3.13, and 3.14.
+- The library is tested on Python 3.11, 3.12, 3.13, 3.14, and 3.15.
     
     ??? hint "Python Installation instruction"
         You can download Python from [Python official website](https://www.python.org/downloads/) and install on your system. 
@@ -71,10 +71,12 @@ The tools are available in Odia language.
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
 - [x] [Indic-to-Indic transliteration](#indic-transliteration)
+- [x] [Romanisation](#romanisation)
 - [x] [Command-line interface](#command-line-interface)
 - [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
 - [x] [Sentence segmenter](#sentence-segmenter)
+- [x] [PII detection and masking](#pii-detection-and-masking)
 
 
 ### :material-broom: Unicode normalization
@@ -191,9 +193,80 @@ indic.SCRIPTS  # ('devanagari', 'bengali', 'assamese', 'gurmukhi', 'gujarati', '
     (`।`) are kept.
 
 
+### :material-alphabetical-variant: Romanisation
+
+- Three schemes — pick by use case:
+  - **ISO 15919** — academic / library transliteration, reversible, uses diacritics.
+  - **Hunterian** — Govt-of-India transliteration, ASCII, lossy (no diacritics).
+  - **ITRANS** — ASCII spellings for every letter and sign in its tables, keyboard-friendly, reversible.
+
+```python
+from openodia import roman
+
+roman.to_roman("ଓଡ଼ିଆ", "ISO15919")   # 'ōṛiā'
+roman.to_roman("ଓଡ଼ିଆ", "Hunterian")  # 'oria'
+roman.to_roman("ଓଡ଼ିଆ", "ITRANS")     # 'o.DiA'
+
+roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort: Hunterian drops ā)
+```
+
+??? note "Round-trip"
+    The nukta `଼` has no precomposed form after most consonants, so it gets its own
+    mark: `·` (U+00B7) in ISO 15919 and `` ` `` in ITRANS (`ଖୋଜ଼` gives `khōj·a` and
+    ``khoj`a``). Hunterian drops it (`khoja`). `ଡ଼` and `ଢ଼` keep their own
+    letters in all three schemes: `ṛ`/`ṛh` in ISO 15919, `.D`/`.Dh` in ITRANS,
+    and `r`/`rh` in Hunterian (where plain `ଡ` and `ଢ` give `d`/`dh`).
+    `from_roman` reads each scheme's mark back as the nukta, so
+    `reversible=True` quotes a literal `·` (ISO 15919) or `` ` `` (ITRANS).
+
+    By default, non-Odia text comes back exactly as given
+    (`to_roman("file_name ନମସ୍କାର", "ITRANS")` keeps `file_name`).
+    In `ISO15919` and `ITRANS`, `from_roman(to_roman(text, scheme, reversible=True),
+    scheme)` gives back `text` with each run of Odia characters (U+0B00-U+0B7F) in NFC
+    and all other characters unchanged. NFC Odia therefore comes back with the same code
+    points, including vowel signs, viramas and nuktas that follow no consonant or follow
+    ZWJ/ZWNJ.
+    In all three schemes, each run of Odia characters (U+0B00-U+0B7F) in the output of
+    `from_roman` is in NFC, including Odia passed through or quoted in the input, so
+    U+0B5C gives U+0B21 U+0B3C. Non-Odia characters that `from_roman` does not decode
+    are left as given, except that `ISO15919` applies NFC to its input outside quotes.
+    `Hunterian` is intentionally lossy; decoding is best-effort.
+    Hunterian `from_roman` decodes no Roman spelling as anusvara, candrabindu or visarga: an `n` or `h` that is not part of a longer letter such as `ng` or `kh` decodes as the consonant `ନ` or `ହ`. Odia `ଂ`, `ଁ` and `ଃ` in the input pass through.
+    For example, `jesan` gives `ଜେସନ୍` and `anka` gives `ଅନ୍କ`; use `ISO15919` or
+    `ITRANS` to keep anusvara and visarga. Where two tokens would otherwise merge, a boundary mark is
+    written (`ka:i` for `କଇ` in ISO 15919, `ka_i` in ITRANS). The same mark
+    after a consonant means a halant before a vowel (`k:a` for `କ୍ଅ`).
+
+    `Hunterian` and `ITRANS` write the Odia digits `୦`-`୯` as ASCII `0`-`9`
+    (`to_roman("୨୦୨୬", "ITRANS")` gives `2026`); `from_roman` keeps ASCII
+    digits as they are. `ISO15919` keeps the Odia digits, and so does `ITRANS` with
+    `reversible=True`, because an ASCII digit could not be told from a literal one.
+    `Hunterian` ignores `reversible` and still writes ASCII digits
+    (`to_roman("୨୦୨୬", "Hunterian", reversible=True)` gives `2026`).
+
+    For text that contains anything other than Odia, pass `reversible=True`:
+    a literal `:` (ISO) or `_` (ITRANS) is doubled, and a non-Odia run that
+    could be read as Roman letters (or that has a character with a nonzero
+    canonical combining class, `unicodedata.combining(c) != 0`) is quoted
+    and kept verbatim by `from_roman` (`roman.to_roman("କi",
+    reversible=True)` gives `ka:{i:}`). A vowel sign or virama that follows no
+    consonant is passed through like non-Odia text and quoted by the same rule:
+    a virama has a nonzero canonical combining class, so it is quoted
+    (`to_roman("ଅ୍", reversible=True)` gives `a:{୍:}`); a vowel sign has
+    combining class 0 and is written as itself
+    (`to_roman("ଓା", reversible=True)` gives `ōା`) unless its run is quoted
+    (`to_roman("୍ା", reversible=True)` gives `:{୍ା:}`).
+
+    The avagraha `ଽ` is written `’` in ISO 15919, `'` in Hunterian and `.a` in
+    ITRANS. `from_roman` in ITRANS also reads the common spellings `aa`, `ii`,
+    `uu`, `R^i`, `R^I`, `L^i` and `L^I`; `to_roman` keeps writing `A`, `I`,
+    `U` and `RRi`. `from_roman` in Hunterian reads `ri` and `li` as consonant
+    plus vowel sign (`oria` gives `ଓରିଅ`), not as the vocalic `ଋ` or `ଌ`.
+
 ### :material-console: Command-line interface
 
 - Installing the package adds an `openodia` command. Each subcommand wraps a function from the library so they're scriptable from any shell.
+- Add `--json` to a subcommand for one machine-readable JSON document on stdout. This needs a release newer than 0.1.14: PyPI 0.1.14 has `--json` on `detect-language` only, and other subcommands exit with code 2 there. See [AGENTS.md](https://github.com/soumendrak/openodia/blob/main/AGENTS.md) for the JSON shapes and exit codes, and [llms.txt](llms.txt) for an index aimed at AI agents.
 - Pass `-` as the text argument to read from stdin. Pass `--file` to read the text argument from a UTF-8 file; without it, an argument is always literal text, even if it matches a file name.
 
 ```sh
@@ -220,6 +293,9 @@ openodia name --kind first --count 5
 # Extractive summary
 openodia summarize --file article.txt --threshold 3
 
+# Find or mask phone, email, Aadhaar, PAN, PIN code
+openodia pii "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦" --mask
+
 # Stopword removal + corpus stats
 openodia remove-stopwords "ରାମ ଓ ସୀତା"
 openodia ngrams "ରାମ ସୀତା ଲକ୍ଷ୍ମଣ" -n 2
@@ -229,6 +305,7 @@ openodia freq --file corpus.txt --top 20
 ### :material-database-cog: Translation cache
 
 - Translations are memoised in an LRU. Defaults to 10,000 entries in memory.
+- The cache is thread-safe, so sync and async translation can share it.
 - Resize the cache, plug in a persistent disk backend, or inspect hit/miss counters.
 - Environment variables `OPENODIA_CACHE_MAX_SIZE` and `OPENODIA_CACHE_DISK` set defaults at process start.
 
@@ -329,9 +406,55 @@ sentences("Hello. World!", keep_terminators=False)
     vocabulary (e.g. trade names, place abbreviations) can be added by
     extending it in a wrapper module.
 
-??? note "Existing `ud.sentence_tokenizer` is unchanged"
-    The pre-existing helper continues to behave exactly as before (splits
-    on `" ।"` only). Adopt `openodia.sentences()` for new code.
+??? note "`ud.sentence_tokenizer` and `sentences()` differ"
+    `ud.sentence_tokenizer` splits on `।`, `॥`, `?` and `!` only.
+    `openodia.sentences()` also splits on `.` and `…` and knows Odia
+    abbreviations. `summarize` and `tokenize --sentences` use the former.
+
+### :material-shield-account: PII detection and masking
+
+- `openodia.pii` finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there.
+- Odia digits (`୦`-`୯`) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: `--file` drops a leading BOM and turns CRLF and a lone CR into LF. `-` (stdin) drops a leading BOM only and keeps any `\r`: a Linux or macOS pipe delivers `\r\n` unchanged, so offsets from `-` can differ from `--file` by one per line break.
+- Matches that overlap merge into one span typed by the longest match, so for every detected value no part of it stays visible; see the limits below. A tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`. `min_confidence` is applied before merging.
+- `openodia pii --json` puts the raw matched `text` in every entity, so it contains the PII. Use `--mask --json` for output that holds only the masked text.
+
+```python
+from openodia import pii
+
+text = "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦, ମେଲ a@b.com, ଆଧାର ୨୩୪୫ ୬୭୮୯ ୦୧୨୪, PIN ୭୫୧୦୦୧"
+pii.detect(text)
+# [PIIEntity(type='PHONE', text='୯୮୭୬୫୪୩୨୧୦', start=7, end=17, confidence=0.9), ...]
+pii.mask(text)
+# 'ମୋ ଫୋନ <PHONE>, ମେଲ <EMAIL>, ଆଧାର <AADHAAR>, PIN <PINCODE>'
+pii.mask(text, types=["EMAIL"], placeholder=lambda entity: "***")
+pii.detect(text, min_confidence=0.9)
+```
+
+| Type | What it matches | Confidence |
+| --- | --- | --- |
+| `PHONE` | 10-digit Indian mobile starting 6-9, optional `+91`, `(+91)`, `0091`, `91` followed by a space or `-`, or `0`; optional space or `-` after the fifth digit | 0.9 |
+| `EMAIL` | `local@domain.tld`; the local part is up to 64 characters of letters, digits and ``. _ % + - ! # $ & ' * / = ? ^ ` { | } ~`` (RFC 5322 atext), top-level domain of two or more letters. A longer local part is not found, and if it contains punctuation only its last 64 characters may be masked, so the earlier part stays visible; this is a deliberate limit left for a follow-up. A domain label over 63 characters is not matched: if it is the first label the whole address stays visible (`a@` + 64 `b` + `.com` is unchanged), and a later one leaves a tail (`a@x.` + 64 `b` + `.com` gives `<EMAIL>b.com`). A local part that starts with non-ASCII letters, such as `ଅଭିa@x.com`, is masked only from the first ASCII character, so `ଅଭି` stays visible | 0.95 |
+| `URL` | `http://`, `https://` or `www.` in any letter case, so `HTTPS://` and `WWW.` are found (not glued to a letter, digit, `@`, `.` or `-` before it) up to whitespace; an apostrophe inside the URL is part of it (`https://x.com/O'Connor?token=s` is one `<URL>`), but one that closes a quoted URL is left out unless a URL character follows it (`'https://a.com/x'+p`, `'https://a.com/x'/y` and `'https://a.com/x'9876543210` are masked to the end, which only over-masks), and so is one that ends the URL or comes before `. , ; : ! ? ) ]`; trailing `. , ; : ! ? ) ]` and `।` are left out | 0.9 |
+| `AADHAAR` | 12 digits starting 2-9, contiguous or grouped 4-4-4 by one space or `-`. 0.95 when the Verhoeff checksum passes, 0.5 when it fails | 0.95 / 0.5 |
+| `PAN` | `AAAPA1234A`: uppercase, fourth letter one of `PCHFATBLJG` | 0.95 |
+| `PINCODE` | 6 digits, first 1-9, directly after `PIN`, `Pincode`, `PIN code` or `ପିନ` | 0.8 |
+
+The wider local-part class can mask more than the address: leading delimiters can be swallowed, so `key=val@host.com`, `?q=a@b.com`, `path/to/a@c.com` and `price$5@x.com` lose their prefix, `` `a@b.com` ``, `'a@b.com'` and `**a@b.com**` swallow only the leading delimiter, `ssh://git@host.com` loses `//` (`ssh://git@host` has no top-level domain and stays unchanged), and `www.x.com/a@b.com` becomes `<EMAIL>` instead of `<URL>`; nothing leaks.
+
+Confidence ranks how specific a pattern is; it is not a probability.
+
+??? warning "What it does not catch"
+    - **Names**, nicknames and addresses. A masked text can still identify a person, so this is not anonymisation.
+    - Dates of birth, amounts, bank account and card numbers, landline numbers, passport and voter IDs.
+    - Lowercase PAN, Aadhaar written with other separators or split by line breaks, and a PIN code with no `PIN` or `ପିନ` before it.
+    - Aadhaar numbers starting with 0 or 1, which UIDAI does not issue.
+    - A bare domain with no `http(s)://` or `www.`, an email whose local part is over 64 characters (see the `EMAIL` row), and digits of other scripts such as Devanagari.
+    - **False positives**: a 10-digit number starting 6-9 (an order or account number) is reported as `PHONE` even if nobody owns it, a 12-digit number starting 2-9 as `AADHAAR` at confidence 0.5, and a PAN-shaped code as `PAN`. Filter with `types` and `min_confidence`.
+    - A bare `91` before a mobile number is taken as its country code only when a space or `-` follows it.
+
+- `mask` repeats detection and replacement until nothing changes, at most 10 passes, because masking a value can expose one that was glued to it, such as a PAN written right before a URL. With the default `<TYPE>` tags, masking its own output therefore changes nothing, unless the input chains more than 10 glued values. Past that, the text `mask` returns can still contain raw PII, so do not rely on it for input like that. A custom `placeholder` receives entities from the later passes too, with offsets into the partly masked text, and one that returns PII-shaped text, for example one that keeps the last four digits, can keep the loop running to its limit.
+- `detect` and `mask` raise `TypeError` for a `text` that is not a `str` or `types` given as a bare string, and `ValueError` for an unknown type or a `min_confidence` outside 0 to 1.
+- There is no pseudonymisation or reversible mapping: masking is one-way.
 
 ### :material-format-letter-case: Odia alphabets 
 
@@ -377,7 +500,7 @@ alphabet.numbers
 ['୦', '୧', '୨', '୩', '୪', '୫', '୬', '୭', '୮', '୯']
 '''
 
-alphabet.matra
+alphabet.matras
 '''
 ['ଁ', 'ଂ', 'ଃ', '଼', 'ଽ', 'ା', 'ି', 'ୀ', 'ୁ', 'ୂ', 
  'ୃ', 'ୄ', 'େ', 'ୈ', 'ୋ', 'ୌ', '୍', 'ୖ', 'ୗ', '୰', 'ୱ', '୲']
@@ -455,14 +578,14 @@ ud.detect_language("hey how are you?")
 
 ud.detect_language("hey how are you? ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ")
 '''
-{'language': 'odia', 'confidence_score': 0.66666}
+{'language': 'odia', 'confidence_score': 0.67}
 '''
 
 ud.detect_language(
     "hey how are you? ନ୍ୟାଚୁରାଲ ଲାଙ୍ଗୁଏଜ ପ୍ରୋସେସିଂ", 
     threshold=0.7)
 '''
-{'language': 'non-odia', 'confidence_score': 0.333333}
+{'language': 'non-odia', 'confidence_score': 0.33}
 '''
 
 ud.detect_language(
@@ -470,7 +593,7 @@ ud.detect_language(
     "ଆର୍ଟିଫିସିଆଲ ଇଣ୍ଟେଲିଜେନ୍ସର ସେହି ବିଭାଗକୁ କୁହାଯ ାଏ ଯାହା" \ 
     "ମନୁଷ୍ୟର ଭାଷାଗୁଡ଼ିକ ସହ କମ୍ପ୍ୟୁଟରର କଥାବାର୍ତ୍ତାକୁ ବୁଝାଇଥାଏ।")
 '''
-{'language': 'odia', 'confidence_score': 0.99404}
+{'language': 'odia', 'confidence_score': 0.99}
 '''
 ```
 - For more info on Odia language detection, please visit the blog post on this at [blog.soumendrak.com](https://blog.soumendrak.com/odia-language-detection).
@@ -495,11 +618,18 @@ ud.word_tokenizer(
 ### :material-call-split: Sentence Tokenizer
 
 - Tokenize a paragraph into multiple sentences.
-- Only working on full stop.
+- Splits after `।`, `॥`, `?` and `!`, with or without a space after them, and keeps the terminator on each sentence.
+- A `?` or `!` directly followed by an ASCII letter, digit or one of `=&%#/_` (as in `a?id=5` or `Yahoo!Mail`) is not a boundary. A closing quote or bracket stays with its sentence.
+- A full stop `.` is not a boundary here; use `openodia.sentences()` for that.
+- A terminator with no words of its own (as in `ରାମ ଗଲା । । ସୀତା`) joins the sentence before it, or the sentence after it when it comes first. Text with no words at all gives `[]`.
+- Empty or whitespace-only text gives `[]`.
 
 ```python
 from openodia import ud
-ud.sentence_tokenizer()
+ud.sentence_tokenizer("ଏକ ଦୁଇ । ତିନି ଚାରି ।")
+'''
+['ଏକ ଦୁଇ ।', 'ତିନି ଚାରି ।']
+'''
 ```
 
 ### :material-eye-remove: Remove stopwords
@@ -588,6 +718,24 @@ odia_to_other_lang("ନମସ୍କାର!ଭଲ ଲାଗୁଛି?")
 'Hello! Sounds good?'
 '''
 ```
+
+#### Async and batch translation
+
+- Async translation needs a release newer than 0.1.14: `from openodia import translate_batch` fails on 0.1.14, which has no async API. From a source checkout it works.
+- `odia_to_other_lang_async`, `other_lang_to_odia_async` and `universal_translation_async` are awaitable versions of the functions above. They share the same cache.
+- `translate_batch` translates an iterable of strings (a list or a generator) concurrently and returns the results in input order as a list. Repeated texts are translated once.
+- `concurrency` (default 8, an integer >= 1) caps the number of requests in flight. `retries` (default 0, an integer >= 0) retries a request after `backoff * 2**attempt` seconds, where `backoff` is a finite number >= 0. Bad values raise `ValueError`, and a single `str`, `bytes`, `bytearray` or `memoryview` instead of a list, or an item that is not a `str`, raises `TypeError`.
+- Only these failures are retried: a rate limit (HTTP 429), an HTTP 5xx status, and connection or timeout errors. Everything else is raised at once, including other HTTP statuses, `PermissionError` and other `OSError`s, and unsupported language codes. deep-translator reports a failed HTTP response as a `RequestError` without a status, so that error is not retried and a 5xx served through it is not either.
+- Identical texts are translated once per call; repeats across calls come from the cache. A text of 5000 or more characters raises `NotValidLength`, which aborts the whole batch unless `return_exceptions=True`.
+- The first failure is raised and queued texts never start. Pass `return_exceptions=True` to get one entry per text, either the translation or its exception.
+- `source="or"` and `to="or"` use the same paths as `odia_to_other_lang` and `other_lang_to_odia`, so English to Odia checks the offline dictionary first.
+
+```python
+import asyncio
+from openodia import translate_batch
+
+asyncio.run(translate_batch(["ନମସ୍କାର", "ଧନ୍ୟବାଦ"], to="en", concurrency=4, retries=2))
+```
 ### :material-shovel: Automatic extractive text summarization
 
 Extracts the important summary snippet of a given text.
@@ -612,26 +760,23 @@ wf = WordFrequency(
 
 wf.get_summary() # Auto threshold calculation
 '''
-'ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ
-ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି 
-ଭାରତର ମୁଖ୍ୟ ବିଚାରପତି ଏହାର ମୁଖ୍ୟ ଅଟନ୍ତି  ତତ୍ସହିତ ଏଥିରେ ସର୍ବାଧିକ ୩୪ ଜଣ ବିଚାରପତି ଅଛନ୍ତି 
-ମୁଖ୍ୟ, ଅପିଲୀୟ ତଥା ପରାମର୍ଶିକ ଆଦି ଅଧିକାରକ୍ଷେତ୍ର ମାଧ୍ୟମରେ ଏହାର ବିସ୍ତୃତ କ୍ଷମତା ରହିଛି  
-ଏହା ଭାରତରେ ସବୁଠାରୁ ଶକ୍ତିଶାଳୀ ଲୋକାନୁଷ୍ଠାନ ବୋଲି ଧରାଯାଇଅଛି  
-ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ 
-ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ  
-ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ 
-ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ  
-ଏକ ପରାମର୍ଶଦାତା ହିସାବରେ, ଏହା ଭାରତୀୟ ସମ୍ବିଧାନ ଅନୁସାରେ ରାଷ୍ଟ୍ରପତିଙ୍କଦ୍ୱାରା ସୂଚୀତ ବିଭିନ୍ନ ବିଷୟବସ୍ତୁ ଉପରେ ଶୁଣାଣି କରିଥାଏ'
+'ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ ।
+ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି ।
+ଭାରତର ମୁଖ୍ୟ ବିଚାରପତି ଏହାର ମୁଖ୍ୟ ଅଟନ୍ତି ।
+ତତ୍ସହିତ ଏଥିରେ ସର୍ବାଧିକ ୩୪ ଜଣ ବିଚାରପତି ଅଛନ୍ତି ।
+ମୁଖ୍ୟ, ଅପିଲୀୟ ତଥା ପରାମର୍ଶିକ ଆଦି ଅଧିକାରକ୍ଷେତ୍ର ମାଧ୍ୟମରେ ଏହାର ବିସ୍ତୃତ କ୍ଷମତା ରହିଛି ।
+ଏହା ଭାରତରେ ସବୁଠାରୁ ଶକ୍ତିଶାଳୀ ଲୋକାନୁଷ୍ଠାନ ବୋଲି ଧରାଯାଇଅଛି ।
+ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ ।
+ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ ।
+ଏକ ପରାମର୍ଶଦାତା ହିସାବରେ, ଏହା ଭାରତୀୟ ସମ୍ବିଧାନ ଅନୁସାରେ ରାଷ୍ଟ୍ରପତିଙ୍କଦ୍ୱାରା ସୂଚୀତ ବିଭିନ୍ନ ବିଷୟବସ୍ତୁ ଉପରେ ଶୁଣାଣି କରିଥାଏ ।'
 '''
 
 wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
 '''
-'ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ  
-ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି  
-ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ 
-ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ  
-ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ 
-ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ'
+'ଭାରତୀୟ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ, ଭାରତର ଉଚ୍ଚତମ ନ୍ୟାୟିକ ଅନୁଷ୍ଠାନ ଅଟେ ଏବଂ ଭାରତୀୟ ସମ୍ବିଧାନ ଅଧୀନସ୍ଥ ସର୍ବୋଚ୍ଚ ନ୍ୟାୟାଳୟ ଅଟେ ।
+ଏହା ସର୍ବ ବରିଷ୍ଠ ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ଅଟେ ଏବଂ ଏହି ନ୍ୟାୟିକ ପୁନରାବଲୋକନର କ୍ଷମତା ରହିଛି ।
+ଦେଶର ସାମ୍ବିଧାନିକ ନ୍ୟାୟାଳୟ ହୋଇଥିବାରୁ, ଏହା ମୁଖ୍ୟତଃ ସଙ୍ଘର ବିଭିନ୍ନ ଉଚ୍ଚ ନ୍ୟାୟାଳୟ ତଥା ଅନ୍ୟାନ୍ୟ ନ୍ୟାୟାଳୟ ଓ ଟ୍ରିବ୍ୟୁନାଲମାନଙ୍କର ରାୟ ବିରୁଦ୍ଧରେ ଅପିଲ୍ ନିଏ ।
+ଏହା ନାଗରିକମାନଙ୍କର ମୌଳିକ ଅଧିକାରର ରକ୍ଷାକରେ ଏବଂ ବିଭିନ୍ନ ସରକାରୀ ଅଧିକାରୀ ତଥା ଦେଶରେ କେନ୍ଦ୍ର ସରକାର ବନାମ ରାଜ୍ୟ ସରକାର କିମ୍ବା ଗୋଟିଏ ରାଜ୍ୟ ସରକାର ବନାମ ଅନ୍ୟ ରାଜ୍ୟ ସରକାର ମଧ୍ୟରେ ବିବାଦର ସମାଧାନ କରେ ।'
 '''
 
 ```

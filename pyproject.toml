@@ -1,6 +1,6 @@
 [project]
 name = "openodia"
-version = "0.1.13"
+version = "0.1.14"
 description = "Open source Odia language tools"
 authors = [
     {name = "Soumendra Kumar Sahoo", email = "proud_odia@outlook.com"}
@@ -17,6 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Text Processing :: Linguistic",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -35,6 +36,7 @@ docs = [
     "mkdocs>=1.2.2",
     "mkdocs-git-revision-date-localized-plugin>=0.10.0",
     "mkdocs-material>=7.3.2",
+    "mkdocstrings[python]>=0.26",
 ]
 dev = [
     "pytest>=6.2.5",
@@ -46,7 +48,9 @@ dev = [
     "mkdocs>=1.2.2",
     "mkdocs-git-revision-date-localized-plugin>=0.10.0",
     "mkdocs-material>=7.3.2",
+    "mkdocstrings[python]>=0.26",
     "diskcache>=5.0.0",
+    "mypy>=1.11",
 ]
 
 [project.urls]
@@ -93,3 +97,11 @@ max-complexity = 10
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.mypy]
+files = ["openodia"]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["deep_translator", "deep_translator.*", "diskcache", "requests", "requests.*"]
+ignore_missing_imports = true

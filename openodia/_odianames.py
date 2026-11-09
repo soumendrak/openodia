@@ -1,7 +1,5 @@
 import random
 
-from faker import Faker
-
 from openodia.common.constants import (
     PREFIXES,
     FIRST_NAMES_MALE,
@@ -20,15 +18,21 @@ class Names:
     @classmethod
     def generate_prefixes(cls, count: int = 10) -> list[str]:
         """Generate prefixes
-        :param count: number of prefixes to generate
+
+        Args:
+            count: number of prefixes to generate
         """
         return random.sample(PREFIXES, min(count, len(PREFIXES)))
 
     @classmethod
     def generate_names(cls, count: int = 10) -> list[str]:
         """Generate Odia names
-        :param count: number of names to generate
+
+        Args:
+            count: number of names to generate
         """
+        from faker import Faker
+
         fake = Faker("or_IN")
         name_list = [fake.name() for _ in range(count)]
         LOGGER.debug(f"generated {len(name_list)} number of names.")
@@ -37,8 +41,10 @@ class Names:
     @classmethod
     def generate_firstnames(cls, count: int = 10, name_type: str = "") -> list[str]:
         """Generate first names
-        :param count: number of names to generate
-        :param name_type: types of name to give
+
+        Args:
+            count: number of names to generate
+            name_type: types of name to give
         """
         valid_types = ("female", "male", "unisex")
         if name_type.lower() == "male":
@@ -48,7 +54,7 @@ class Names:
         elif name_type.lower() == "unisex":
             return random.sample(FIRST_NAMES_UNISEX, min(count, len(FIRST_NAMES_UNISEX)))
         elif len(name_type) > 0:
-            LOGGER.exception(f"Invalid {name_type=} provided.\n Please provide one of these {valid_types=}")
+            LOGGER.error(f"Invalid {name_type=} provided.\n Please provide one of these {valid_types=}")
             raise ValueError("Invalid name_type provided")
         else:
             # send mix of all first names
@@ -57,13 +63,17 @@ class Names:
     @classmethod
     def generate_middlenames(cls, count: int = 10) -> list[str]:
         """Generate middle names
-        :param count: number of middle names to generate
+
+        Args:
+            count: number of middle names to generate
         """
         return random.sample(MIDDLE_NAMES, min(count, len(MIDDLE_NAMES)))
 
     @classmethod
     def generate_surnames(cls, count: int = 10) -> list[str]:
         """Generate surnames
-        :param count: number of surnames to generate
+
+        Args:
+            count: number of surnames to generate
         """
         return random.sample(LAST_NAMES, min(count, len(LAST_NAMES)))

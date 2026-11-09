@@ -1,0 +1,29 @@
+# OpenOdia
+
+> openodia is an open source Python library and command-line tool for Odia (ଓଡ଼ିଆ) text: tokenize, normalize, clean, translate, detect language, generate names, romanize (ISO 15919, Hunterian, ITRANS), summarize, remove stopwords, n-grams, word frequency and PII masking. Install with `pip install openodia` or run `uvx openodia`.
+
+Version note: `--json` on every CLI subcommand (one machine-readable JSON document on stdout) needs a release newer than 0.1.14. PyPI 0.1.14 has `--json` on `detect-language` only, and other subcommands exit with code 2 there. From a source checkout, `uv run openodia <subcommand> --json` works. `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there; it needs a newer release too.
+
+## Docs
+
+- [Documentation](https://openodia.soumendrak.com/): install, library API and command-line interface
+- [Applications](https://openodia.soumendrak.com/application/): worked examples such as name generation and data masking
+- [Text processing guide](https://openodia.soumendrak.com/guides/text-processing/): tokenize, sentences, stopwords, normalize, clean, detect language
+- [Script, syllables and names guide](https://openodia.soumendrak.com/guides/script-and-names/): alphabet, syllable split, name generation
+- [Numbers guide](https://openodia.soumendrak.com/guides/numbers/): number words, ordinals, dates, currency, digits
+- [Analysis guide](https://openodia.soumendrak.com/guides/analysis/): n-grams, frequency, collocations, co-occurrence, summarization
+- [Translation guide](https://openodia.soumendrak.com/guides/translation/): offline dictionary, Google Translate, translation cache
+- [Command-line guide](https://openodia.soumendrak.com/guides/cli/): every subcommand with runnable examples
+- [API reference](https://openodia.soumendrak.com/api/text/): signatures and docstrings generated from the source
+- [Romanisation API](https://openodia.soumendrak.com/api/roman/): `to_roman` and `from_roman` for ISO 15919, Hunterian and ITRANS
+
+## For agents
+
+- [AGENTS.md](https://github.com/soumendrak/openodia/blob/main/AGENTS.md): CLI examples, JSON output shapes, exit codes and development commands
+- [SKILL.md](https://github.com/soumendrak/openodia/blob/main/skills/openodia/SKILL.md): agent skill for the openodia CLI
+
+## Optional
+
+- [PyPI](https://pypi.org/project/openodia/): releases and install
+- [Source code](https://github.com/soumendrak/openodia): issues and contributions
+- [Changelog](https://github.com/soumendrak/openodia/blob/main/CHANGELOG.md): what changed in each release
