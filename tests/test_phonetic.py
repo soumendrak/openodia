@@ -10,7 +10,6 @@ class TestSoundex:
         assert phonetic.soundex("") == ""
 
     def test_vowel_only_keeps_first_letter(self) -> None:
-        # Only vowels and matras.
         assert phonetic.soundex("ଆଇ") == "ଆ000"
 
     def test_first_consonant_kept_verbatim(self) -> None:
@@ -23,14 +22,12 @@ class TestSoundex:
         assert out == "ସ000"
 
     def test_basic_word(self) -> None:
-        # ସୋମେନ୍ଦ୍ର → ସ (verbatim) + ମ(6) + ନ(5) + ଦ(5)→same as ନ, skipped → ର(7)
-        # → "ସ657"
         out = phonetic.soundex("ସୋମେନ୍ଦ୍ର")
         assert out == "ସ657"
 
     def test_nukta_forms_are_equivalent(self) -> None:
-        precomposed = "\u0b5c\u0b3e\u0b15"  # ଡ଼ (U+0B5C) + ା + କ
-        decomposed = "\u0b21\u0b3c\u0b3e\u0b15"  # ଡ + nukta + ା + କ
+        precomposed = "\u0b5c\u0b3e\u0b15"
+        decomposed = "\u0b21\u0b3c\u0b3e\u0b15"
         assert phonetic.soundex(precomposed) == phonetic.soundex(decomposed)
         assert phonetic.similarity(precomposed, decomposed) == 1.0
 
@@ -46,13 +43,10 @@ class TestSoundex:
         assert len(phonetic.soundex("ଚକ୍ରପାଣିଗ୍ରାହୀ")) == 4
 
     def test_adjacent_duplicates_collapse(self) -> None:
-        # ଗଗଗ → all gutturals → 'ଗ' + (2 dropped as dup) + padding
         out = phonetic.soundex("ଗଗଗ")
         assert out == "ଗ000"
 
     def test_spelling_variants_match(self) -> None:
-        # The difference between ସୋ vs ସୌ is just the vowel sign — Soundex
-        # ignores vowels/matras, so the codes must match.
         assert phonetic.soundex("ସୋମେନ୍ଦ୍ର") == phonetic.soundex("ସୌମେନ୍ଦ୍ର")
 
     def test_aspirated_unaspirated_share_digit_code(self) -> None:
@@ -71,20 +65,15 @@ class TestMetaphone:
         assert phonetic.metaphone("ଆଇ") == ""
 
     def test_first_consonant(self) -> None:
-        # ଖ collapses to କ.
         assert phonetic.metaphone("ଖ") == "କ"
 
     def test_aspirated_collapses(self) -> None:
-        # ଖ → କ; both should produce "କ"
         assert phonetic.metaphone("ଖ") == phonetic.metaphone("କ")
 
     def test_adjacent_duplicates_collapse(self) -> None:
-        # Three labials in a row should yield a single ପ.
         assert phonetic.metaphone("ପଫବ") == "ପ"
 
     def test_basic_word(self) -> None:
-        # ସୋମେନ୍ଦ୍ର — consonants ସ ମ ନ ଦ ର → bases ସ ପ ତ ତ ର
-        # adjacent duplicates collapse: ସ ପ ତ ର
         assert phonetic.metaphone("ସୋମେନ୍ଦ୍ର") == "ସପତର"
 
     def test_spelling_variants_match(self) -> None:
@@ -96,12 +85,10 @@ class TestSimilarity:
         assert phonetic.similarity("ସୋମେନ୍ଦ୍ର", "ସୋମେନ୍ଦ୍ର") == 1.0
 
     def test_spelling_variants_high(self) -> None:
-        # Different matras only — soundex equal AND metaphone equal.
         score = phonetic.similarity("ସୋମେନ୍ଦ୍ର", "ସୌମେନ୍ଦ୍ର")
         assert score == 1.0
 
     def test_completely_different(self) -> None:
-        # Names from different articulation groups.
         score = phonetic.similarity("ସୀତା", "ବିଜୟ")
         assert 0.0 <= score < 0.5
 
@@ -115,8 +102,6 @@ class TestSimilarity:
             assert 0.0 <= score <= 1.0
 
     def test_empty_pair(self) -> None:
-        # Two empty inputs score zero; a vowel-only input retains its
-        # Soundex initial but has the same empty Metaphone as empty input.
         assert phonetic.similarity("", "") == 0.0
         assert phonetic.similarity("ଆ", "") == 0.5
 
@@ -146,12 +131,10 @@ class TestNonOdiaInputs:
         assert phonetic.similarity(*words) == 0.0
 
     def test_non_odia_resets_duplicate_suppression_like_vowels(self) -> None:
-        # x between two ପ-group consonants behaves like the vowel in ପାପ.
         assert phonetic.metaphone("ପxପ") == phonetic.metaphone("ପାପ") == "ପପ"
         assert phonetic.soundex("ପxପ") == phonetic.soundex("ପାପ") == "ପ600"
 
     def test_mixed_input(self) -> None:
-        # Latin emits nothing; the Odia part is still encoded.
         assert phonetic.soundex("ସୋ hello") == "ସ000"
         assert phonetic.metaphone("ସୋ hello") == "ସ"
 
@@ -232,9 +215,7 @@ class TestReviewRegressions:
         assert encoder(word) == encoder(decomposed)
 
     def test_similarity_equal_weights(self) -> None:
-        # Different Soundex initials, identical Metaphone: half the score.
         assert phonetic.similarity("କ", "ଖ") == 0.5
-        # Equal Soundex, Metaphone similarity 0.8: 0.5 + 0.5 * 0.8.
         assert phonetic.soundex("କଚଟତପ") == phonetic.soundex("କଚଟତର")
         assert phonetic.similarity("କଚଟତପ", "କଚଟତର") == pytest.approx(0.9)
 
@@ -243,11 +224,15 @@ class TestReviewRegressions:
         assert phonetic.soundex(word) == "ପ000"
         assert phonetic.metaphone(word) == "ପ"
 
+    def test_nukta_between_identical_consonants_does_not_split_them(self) -> None:
+        assert phonetic.soundex("କ\u0b3cକ") == "କ000"
+        assert phonetic.metaphone("କ\u0b3cକ") == "କ"
+        assert phonetic.similarity("କ\u0b3cକ", "କ") == 1.0
+
 
 class TestTypesAndEmptyInput:
     @pytest.mark.parametrize("bad", [1, b"\xe0\xac\x95", ["କ"], 1.5])
     def test_similarity_rejects_non_str(self, bad) -> None:
-        # N1/N4: a non-str on either side must raise, not score 0.0.
         with pytest.raises(TypeError, match="expected str"):
             phonetic.similarity(bad, "କ")
         with pytest.raises(TypeError, match="expected str"):
@@ -258,7 +243,6 @@ class TestTypesAndEmptyInput:
     @pytest.mark.parametrize("encoder", [phonetic.soundex, phonetic.metaphone])
     @pytest.mark.parametrize("bad", [None, 0, b"", []])
     def test_encoders_reject_non_str(self, encoder, bad) -> None:
-        # N14: None (and other falsy non-str) must not return "".
         with pytest.raises(TypeError, match="expected str"):
             encoder(bad)
 
@@ -272,8 +256,6 @@ class TestTypesAndEmptyInput:
 
 class TestNfcAndTable:
     def test_decomposed_input_that_nfc_changes(self) -> None:
-        # P2: କ + େ + ା is the decomposed spelling of କୋ (U+0B4B); NFC
-        # recomposes it, so both spellings give the same keys.
         import unicodedata
 
         decomposed = "କ\u0b47\u0b3eଶଲ"
@@ -283,8 +265,14 @@ class TestNfcAndTable:
         assert phonetic.metaphone(decomposed) == phonetic.metaphone(composed)
         assert phonetic.similarity(decomposed, composed) == 1.0
 
+    def test_nukta_and_halant_mark_order_shares_a_key(self) -> None:
+        halant_then_nukta = "ଢ\u0b4d\u0b3c"
+        nukta_then_halant = "ଢ\u0b3c\u0b4d"
+        assert phonetic.soundex(halant_then_nukta) == "\u0b5d000"
+        assert phonetic.soundex(nukta_then_halant) == "\u0b5d000"
+        assert phonetic.similarity(halant_then_nukta, nukta_then_halant) == 1.0
+
     def test_nya_mapping(self) -> None:
-        # P21: ଞ is palatal: Soundex digit 3, Metaphone base ଚ.
         assert phonetic.soundex("କଞ") == "କ300"
         assert phonetic.metaphone("ଞ") == "ଚ"
         assert phonetic.metaphone("ଚଞ") == "ଚ"
@@ -306,3 +294,86 @@ class TestAvagraha:
 
     def test_avagraha_only_input_scores_zero(self) -> None:
         assert phonetic.similarity("ଽ", "ସ") == 0.0
+
+
+SAME_NAME_SPELLINGS = {
+    "o-au": (
+        ("ସୋମେନ୍ଦ୍ର", "ସୌମେନ୍ଦ୍ର"),
+        ("ସୋମନାଥ", "ସୌମନାଥ"),
+        ("ଅଶୋକ", "ଅଶୌକ"),
+        ("ବିନୋଦ", "ବିନୌଦ"),
+        ("ଗୋପାଳ", "ଗୌପାଳ"),
+        ("ମୋହନ", "ମୌହନ"),
+        ("ଲୋକନାଥ", "ଲୌକନାଥ"),
+        ("ପ୍ରମୋଦ", "ପ୍ରମୌଦ"),
+        ("ସନ୍ତୋଷ", "ସନ୍ତୌଷ"),
+        ("ଜୋଗେନ୍ଦ୍ର", "ଜୌଗେନ୍ଦ୍ର"),
+    ),
+    "i-ii": (
+        ("ଦିପକ", "ଦୀପକ"),
+        ("ସିତା", "ସୀତା"),
+        ("ଗିତା", "ଗୀତା"),
+        ("ଲକ୍ଷ୍ମି", "ଲକ୍ଷ୍ମୀ"),
+        ("ସୁନିତା", "ସୁନୀତା"),
+        ("କବିତା", "କବୀତା"),
+        ("କିରଣ", "କୀରଣ"),
+        ("ନିଳମଣି", "ନୀଳମଣି"),
+        ("ମିନତି", "ମୀନତି"),
+        ("ପ୍ରଦୀପ", "ପ୍ରଦିପ"),
+    ),
+    "u-uu": (
+        ("ସୁରେନ୍ଦ୍ର", "ସୂରେନ୍ଦ୍ର"),
+        ("ସୁଶାନ୍ତ", "ସୂଶାନ୍ତ"),
+        ("ପୁରୁଷୋତ୍ତମ", "ପୂରୁଷୋତ୍ତମ"),
+        ("ସୁଭଦ୍ରା", "ସୂଭଦ୍ରା"),
+        ("ମଧୁ", "ମଧୂ"),
+        ("ରଘୁ", "ରଘୂ"),
+        ("ସୁକାନ୍ତ", "ସୂକାନ୍ତ"),
+        ("କୁମାର", "କୂମାର"),
+    ),
+    "e-ai": (
+        ("ବୈଷ୍ଣବ", "ବେଷ୍ଣବ"),
+        ("ବୈଦ୍ୟନାଥ", "ବେଦ୍ୟନାଥ"),
+        ("ଦୈତାରି", "ଦେତାରି"),
+        ("ବୈଦେହୀ", "ବେଦେହୀ"),
+    ),
+    "final-aa": (
+        ("ବିଜୟ", "ବିଜୟା"),
+        ("ସଞ୍ଜୟ", "ସଞ୍ଜୟା"),
+        ("ଅଜୟ", "ଅଜୟା"),
+        ("ରାମ", "ରାମା"),
+    ),
+    "ya": (
+        ("ସତ୍ୟ", "ସତ୍ଯ"),
+        ("ସତ୍ୟଜିତ", "ସତ୍ଯଜିତ"),
+        ("ଆଦିତ୍ୟ", "ଆଦିତ୍ଯ"),
+        ("ନିତ୍ୟାନନ୍ଦ", "ନିତ୍ଯାନନ୍ଦ"),
+    ),
+    "aspiration": (
+        ("ମୁକେଶ", "ମୁଖେଶ"),
+        ("ରାକେଶ", "ରାଖେଶ"),
+        ("ଅକିଳ", "ଅଖିଳ"),
+        ("ଶେକର", "ଶେଖର"),
+        ("ସୁଭାଷ", "ସୁବାଷ"),
+        ("ସୁଧାକର", "ସୁଦାକର"),
+    ),
+    "sibilant": (
+        ("ମହେଶ", "ମହେସ"),
+        ("ରମେଶ", "ରମେସ"),
+    ),
+    "anusvara": (
+        ("ସଂଜୟ", "ସଞ୍ଜୟ"),
+        ("ସଂକର", "ସଙ୍କର"),
+    ),
+}
+
+
+class TestSameNameSpellings:
+    def test_fifty_pairs_share_soundex_key(self) -> None:
+        pairs = [pair for group in SAME_NAME_SPELLINGS.values() for pair in group]
+        assert len(SAME_NAME_SPELLINGS) >= 5
+        assert len(pairs) == 50
+        assert len(set(pairs)) == 50
+        assert all(left != right for left, right in pairs)
+        matched = sum(phonetic.soundex(left) == phonetic.soundex(right) for left, right in pairs)
+        assert matched / len(pairs) >= 0.9

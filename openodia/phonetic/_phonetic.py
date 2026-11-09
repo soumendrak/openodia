@@ -1,7 +1,7 @@
 """Odia-adapted variants, not classic Soundex or Metaphone.
 
 The Soundex variant maps consonants to a single-digit place-of-articulation
-code (1..8); vowels, matras, and halant are dropped from the body of the
+code (2..8); vowels, matras, and halant are dropped from the body of the
 key. The Metaphone variant collapses aspirated / voiced / voiceless
 contrasts inside each articulation group to a single base consonant —
 useful for spelling-variant matching that tolerates fewer collisions
@@ -15,8 +15,6 @@ from typing import TypeGuard
 
 _HALANT = "\u0b4d"
 _NUKTA = "\u0b3c"
-# Characters that sit inside a conjunct without breaking it: halant, nukta,
-# and the rendering-only zero-width (non-)joiners.
 _CONJUNCT_MARKS = frozenset({_HALANT, _NUKTA, "\u200c", "\u200d"})
 _AVAGRAHA = "\u0b3d"
 
@@ -34,96 +32,77 @@ def _canonical(word: str) -> str:
     return word.replace("ଡ" + _NUKTA, "\u0b5c").replace("ଢ" + _NUKTA, "\u0b5d")
 
 
-# ----- Soundex codes -------------------------------------------------------
-
-# Place of articulation → single digit.
 _SOUNDEX_CODES: dict[str, str] = {
-    # Gutturals
     "କ": "2",
     "ଖ": "2",
     "ଗ": "2",
     "ଘ": "2",
     "ଙ": "2",
-    # Palatals
     "ଚ": "3",
     "ଛ": "3",
     "ଜ": "3",
     "ଝ": "3",
     "ଞ": "3",
-    # Retroflex
     "ଟ": "4",
     "ଠ": "4",
     "ଡ": "4",
     "ଢ": "4",
     "ଣ": "4",
-    chr(0x0B5C): "4",  # ଡ଼
-    chr(0x0B5D): "4",  # ଢ଼
-    # Dentals
+    "\u0b5c": "4",
+    "\u0b5d": "4",
     "ତ": "5",
     "ଥ": "5",
     "ଦ": "5",
     "ଧ": "5",
     "ନ": "5",
-    # Labials
     "ପ": "6",
     "ଫ": "6",
     "ବ": "6",
     "ଭ": "6",
     "ମ": "6",
-    # Semivowels (incl. retroflex semivowel ୟ)
     "ଯ": "7",
     "ର": "7",
     "ଲ": "7",
     "ଳ": "7",
     "ଵ": "7",
     "ୱ": "7",
-    chr(0x0B5F): "7",  # ୟ
-    # Sibilants + ha
+    "\u0b5f": "7",
     "ଶ": "8",
     "ଷ": "8",
     "ସ": "8",
     "ହ": "8",
 }
 
-# ----- Metaphone base consonants -------------------------------------------
 
-# Each articulation group collapses to a single representative consonant.
 _METAPHONE_BASE: dict[str, str] = {
-    # Gutturals → କ
     "ଖ": "କ",
     "ଗ": "କ",
     "ଘ": "କ",
     "ଙ": "କ",
-    # Palatals → ଚ
     "ଛ": "ଚ",
     "ଜ": "ଚ",
     "ଝ": "ଚ",
     "ଞ": "ଚ",
-    # Retroflex → ଟ
     "ଠ": "ଟ",
     "ଡ": "ଟ",
     "ଢ": "ଟ",
     "ଣ": "ଟ",
-    chr(0x0B5C): "ଟ",
-    chr(0x0B5D): "ଟ",
-    # Dentals → ତ
+    "\u0b5c": "ଟ",
+    "\u0b5d": "ଟ",
     "ଥ": "ତ",
     "ଦ": "ତ",
     "ଧ": "ତ",
     "ନ": "ତ",
-    # Labials → ପ
     "ଫ": "ପ",
     "ବ": "ପ",
     "ଭ": "ପ",
     "ମ": "ପ",
-    # Semivowels → ର
     "ଯ": "ର",
     "ଲ": "ର",
     "ଳ": "ର",
     "ଵ": "ର",
     "ୱ": "ର",
-    chr(0x0B5F): "ର",
-    # Sibilants → ସ
+    "\u0b5f": "ର",
     "ଶ": "ସ",
     "ଷ": "ସ",
     "ହ": "ସ",
@@ -146,9 +125,6 @@ def _scorable(word: str | None) -> TypeGuard[str]:
 
 def _is_consonant(ch: str) -> bool:
     return ch in _SOUNDEX_CODES
-
-
-# ----- Public API ----------------------------------------------------------
 
 
 def soundex(word: str) -> str:
@@ -179,8 +155,6 @@ def soundex(word: str) -> str:
     _require_str(word)
     if not word:
         return ""
-    # NFC so canonically equivalent spellings (e.g. precomposed vs.
-    # decomposed nukta letters) give the same key.
     word = _canonical(word)
 
     out: list[str] = []
@@ -195,10 +169,6 @@ def soundex(word: str) -> str:
                 out.append(code)
                 last = code
         elif ch not in _CONJUNCT_MARKS:
-            # A vowel or matra breaks the duplicate-suppression chain
-            # without emitting anything. Halant and nukta do not: the
-            # consonants of a conjunct (e.g. ନ୍ଦ, also with ZWJ/ZWNJ) count
-            # as adjacent.
             last = ""
         if len(out) >= 4:
             break
