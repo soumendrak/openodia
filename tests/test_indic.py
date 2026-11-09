@@ -69,6 +69,8 @@ class TestRoundTrip:
 class TestIdempotenceWhenSameScript:
     def test_same_script_returns_input(self) -> None:
         assert indic.transliterate("କ", "odia", "odia") == "କ"
+        assert indic.transliterate("\u0b15\u0b47\u0b56", "odia", "odia") == "\u0b15\u0b47\u0b56"
+        assert indic.transliterate("\u0b5c", "odia", "odia") == "\u0b5c"
 
     def test_assamese_is_bengali_block(self) -> None:
         assert indic.transliterate("কখগ", "bengali", "assamese") == indic.transliterate("কখগ", "assamese", "bengali") == "কখগ"
@@ -111,9 +113,23 @@ class TestNfcRoundTrip:
         assert unicodedata.normalize("NFC", devanagari) == devanagari
         assert indic.transliterate(devanagari, from_script="devanagari", to_script="odia") == source
 
+    @pytest.mark.parametrize(
+        ("script", "expected"),
+        [
+            ("malayalam", "\u0d13\u0b21\u0b3c\u0d3f\u0d06"),
+            ("tamil", "\u0b93\u0b21\u0b3c\u0bbf\u0b86"),
+        ],
+    )
+    def test_nukta_word_keeps_its_spelling_when_the_target_has_no_nukta(self, script: Script, expected: str) -> None:
+        source = "ଓଡ଼ିଆ"
+        out = indic.transliterate(source, from_script="odia", to_script=script)
+        assert out == expected
+        assert unicodedata.normalize("NFC", out) == out
+        assert indic.transliterate(out, from_script=script, to_script="odia") == source
+
 
 class TestLength:
-    """Length is unchanged when nothing expands. A chillu grows by a virama."""
+    """A chillu grows by a virama. A nukta letter can shrink."""
 
     @pytest.mark.parametrize(
         "text, from_, to_",
@@ -131,6 +147,13 @@ class TestLength:
         assert out == "न्"
         assert len(out) == len(text) + 1
 
+    def test_nukta_letter_can_shrink(self) -> None:
+        text = "ଓଡ଼ିଆ"
+        out = indic.transliterate(text, from_script="odia", to_script="gurmukhi")
+        assert out == "\u0a13\u0a5c\u0a3f\u0a06"
+        assert len(text) == 5
+        assert len(out) == 4
+
 
 class TestPublicAPI:
     def test_submodule_accessible(self) -> None:
@@ -139,10 +162,16 @@ class TestPublicAPI:
         assert openodia.indic is indic
         assert callable(openodia.indic.transliterate)
 
+    def test_changelog_scopes_the_nukta_claim(self) -> None:
+        from pathlib import Path
+
+        changelog = Path(__file__).resolve().parents[1].joinpath("CHANGELOG.md").read_text(encoding="utf-8")
+        bullet = next(line for line in changelog.splitlines() if line.startswith("- `openodia.indic`"))
+        assert "composition-excluded" in bullet
+        assert "precomposed nukta letter" not in bullet
+
 
 class TestCharacterIdentity:
-    """Characters outside the parallel core must not be offset blindly."""
-
     def test_malayalam_chillu_expands_to_consonant_plus_virama(self) -> None:
         assert indic.transliterate("ൻ", from_script="malayalam", to_script="devanagari") == "न्"
 
@@ -157,18 +186,41 @@ class TestCharacterIdentity:
         assert indic.transliterate("\u0b5c", from_script="odia", to_script="devanagari") == "\u0921\u093c"
         assert indic.transliterate("\u095c", from_script="devanagari", to_script="odia") == "\u0b21\u0b3c"
         assert indic.transliterate("\u0931", from_script="devanagari", to_script="odia") == "\u0b30\u0b3c"
+        assert indic.transliterate("\u09dc", from_script="bengali", to_script="devanagari") == "\u0921\u093c"
+        assert indic.transliterate("\u095c", from_script="devanagari", to_script="gurmukhi") == "\u0a5c"
 
-    def test_odia_wa_maps_to_va(self) -> None:
-        assert indic.transliterate("ସ୍ୱ", from_script="odia", to_script="devanagari") == "स्व"
+    def test_odia_wa_is_kept(self) -> None:
+        text = "\u0b38\u0b4d\u0b71"
+        for script in (
+            "devanagari",
+            "bengali",
+            "assamese",
+            "gurmukhi",
+            "gujarati",
+            "tamil",
+            "telugu",
+            "kannada",
+            "malayalam",
+        ):
+            out = indic.transliterate(text, from_script="odia", to_script=script)
+            assert "\u0b71" in out
+            assert indic.transliterate(out, from_script=script, to_script="odia") == text
 
     def test_missing_tamil_letter_is_kept_not_offset(self) -> None:
         assert indic.transliterate("खक", from_script="devanagari", to_script="tamil") == "खக"
+        assert indic.transliterate("\u0958", from_script="devanagari", to_script="tamil") == "\u0958"
+        assert indic.transliterate("\u0934", from_script="devanagari", to_script="bengali") == "\u0934"
+
+    def test_unassigned_codepoint_passes_through(self) -> None:
+        assert indic.transliterate("\u0984", from_script="bengali", to_script="devanagari") == "\u0984"
 
     def test_long_e_and_o_match_across_north_and_south(self) -> None:
         assert indic.transliterate("देव", from_script="devanagari", to_script="telugu") == "దేవ"
         assert indic.transliterate("ଓ", from_script="odia", to_script="telugu") == "ఓ"
         assert indic.transliterate("దేవ", from_script="telugu", to_script="devanagari") == "देव"
         assert indic.transliterate("ऎ", from_script="devanagari", to_script="kannada") == "ಎ"
+        assert indic.transliterate("\u090f", from_script="devanagari", to_script="tamil") == "\u0b8f"
+        assert indic.transliterate("\u090f", from_script="devanagari", to_script="malayalam") == "\u0d0f"
 
     def test_assamese_ra_and_wa(self) -> None:
         assert indic.transliterate("ৰাম", from_script="assamese", to_script="devanagari") == "राम"
@@ -195,6 +247,8 @@ class TestCodexRound3:
             ("राम", "devanagari", "bengali", "রাম"),
             ("ઑક્ટોબર", "gujarati", "devanagari", "ऑक्टोबर"),
             ("ऑक्टोबर", "devanagari", "gujarati", "ઑક્ટોબર"),
+            ("\u0901", "devanagari", "gurmukhi", "\u0a01"),
+            ("\u090d", "devanagari", "gujarati", "\u0a8d"),
         ],
     )
     def test_script_specific_names(self, text: str, src: Script, dst: Script, expected: str) -> None:
@@ -215,9 +269,19 @@ class TestCodexRound3:
     def test_addak_without_following_consonant_is_kept(self) -> None:
         assert indic.transliterate("ੱ", "gurmukhi", "devanagari") == "ੱ"
 
-    @pytest.mark.parametrize(("text", "src"), [("विश्वास", "devanagari"), ("ଵିଶ୍ୱାସ", "odia")])
-    def test_bengali_writes_va_and_wa_as_ba(self, text: str, src: Script) -> None:
-        assert indic.transliterate(text, src, "bengali") == "বিশ্বাস"
+    def test_addak_before_a_sign_is_kept(self) -> None:
+        assert indic.transliterate("\u0a71\u0a01", "gurmukhi", "devanagari") == "\u0a71\u0901"
+
+    def test_addak_before_an_unmapped_letter_is_kept(self) -> None:
+        assert indic.transliterate("\u0a71\u0a16", "gurmukhi", "tamil") == "\u0a71\u0a16"
+
+    def test_bengali_writes_va_as_ba_and_keeps_wa(self) -> None:
+        assert indic.transliterate("विश्वास", "devanagari", "bengali") == "বিশ্বাস"
+        assert indic.transliterate("ଵ", "odia", "bengali") == "ব"
+        wa = "\u0b38\u0b4d\u0b71"
+        out = indic.transliterate(wa, "odia", "bengali")
+        assert out == "\u09b8\u09cd\u0b71"
+        assert indic.transliterate(out, "bengali", "odia") == wa
 
     def test_assamese_keeps_its_own_va(self) -> None:
         assert indic.transliterate("विश्वास", "devanagari", "assamese") == "ৱিশ্ৱাস"
@@ -230,8 +294,6 @@ class TestCodexRound3:
 
 
 class TestCodexRound4:
-    """Unicode edge cases cited on the transliteration review."""
-
     @pytest.mark.parametrize(
         ("text", "src", "expected"),
         [

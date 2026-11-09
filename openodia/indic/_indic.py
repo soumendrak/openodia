@@ -90,8 +90,7 @@ def transliterate(text: str, from_script: Script, to_script: Script) -> str:
     src_names = _names(src_offset)
     dst_chars = _chars_by_name(to_script)
     upper = src_offset + _BLOCK_SIZE
-    text = _normalize_source(text, src_offset)
-    return "".join(_transliterate_char(text, i, src_offset, upper, src_names, dst_chars, to_script) for i in range(len(text)))
+    return _render(text, src_offset, upper, src_names, dst_chars, to_script)
 
 
 def _transliterate_char(
@@ -117,12 +116,10 @@ def _transliterate_char(
 
 
 def _subjoined_ya(dst_chars: dict[str, str]) -> str:
-    """Gurmukhi yakash is a subjoined YA, encoded as virama + YA."""
     return dst_chars["SIGN VIRAMA"] + dst_chars["LETTER YA"]
 
 
 def _geminate(nxt: str, src_names: dict[str, str], dst_chars: dict[str, str]) -> str:
-    """Gurmukhi addak doubles the next consonant: emit it + virama."""
     if not nxt or not src_names.get(nxt, "").startswith("LETTER "):
         return ""
     virama = dst_chars.get("SIGN VIRAMA")
@@ -151,7 +148,6 @@ _BINDI_VOWELS = frozenset(
 
 
 def _gurmukhi_nasal(text: str, index: int, src_names: dict[str, str], dst_chars: dict[str, str]) -> str:
-    """Choose Gurmukhi bindi or tippi from the vowel the anusvara follows."""
     bindi = dst_chars["SIGN ANUSVARA"]
     tippi = dst_chars["TIPPI"]
     for j in range(index - 1, -1, -1):
@@ -162,7 +158,6 @@ def _gurmukhi_nasal(text: str, index: int, src_names: dict[str, str], dst_chars:
 
 
 def _block_entries(start: int) -> list[tuple[str, str]]:
-    """``(char, name without the script prefix)`` for assigned codepoints."""
     entries = []
     for cp in range(start, start + _BLOCK_SIZE):
         name = unicodedata.name(chr(cp), "")
@@ -203,7 +198,6 @@ _BLOCK_RENAMES: dict[int, dict[str, str]] = {
 }
 
 _NAME_FALLBACKS = {
-    "LETTER WA": "LETTER VA",
     "LETTER RA WITH MIDDLE DIAGONAL": "LETTER RA",
     "LETTER RA WITH LOWER DIAGONAL": "LETTER VA",
     "TIPPI": "SIGN ANUSVARA",
@@ -231,21 +225,74 @@ def _names(start: int) -> dict[str, str]:
     return {ch: aliases.get(name, name) for ch, name in _block_entries(start)}
 
 
-def _normalize_source(text: str, start: int) -> str:
+def _render(
+    text: str,
+    src_offset: int,
+    upper: int,
+    src_names: dict[str, str],
+    dst_chars: dict[str, str],
+    to_script: Script,
+) -> str:
+    pieces = _source_pieces(text, src_offset)
+    lookup = "".join(char for char, _original in pieces)
+    parts: list[str] = []
+    for index, (char, original) in enumerate(pieces):
+        mapped = _transliterate_char(lookup, index, src_offset, upper, src_names, dst_chars, to_script)
+        parts.append(original if mapped == char else mapped)
+    return "".join(parts)
+
+
+def _source_pieces(text: str, start: int) -> list[tuple[str, str]]:
     pattern = _source_run(start)
-    return pattern.sub(lambda m: _compose_run(m.group(), start), text)
+    pieces: list[tuple[str, str]] = []
+    prev = 0
+    for match in pattern.finditer(text):
+        pieces.extend((ch, ch) for ch in text[prev : match.start()])
+        pieces.extend(_run_pieces(match.group(), start))
+        prev = match.end()
+    pieces.extend((ch, ch) for ch in text[prev:])
+    return pieces
+
+
+def _run_pieces(run: str, start: int) -> list[tuple[str, str]]:
+    exclusions = _exclusions(start)
+    composed = set(exclusions.values())
+    keys = sorted(exclusions, key=len, reverse=True)
+    pieces: list[tuple[str, str]] = []
+    plain: list[str] = []
+
+    def flush() -> None:
+        if plain:
+            normalized = unicodedata.normalize("NFC", "".join(plain))
+            pieces.extend((ch, ch) for ch in normalized)
+            plain.clear()
+
+    i = 0
+    while i < len(run):
+        if run[i] in composed:
+            flush()
+            pieces.append((run[i], run[i]))
+            i += 1
+            continue
+        matched = ""
+        for key in keys:
+            if run.startswith(key, i):
+                matched = key
+                break
+        if matched:
+            flush()
+            pieces.append((exclusions[matched], matched))
+            i += len(matched)
+            continue
+        plain.append(run[i])
+        i += 1
+    flush()
+    return pieces
 
 
 @cache
 def _source_run(start: int) -> re.Pattern[str]:
     return re.compile(f"[{chr(start)}-{chr(start + _BLOCK_SIZE - 1)}]+")
-
-
-def _compose_run(run: str, start: int) -> str:
-    run = unicodedata.normalize("NFC", run)
-    for decomposed, composed in _exclusions(start).items():
-        run = run.replace(decomposed, composed)
-    return run
 
 
 @cache
