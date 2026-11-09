@@ -15,6 +15,7 @@ from ._translate_async import (
     universal_translation_async,
 )
 from ._understandData import UnderstandData as ud
+from . import roman
 from . import numbers
 from . import syllable
 from .segment import sentences
@@ -37,6 +38,7 @@ __all__ = [
     "odia_to_other_lang_async",
     "other_lang_to_odia",
     "other_lang_to_odia_async",
+    "roman",
     "sentences",
     "STOPWORDS",
     "Stopwords",
