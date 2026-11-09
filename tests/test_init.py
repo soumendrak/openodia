@@ -44,6 +44,19 @@ class TestInit:
         for export in expected_exports:
             assert hasattr(openodia, export)
 
+    def test_all_keeps_roman_and_async_translation(self) -> None:
+        """The package exports romanisation and async translation together."""
+        names = (
+            "roman",
+            "odia_to_other_lang_async",
+            "other_lang_to_odia_async",
+            "translate_batch",
+            "universal_translation_async",
+        )
+        for export in names:
+            assert export in openodia.__all__
+            assert hasattr(openodia, export)
+
     def test_alphabet_import(self):
         """Test alphabet import"""
         assert alphabet is not None
