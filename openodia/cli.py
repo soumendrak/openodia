@@ -37,6 +37,14 @@ def _read_input(value: str, *, file: bool = False) -> str:
     return value
 
 
+def _without_trailing_break(text: str) -> str:
+    if text.endswith("\r\n"):
+        return text[:-2]
+    if text.endswith("\n") or text.endswith("\r"):
+        return text[:-1]
+    return text
+
+
 def _int_at_least(minimum: int) -> Callable[[str], int]:
     """argparse ``type`` for integers >= ``minimum``."""
 
@@ -286,7 +294,7 @@ def _cmd_spell(args: argparse.Namespace) -> int:
 
     text = _read_input(args.text, file=args.file)
     if args.check:
-        correct = spell.is_correct(text)
+        correct = spell.is_correct(_without_trailing_break(text))
         if args.json:
             _emit_json({"correct": correct})
         else:
