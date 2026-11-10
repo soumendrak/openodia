@@ -19,6 +19,7 @@ from . import indic
 from . import legacy
 from . import roman
 from . import numbers
+from . import phonetic
 from . import syllable
 from .segment import sentences
 from .stats import FreqDist, collocations, cooccurrence, ngrams
@@ -42,6 +43,7 @@ __all__ = [
     "odia_to_other_lang_async",
     "other_lang_to_odia",
     "other_lang_to_odia_async",
+    "phonetic",
     "roman",
     "sentences",
     "STOPWORDS",
