@@ -65,6 +65,13 @@ def test_suggest_finds_an_adjacent_transposition() -> None:
     assert "ନମସ୍କାର" in spell.suggest("ମନସ୍କାର", top_k=5)
 
 
+def test_suggest_finds_a_swap_combined_with_an_insertion() -> None:
+    from openodia import spell
+
+    assert spell.is_correct("ସହିତ") is True
+    assert "ସହିତ" in spell.suggest("ତସ", top_k=100_000)
+
+
 def test_suggest_rejects_a_bad_limit_and_returns_nothing_for_an_empty_or_distant_word() -> None:
     from openodia import spell
 
