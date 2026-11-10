@@ -90,6 +90,15 @@ def restore(text: str, store: KeyStore) -> str:
         raise TypeError(f"text must be str, got {type(text).__name__}")
     if not isinstance(store, KeyStore):
         raise TypeError(f"store must be KeyStore, got {type(store).__name__}")
+    for _ in range(_MAX_PASSES):
+        expanded = _expand_tokens(text, store)
+        if expanded == text:
+            return text
+        text = expanded
+    return text
+
+
+def _expand_tokens(text: str, store: KeyStore) -> str:
     pieces: list[str] = []
     cursor = 0
     for match in _TOKEN.finditer(text):
