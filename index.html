@@ -527,6 +527,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#phonetic-matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phonetic matching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#indic-transliteration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1522,6 +1533,7 @@ uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># or: pi
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#unicode-normalization">Unicode normalization &amp; clean</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#corpus-statistics">Corpus statistics</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#syllabifier">Syllabifier (akshara)</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#phonetic-matching">Phonetic matching</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#indic-transliteration">Indic-to-Indic transliteration</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#romanisation">Romanisation</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#command-line-interface">Command-line interface</a></li>
@@ -1614,6 +1626,43 @@ or sprinkle through a pipeline without compounding side-effects.</p>
 <summary>Round-trip property</summary>
 <p><code>"".join(syllable.split(word)) == word</code> for any input — the splitter
 is a strict tokeniser, never modifying or normalising characters.</p>
+</details>
+<h3 id="phonetic-matching"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3z"/></svg></span> Phonetic matching<a class="headerlink" href="#phonetic-matching" title="Permanent link">&para;</a></h3>
+<p>These are Odia-adapted variants, not classic Soundex or Metaphone.
+Soundex preserves the first Odia letter, including a leading vowel, and
+pads or truncates to four characters. Both encoders normalize NFC.
+Vowels and matras reset duplicate suppression; halant, nukta and zero-width
+joiners do not. For example, <code>ପାପା</code> gives Soundex <code>ପ600</code> and Metaphone <code>ପପ</code>.
+Nonempty input with no Odia letters raises <code>ValueError</code>, including Latin-only
+input, and <code>soundex()</code>/<code>metaphone()</code> raise <code>TypeError</code> for a non-str such as
+<code>None</code>. In mixed input, non-Odia characters emit nothing but reset duplicate
+suppression, like vowels. Empty input produces empty keys. <code>similarity()</code>
+does not raise for non-Odia input: it returns 0.0 when either side is <code>None</code>
+or has no Odia letters (Latin or whitespace-only), and <code>similarity("", "")</code>
+is 0.0. Any other type (<code>int</code>, <code>bytes</code>, <code>list</code>) raises <code>TypeError</code>. It
+assigns 0.5 to Soundex equality and 0.5 to normalized Metaphone edit
+similarity.</p>
+<ul>
+<li>Two encoders for finding spelling variants of the same name / word:</li>
+<li><strong>Soundex</strong> — fixed 4-character code based on place-of-articulation groups.</li>
+<li><strong>Metaphone</strong> — variable-length consonant skeleton, aspirated/voiced pairs collapsed.</li>
+<li>A <code>similarity()</code> score that combines both into a single <code>[0, 1]</code> value.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">phonetic</span>
+
+<span class="n">phonetic</span><span class="o">.</span><span class="n">soundex</span><span class="p">(</span><span class="s2">&quot;ସୋମେନ୍ଦ୍ର&quot;</span><span class="p">)</span>             <span class="c1"># &#39;ସ657&#39;  (4 chars)</span>
+<span class="n">phonetic</span><span class="o">.</span><span class="n">soundex</span><span class="p">(</span><span class="s2">&quot;ସୋମେନ୍ଦ୍ର&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phonetic</span><span class="o">.</span><span class="n">soundex</span><span class="p">(</span><span class="s2">&quot;ସୌମେନ୍ଦ୍ର&quot;</span><span class="p">)</span>  <span class="c1"># True</span>
+
+<span class="n">phonetic</span><span class="o">.</span><span class="n">metaphone</span><span class="p">(</span><span class="s2">&quot;ସୋମେନ୍ଦ୍ର&quot;</span><span class="p">)</span>           <span class="c1"># &#39;ସପତର&#39;</span>
+
+<span class="n">phonetic</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="s2">&quot;ସୋମେନ୍ଦ୍ର&quot;</span><span class="p">,</span> <span class="s2">&quot;ସୌମେନ୍ଦ୍ର&quot;</span><span class="p">)</span>   <span class="c1"># 1.0</span>
+<span class="n">phonetic</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="s2">&quot;ସୀତା&quot;</span><span class="p">,</span> <span class="s2">&quot;ବିଜୟ&quot;</span><span class="p">)</span>             <span class="c1"># ~ 0.0</span>
+</code></pre></div>
+<details class="note">
+<summary>When to use which</summary>
+<p>Soundex maximises recall (more collisions, broader match). Metaphone
+is finer-grained. <code>similarity()</code> averages them so the score behaves
+well as a sortable threshold for fuzzy-match queries.</p>
 </details>
 <h3 id="indic-transliteration"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11 1H3c-1.1 0-2 .9-2 2v12l3-3h5v-1c0-2.2 1.79-4 4-4V3c0-1.1-.9-2-2-2m0 3H9.5c-.34 1.19-.96 2.3-1.82 3.26l-.02.02 1.26 1.25-.37 1.01L7 8l-2.5 2.5-.69-.73 2.53-2.49A8.6 8.6 0 0 1 4.86 5h.99c.31.6.69 1.17 1.15 1.68A7.7 7.7 0 0 0 8.57 4H3V3h3.5V2h1v1H11zm10 5h-8c-1.1 0-2 .9-2 2v7c0 1.1.9 2 2 2h7l3 3V11c0-1.1-.9-2-2-2m-1.37 10-.85-2.25h-3.56L14.38 19h-1.5l3.37-9h1.5l3.38 9zM17 12l1.22 3.25h-2.43z"/></svg></span> Indic transliteration<a class="headerlink" href="#indic-transliteration" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2288,7 +2337,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 10, 2026 04:08:57 UTC"><span class="timeago" datetime="2026-11-10T04:08:57+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 10, 2026 04:08:57 UTC">2026-11-10</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 10, 2026 05:58:47 UTC"><span class="timeago" datetime="2026-11-10T05:58:47+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 10, 2026 05:58:47 UTC">2026-11-10</span>
   </span>
 
     
