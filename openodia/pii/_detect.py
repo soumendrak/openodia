@@ -96,7 +96,7 @@ def detect(text: str, types: Iterable[str] | None = None, min_confidence: float 
     """Find PII spans in ``text``, sorted by position and never overlapping.
 
     Odia and ASCII digits are both recognised. ``types`` limits the search to some of
-    :data:`PII_TYPES`; ``min_confidence`` (0 to 1) drops weaker matches first. Matches that
+    ``PII_TYPES``. ``min_confidence`` (0 to 1) drops weaker matches first. Matches that
     overlap are merged into one entity spanning all of them, so for every detected value no
     part of it is left visible; see the limits below. Its type and confidence come from the
     longest match; on a tie the earlier of EMAIL, URL, AADHAAR, PAN, PHONE, PINCODE wins.

@@ -25,4 +25,4 @@ jobs:
       - name: Deploy
         run: |
           git pull -r
-          uv run mkdocs gh-deploy
+          uv run mkdocs gh-deploy --strict
