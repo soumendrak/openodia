@@ -170,15 +170,33 @@ class TestPublicAPI:
     def test_changelog_scopes_the_nukta_claim(self) -> None:
         from pathlib import Path
 
-        changelog = Path(__file__).resolve().parents[1].joinpath("CHANGELOG.md").read_text(encoding="utf-8")
-        bullet = next(line for line in changelog.splitlines() if line.startswith("- `openodia.indic`"))
-        assert "composition-excluded" in bullet
-        assert "precomposed nukta letter" not in bullet
-        for name in ("Gurmukhi", "RRA", "LLA", "SHA", "YYA"):
-            assert name in bullet
+        root = Path(__file__).resolve().parents[1]
+        statements = {
+            "CHANGELOG.md": next(
+                line
+                for line in (root / "CHANGELOG.md").read_text(encoding="utf-8").splitlines()
+                if line.startswith("- `openodia.indic`")
+            ),
+            "docs/index.md": next(
+                line
+                for line in (root / "docs" / "index.md").read_text(encoding="utf-8").splitlines()
+                if "nukta letter" in line
+            ),
+        }
+        for path, sentence in statements.items():
+            assert "composition-excluded" in sentence, path
+            assert "when the target has those parts" in sentence, path
+            assert "precomposed nukta letter" not in sentence, path
+            for name in ("Gurmukhi", "RRA", "LLA", "SHA", "YYA"):
+                assert name in sentence, (path, name)
         assert indic.transliterate("\u095c", "devanagari", "gurmukhi") == "\u0a5c"
         assert indic.transliterate("\u0a33", "gurmukhi", "devanagari") == "\u0933"
         assert indic.transliterate("\u0958", "devanagari", "bengali") == "\u0995\u09bc"
+        assert indic.transliterate("\u0931", "devanagari", "telugu") == "\u0c31"
+        assert indic.transliterate("\u0931", "devanagari", "kannada") == "\u0cb1"
+        assert indic.transliterate("\u0934", "devanagari", "telugu") == "\u0c34"
+        assert indic.transliterate("\u0934", "devanagari", "kannada") == "\u0cde"
+        assert indic.transliterate("\u0929", "devanagari", "tamil") == "\u0ba9"
 
 
 class TestCharacterIdentity:

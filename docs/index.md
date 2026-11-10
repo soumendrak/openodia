@@ -169,7 +169,7 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ### :material-translate-variant: Indic transliteration
 
 - Script-only transliteration between Brahmic Indic scripts: **Devanagari**, **Bengali / Assamese**, **Gurmukhi**, **Gujarati**, **Odia**, **Tamil**, **Telugu**, **Kannada**, **Malayalam**.
-- Deterministic, no external dependencies. Each character is mapped by its Unicode identity (e.g. `DEVANAGARI LETTER KA` → `ORIYA LETTER KA`), with short/long e/o aligned across north and south scripts. Chillus and khanda ta expand to consonant + virama. A nukta letter maps as consonant + nukta, except Gurmukhi flap RRA and a target LLA, SHA, or YYA, which stay one letter. Characters with no counterpart are kept unchanged. Odia WA (`ୱ`) has no letter in the other scripts, so it stays and round-trips. Bengali has no VA and writes it as BA, so VA does not round-trip through Bengali.
+- Deterministic, no external dependencies. Each character is mapped by its Unicode identity (e.g. `DEVANAGARI LETTER KA` → `ORIYA LETTER KA`), with short/long e/o aligned across north and south scripts. Chillus and khanda ta expand to consonant + virama. A composition-excluded nukta letter is consonant + nukta when the target has those parts, except Gurmukhi flap RRA and a target LLA, SHA, or YYA, which stay one letter. Characters with no counterpart are kept unchanged. Odia WA (`ୱ`) has no letter in the other scripts, so it stays and round-trips. Bengali has no VA and writes it as BA, so VA does not round-trip through Bengali.
 - Useful for cross-script reading, ML corpus alignment, and name normalisation across regions.
 
 ```python
