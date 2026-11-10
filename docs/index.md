@@ -71,6 +71,7 @@ The tools are available in Odia language.
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
 - [x] [Phonetic matching](#phonetic-matching)
+- [x] [Indic-to-Indic transliteration](#indic-transliteration)
 - [x] [Romanisation](#romanisation)
 - [x] [Command-line interface](#command-line-interface)
 - [x] [Translation cache configuration](#translation-cache)
@@ -204,6 +205,32 @@ phonetic.similarity("ସୀତା", "ବିଜୟ")             # ~ 0.0
     Soundex maximises recall (more collisions, broader match). Metaphone
     is finer-grained. `similarity()` averages them so the score behaves
     well as a sortable threshold for fuzzy-match queries.
+
+### :material-translate-variant: Indic transliteration
+
+- Script-only transliteration between Brahmic Indic scripts: **Devanagari**, **Bengali / Assamese**, **Gurmukhi**, **Gujarati**, **Odia**, **Tamil**, **Telugu**, **Kannada**, **Malayalam**.
+- Deterministic, no external dependencies. Each character is mapped by its Unicode identity (e.g. `DEVANAGARI LETTER KA` → `ORIYA LETTER KA`), with short/long e/o aligned across north and south scripts. Chillus and khanda ta expand to consonant + virama. A composition-excluded nukta letter is consonant + nukta when the target has those parts, except Gurmukhi flap RRA and a target LLA, SHA, or YYA, which stay one letter. Characters with no counterpart are kept unchanged. Odia WA (`ୱ`) has no letter in the other scripts, so it stays and round-trips. Bengali has no VA and writes it as BA, so VA does not round-trip through Bengali.
+- Useful for cross-script reading, ML corpus alignment, and name normalisation across regions.
+
+```python
+from openodia import indic
+
+indic.transliterate("ଓଡ଼ିଆ", from_script="odia", to_script="devanagari")
+# 'ओड़िआ'
+
+indic.transliterate("नमस्ते", from_script="devanagari", to_script="odia")
+# 'ନମସ୍ତେ'
+
+indic.SCRIPTS  # ('devanagari', 'bengali', 'assamese', 'gurmukhi', 'gujarati', 'odia', 'tamil', 'telugu', 'kannada', 'malayalam')
+```
+
+??? note "Tamil caveat"
+    Tamil's encoding has only one consonant per articulation group.
+    Devanagari/Odia aspirated or voiced consonants have no Tamil letter, so
+    they are kept in the source script rather than silently collapsed.
+    Characters are mapped by Unicode identity, not by block offset: Malayalam
+    chillus become consonant + virama, and shared marks such as the danda
+    (`।`) are kept.
 
 ### :material-alphabetical-variant: Romanisation
 

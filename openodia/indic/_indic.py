@@ -1,0 +1,320 @@
+"""Tamil U+0B83 is aytham, not visarga, and Kannada U+0CDE is LLLA, not FA."""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from functools import cache
+from typing import Literal
+
+Script = Literal[
+    "devanagari",
+    "bengali",
+    "assamese",
+    "gurmukhi",
+    "gujarati",
+    "odia",
+    "tamil",
+    "telugu",
+    "kannada",
+    "malayalam",
+]
+
+_SCRIPT_OFFSETS: dict[Script, int] = {
+    "devanagari": 0x0900,
+    "bengali": 0x0980,
+    "assamese": 0x0980,
+    "gurmukhi": 0x0A00,
+    "gujarati": 0x0A80,
+    "odia": 0x0B00,
+    "tamil": 0x0B80,
+    "telugu": 0x0C00,
+    "kannada": 0x0C80,
+    "malayalam": 0x0D00,
+}
+
+_BLOCK_SIZE = 0x80
+
+SCRIPTS: tuple[Script, ...] = tuple(_SCRIPT_OFFSETS.keys())
+
+
+def transliterate(text: str, from_script: Script, to_script: Script) -> str:
+    """Only codepoints in ``from_script`` change. Everything else is kept.
+
+    Translated characters are in NFC. A composition-excluded nukta letter
+    is consonant + nukta, except Gurmukhi flap RRA and a target LLA, SHA,
+    or YYA, which stay one letter. Characters without a counterpart in
+    ``to_script`` are kept as they are. An unknown script name raises
+    ``ValueError``.
+    """
+    if from_script not in _SCRIPT_OFFSETS:
+        raise ValueError(f"unknown from_script {from_script!r}; supported: {tuple(_SCRIPT_OFFSETS)}")
+    if to_script not in _SCRIPT_OFFSETS:
+        raise ValueError(f"unknown to_script {to_script!r}; supported: {tuple(_SCRIPT_OFFSETS)}")
+
+    src_offset = _SCRIPT_OFFSETS[from_script]
+    if from_script == to_script:
+        return text
+
+    src_names = _names(src_offset)
+    dst_chars = _chars_by_name(to_script)
+    upper = src_offset + _BLOCK_SIZE
+    return _render(text, src_offset, upper, src_names, dst_chars, to_script)
+
+
+def _transliterate_char(
+    text: str,
+    index: int,
+    src_offset: int,
+    upper: int,
+    src_names: dict[str, str],
+    dst_chars: dict[str, str],
+    to_script: Script,
+) -> str:
+    ch = text[index]
+    if not src_offset <= ord(ch) < upper or ch not in src_names:
+        return ch
+    name = src_names[ch]
+    if name == "ADDAK" and "ADDAK" not in dst_chars:
+        return _geminate(text[index + 1 : index + 2], src_names, dst_chars) or ch
+    if to_script == "gurmukhi" and name == "SIGN ANUSVARA":
+        return _gurmukhi_nasal(text, index, src_names, dst_chars)
+    if name == "SIGN YAKASH":
+        return _subjoined_ya(dst_chars)
+    return _map_char(ch, src_names, dst_chars)
+
+
+def _subjoined_ya(dst_chars: dict[str, str]) -> str:
+    return dst_chars["SIGN VIRAMA"] + dst_chars["LETTER YA"]
+
+
+def _geminate(nxt: str, src_names: dict[str, str], dst_chars: dict[str, str]) -> str:
+    if not nxt or not src_names.get(nxt, "").startswith("LETTER "):
+        return ""
+    virama = dst_chars.get("SIGN VIRAMA")
+    base = _map_char(nxt, src_names, dst_chars)
+    return base + virama if virama and base != nxt else ""
+
+
+_BINDI_VOWELS = frozenset(
+    {
+        "LETTER AA",
+        "VOWEL SIGN AA",
+        "LETTER II",
+        "VOWEL SIGN II",
+        "LETTER E",
+        "VOWEL SIGN E",
+        "LETTER AI",
+        "VOWEL SIGN AI",
+        "LETTER O",
+        "VOWEL SIGN O",
+        "LETTER AU",
+        "VOWEL SIGN AU",
+        "LETTER U",
+        "LETTER UU",
+    }
+)
+
+
+def _gurmukhi_nasal(text: str, index: int, src_names: dict[str, str], dst_chars: dict[str, str]) -> str:
+    bindi = dst_chars["SIGN ANUSVARA"]
+    tippi = dst_chars["TIPPI"]
+    for j in range(index - 1, -1, -1):
+        name = src_names.get(text[j])
+        if name is None or name != "SIGN NUKTA":
+            return bindi if name in _BINDI_VOWELS else tippi
+    return tippi
+
+
+def _block_entries(start: int) -> list[tuple[str, str]]:
+    entries = []
+    for cp in range(start, start + _BLOCK_SIZE):
+        name = unicodedata.name(chr(cp), "")
+        if name:
+            name = name.split(" ", 1)[1]
+            if start in _FLAP_RRA_BLOCKS and name == "LETTER RRA":
+                name = "LETTER DDDHA"
+            if start in _SHORT_LONG_EO_BLOCKS:
+                name = _SOUTH_EO.get(name, name)
+            name = _BLOCK_RENAMES.get(start, {}).get(name, name)
+            entries.append((chr(cp), name))
+    return entries
+
+
+_FLAP_RRA_BLOCKS = frozenset({0x0980, 0x0A00, 0x0B00})
+_SHORT_LONG_EO_BLOCKS = frozenset({0x0B80, 0x0C00, 0x0C80, 0x0D00})
+_SOUTH_EO = {
+    f"{kind} {south}": f"{kind} {north}"
+    for kind in ("LETTER", "VOWEL SIGN")
+    for south, north in (("E", "SHORT E"), ("EE", "E"), ("O", "SHORT O"), ("OO", "O"))
+}
+
+_BLOCK_RENAMES: dict[int, dict[str, str]] = {
+    0x0A00: {
+        "LETTER EE": "LETTER E",
+        "VOWEL SIGN EE": "VOWEL SIGN E",
+        "LETTER OO": "LETTER O",
+        "VOWEL SIGN OO": "VOWEL SIGN O",
+        "SIGN BINDI": "SIGN ANUSVARA",
+        "SIGN ADAK BINDI": "SIGN CANDRABINDU",
+    },
+    0x0A80: {
+        "VOWEL CANDRA E": "LETTER CANDRA E",
+        "VOWEL CANDRA O": "LETTER CANDRA O",
+    },
+    0x0B80: {"SIGN VISARGA": "SIGN AYTHAM"},
+    0x0C80: {"LETTER FA": "LETTER LLLA"},
+}
+
+_NAME_FALLBACKS = {
+    "LETTER RA WITH MIDDLE DIAGONAL": "LETTER RA",
+    "LETTER RA WITH LOWER DIAGONAL": "LETTER VA",
+    "TIPPI": "SIGN ANUSVARA",
+}
+_ASSAMESE_TARGET = {"LETTER RA": "\u09f0", "LETTER VA": "\u09f1"}
+_BENGALI_TARGET = {"LETTER VA": "\u09ac"}
+_ASSAMESE_ONLY = ("LETTER RA WITH MIDDLE DIAGONAL", "LETTER RA WITH LOWER DIAGONAL")
+_SOURCE_ALIASES: dict[int, dict[str, str]] = {
+    0x0D00: {
+        "AU LENGTH MARK": "VOWEL SIGN AU",
+        "SIGN VERTICAL BAR VIRAMA": "SIGN VIRAMA",
+        "SIGN CIRCULAR VIRAMA": "SIGN VIRAMA",
+    }
+}
+_DEAD_CONSONANTS = {
+    "LETTER KHANDA TA": "LETTER TA",
+    "LETTER DOT REPH": "LETTER RA",
+    "LETTER NAKAARA POLLU": "LETTER NA",
+}
+
+
+@cache
+def _names(start: int) -> dict[str, str]:
+    aliases = _SOURCE_ALIASES.get(start, {})
+    return {ch: aliases.get(name, name) for ch, name in _block_entries(start)}
+
+
+def _render(
+    text: str,
+    src_offset: int,
+    upper: int,
+    src_names: dict[str, str],
+    dst_chars: dict[str, str],
+    to_script: Script,
+) -> str:
+    pieces = _source_pieces(text, src_offset)
+    lookup = "".join(char for char, _original in pieces)
+    parts: list[str] = []
+    for index, (char, original) in enumerate(pieces):
+        mapped = _transliterate_char(lookup, index, src_offset, upper, src_names, dst_chars, to_script)
+        parts.append(original if mapped == char else mapped)
+    return "".join(parts)
+
+
+def _source_pieces(text: str, start: int) -> list[tuple[str, str]]:
+    pattern = _source_run(start)
+    pieces: list[tuple[str, str]] = []
+    prev = 0
+    for match in pattern.finditer(text):
+        pieces.extend((ch, ch) for ch in text[prev : match.start()])
+        pieces.extend(_run_pieces(match.group(), start))
+        prev = match.end()
+    pieces.extend((ch, ch) for ch in text[prev:])
+    return pieces
+
+
+def _run_pieces(run: str, start: int) -> list[tuple[str, str]]:
+    exclusions = _exclusions(start)
+    composed = set(exclusions.values())
+    keys = sorted(exclusions, key=len, reverse=True)
+    pieces: list[tuple[str, str]] = []
+    plain: list[str] = []
+
+    def flush() -> None:
+        if plain:
+            normalized = unicodedata.normalize("NFC", "".join(plain))
+            pieces.extend((ch, ch) for ch in normalized)
+            plain.clear()
+
+    i = 0
+    while i < len(run):
+        if run[i] in composed:
+            flush()
+            pieces.append((run[i], run[i]))
+            i += 1
+            continue
+        matched = ""
+        for key in keys:
+            if run.startswith(key, i):
+                matched = key
+                break
+        if matched:
+            flush()
+            pieces.append((exclusions[matched], matched))
+            i += len(matched)
+            continue
+        plain.append(run[i])
+        i += 1
+    flush()
+    return pieces
+
+
+@cache
+def _source_run(start: int) -> re.Pattern[str]:
+    return re.compile(f"[{chr(start)}-{chr(start + _BLOCK_SIZE - 1)}]+")
+
+
+@cache
+def _exclusions(start: int) -> dict[str, str]:
+    out = {}
+    for ch, _ in _block_entries(start):
+        parts = unicodedata.normalize("NFD", ch)
+        if unicodedata.normalize("NFC", parts) != ch:
+            out[parts] = ch
+    return out
+
+
+@cache
+def _chars_by_name(script: Script) -> dict[str, str]:
+    table = {name: unicodedata.normalize("NFC", ch) for ch, name in _block_entries(_SCRIPT_OFFSETS[script])}
+    if script == "assamese":
+        table.update(_ASSAMESE_TARGET)
+    elif script == "bengali":
+        table.update(_BENGALI_TARGET)
+        for name in _ASSAMESE_ONLY:
+            del table[name]
+    return table
+
+
+def _map_char(ch: str, src_names: dict[str, str], dst_chars: dict[str, str]) -> str:
+    name = src_names[ch]
+    if name in dst_chars:
+        return dst_chars[name]
+    fallback = _NAME_FALLBACKS.get(name)
+    if fallback in dst_chars:
+        return dst_chars[fallback]
+    base_name = _DEAD_CONSONANTS.get(name)
+    if base_name is None and name.startswith("LETTER CHILLU "):
+        base_name = "LETTER " + name[len("LETTER CHILLU ") :] + "A"
+        if base_name == "LETTER RRA":
+            base_name = "LETTER RA"
+    if base_name is not None:
+        base = dst_chars.get(base_name)
+        virama = dst_chars.get("SIGN VIRAMA")
+        if base and virama:
+            return base + virama
+    parts = unicodedata.normalize("NFD", ch)
+    if len(parts) > 1 and all(p in src_names for p in parts):
+        mapped = [_map_char(p, src_names, dst_chars) for p in parts]
+        if all(m != p for m, p in zip(mapped, parts)):
+            return _drop_repeated_mark(mapped)
+    return ch
+
+
+def _drop_repeated_mark(mapped: list[str]) -> str:
+    out = mapped[0]
+    for piece in mapped[1:]:
+        if len(piece) == 1 and unicodedata.combining(piece) and out.endswith(piece):
+            continue
+        out += piece
+    return out
