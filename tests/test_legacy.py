@@ -38,6 +38,8 @@ def test_ortt_converts_the_same_word() -> None:
         ("AkrutiOriSarala", "ùKþKþK", "କ୍କ୍କେ"),
         ("AkrutiOriSarala", "ùWÿ", NUKTA_E),
         ("AkrutiOriSarala", "Kõû", "କାଂ"),
+        ("AkrutiOriSarala", "ùKõø", "କୌଂ"),
+        ("AkrutiOriSarala", "ùKñø", "କୌଁ"),
         ("ORTTSarala", "ÒL", "କେ"),
         ("ORTTSarala", "ÒLÐ", "କୋ"),
         ("ORTTSarala", "ÒL×", "କୌ"),
@@ -50,6 +52,9 @@ def test_ortt_converts_the_same_word() -> None:
         ("ORTTSarala", "ÒXÏ", NUKTA_E),
         ("ORTTSarala", "LÕÐ", "କାଂ"),
         ("ORTTSarala", "LÐÔ", "କ୍ୟା"),
+        ("ORTTSarala", "ÒLÕß", "କୈଂ"),
+        ("ORTTSarala", "LÔà", "ର୍କ୍ୟ"),
+        ("ORTTSarala", "LÐÔà", "ର୍କ୍ୟା"),
         ("ORTTSarala", "12", "୧୨"),
     ],
 )

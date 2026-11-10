@@ -36,6 +36,7 @@ class _Font:
     signatures: tuple[str, ...]
     matra: _Matra | None
     reph: str | None
+    before_reph: tuple[_Rule, ...]
     post: tuple[_Rule, ...]
     alphabet: frozenset[str]
     unique: frozenset[str]
@@ -89,6 +90,8 @@ def _matra(value: object) -> _Matra | None:
 
 
 def _rules(value: object) -> tuple[_Rule, ...]:
+    if value is None:
+        return ()
     if not isinstance(value, list):
         raise TypeError("font post rules must be a list")
     rules: list[_Rule] = []
@@ -123,7 +126,9 @@ def _alphabet(pairs: tuple[tuple[str, str], ...], matra: _Matra | None, reph: st
     return frozenset(chars)
 
 
-def _read_font(name: str) -> tuple[tuple[tuple[str, str], ...], tuple[str, ...], _Matra | None, str | None, tuple[_Rule, ...]]:
+def _read_font(
+    name: str,
+) -> tuple[tuple[tuple[str, str], ...], tuple[str, ...], _Matra | None, str | None, tuple[_Rule, ...], tuple[_Rule, ...]]:
     data = json.loads((_FONTS_DIR / f"{name}.json").read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise TypeError(f"{name} font must be an object")
@@ -132,16 +137,17 @@ def _read_font(name: str) -> tuple[tuple[tuple[str, str], ...], tuple[str, ...],
         _strings(data.get("signatures")),
         _matra(data.get("matra")),
         _reph(data.get("reph")),
+        _rules(data.get("before_reph")),
         _rules(data.get("post")),
     )
 
 
 def _load() -> tuple[_Font, ...]:
     loaded = [_read_font(name) for name in SUPPORTED_FONTS]
-    alphabets = [_alphabet(pairs, matra, reph) for pairs, _sigs, matra, reph, _post in loaded]
+    alphabets = [_alphabet(pairs, matra, reph) for pairs, _sigs, matra, reph, _before, _post in loaded]
     fonts: list[_Font] = []
     for index, name in enumerate(SUPPORTED_FONTS):
-        pairs, signatures, matra, reph, post = loaded[index]
+        pairs, signatures, matra, reph, before_reph, post = loaded[index]
         others: set[str] = set()
         for other, alphabet in enumerate(alphabets):
             if other != index:
@@ -153,6 +159,7 @@ def _load() -> tuple[_Font, ...]:
                 signatures=signatures,
                 matra=matra,
                 reph=reph,
+                before_reph=before_reph,
                 post=post,
                 alphabet=alphabets[index],
                 unique=alphabets[index] - others,
@@ -212,6 +219,17 @@ def _shift_halant(text: str, marker: str) -> str:
     return "".join(out)
 
 
+def _form_at(text: str, index: int, matra: _Matra) -> tuple[str, int] | None:
+    end = index
+    limit = len(text)
+    while end < limit and text[end] in _ANUSVARA:
+        end += 1
+    for suffix, sign in matra.forms:
+        if text.startswith(suffix, end):
+            return sign + text[index:end], end + len(suffix)
+    return None
+
+
 def _apply_matra(text: str, matra: _Matra) -> str:
     text = _shift_consonant(text, matra.marker)
     while True:
@@ -219,9 +237,22 @@ def _apply_matra(text: str, matra: _Matra) -> str:
         if shifted == text:
             break
         text = shifted
-    for suffix, sign in matra.forms:
-        text = text.replace(matra.marker + suffix, sign)
-    return text.replace(matra.marker, matra.default)
+    out: list[str] = []
+    index = 0
+    limit = len(text)
+    while index < limit:
+        if text[index] == matra.marker:
+            formed = _form_at(text, index + 1, matra)
+            if formed is not None:
+                sign, index = formed
+                out.append(sign)
+                continue
+            out.append(matra.default)
+            index += 1
+            continue
+        out.append(text[index])
+        index += 1
+    return "".join(out)
 
 
 def _shift_reph_signs(text: str, marker: str) -> str:
@@ -314,6 +345,7 @@ def _convert(text: str, font: _Font) -> str:
     text = _replace(text, font.pairs)
     if font.matra is not None:
         text = _apply_matra(text, font.matra)
+    text = _apply_post(text, font.before_reph)
     if font.reph is not None:
         text = _apply_reph(text, font.reph)
     text = _apply_anusvara(text)
