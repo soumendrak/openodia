@@ -76,6 +76,7 @@ The tools are available in Odia language.
 - [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
 - [x] [Sentence segmenter](#sentence-segmenter)
+- [x] [Odia spell checker](#odia-spell-checker)
 - [x] [PII detection and masking](#pii-detection-and-masking)
 
 
@@ -410,6 +411,24 @@ sentences("Hello. World!", keep_terminators=False)
     `ud.sentence_tokenizer` splits on `।`, `॥`, `?` and `!` only.
     `openodia.sentences()` also splits on `.` and `…` and knows Odia
     abbreviations. `summarize` and `tokenize --sentences` use the former.
+
+### :material-spellcheck: Odia spell checker
+
+- `openodia.spell` checks a word, suggests dictionary corrections, and rewrites text. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia spell` exits 2 on 0.1.14 and `import openodia.spell` fails there.
+- A suggestion is a dictionary word within akshara edit distance 2, closest first, then the word that appears more often in the offline dictionary. `correct_text` keeps whitespace, punctuation, digits and non-Odia text, and leaves a word unchanged when nothing is within distance 2.
+
+```python
+from openodia import spell
+
+spell.is_correct("ନମସ୍କାର")
+spell.suggest("ନମସ୍କର", top_k=5)
+spell.correct_text("ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତ")
+```
+
+```sh
+openodia spell "ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତ"
+openodia spell --suggest --top 1 "ନମସ୍କର"
+```
 
 ### :material-shield-account: PII detection and masking
 

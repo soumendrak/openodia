@@ -1,0 +1,3 @@
+# Spell checking
+
+::: openodia.spell

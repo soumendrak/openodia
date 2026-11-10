@@ -62,6 +62,7 @@ $ openodia detect-language "ନମସ୍କାର" --json
 | `remove-stopwords` | `ud.remove_stopwords` | `--get-str` |
 | `ngrams` | `ngrams` | `-n` |
 | `freq` | `FreqDist` | `--top` |
+| `spell` | `spell.is_correct`, `spell.suggest`, `spell.correct_text` | `--check`, `--suggest`, `--top` |
 
 ```console
 $ openodia clean "ଆଜି 2026" --latin-to-odia
@@ -73,6 +74,8 @@ $ openodia ngrams "ରାମ ସୀତା ଲକ୍ଷ୍ମଣ" -n 2
 ସୀତା ଲକ୍ଷ୍ମଣ
 $ openodia freq "ରାମ ସୀତା ରାମ" --top 1
 2	ରାମ
+$ openodia spell "ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତ"
+ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତି
 $ openodia translate "good morning"
 ଶୁଭ ସକାଳ
 ```
