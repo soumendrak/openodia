@@ -9,6 +9,18 @@
          <lastmod>2026-11-10</lastmod>
     </url>
     <url>
+         <loc>https://openodia.soumendrak.com/changelog/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/contributing/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/getting-started/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
          <loc>https://openodia.soumendrak.com/api/alphabet/</loc>
          <lastmod>2026-11-10</lastmod>
     </url>
@@ -17,11 +29,19 @@
          <lastmod>2026-11-10</lastmod>
     </url>
     <url>
+         <loc>https://openodia.soumendrak.com/api/indic/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
          <loc>https://openodia.soumendrak.com/api/names/</loc>
          <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://openodia.soumendrak.com/api/numbers/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/api/pii/</loc>
          <lastmod>2026-11-10</lastmod>
     </url>
     <url>
@@ -69,6 +89,10 @@
          <lastmod>2026-11-10</lastmod>
     </url>
     <url>
+         <loc>https://openodia.soumendrak.com/guides/pii/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
          <loc>https://openodia.soumendrak.com/guides/script-and-names/</loc>
          <lastmod>2026-11-10</lastmod>
     </url>
@@ -78,6 +102,10 @@
     </url>
     <url>
          <loc>https://openodia.soumendrak.com/guides/translation/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
+         <loc>https://openodia.soumendrak.com/guides/transliteration/</loc>
          <lastmod>2026-11-10</lastmod>
     </url>
 </urlset>
