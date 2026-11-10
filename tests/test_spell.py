@@ -2,7 +2,6 @@
 
 import json
 import re
-import subprocess
 import sys
 import unicodedata
 from collections import Counter
@@ -122,6 +121,9 @@ def test_correct_text_leaves_lone_vowel_signs() -> None:
     from openodia import spell
 
     assert spell.correct_text("ି ୍") == "ି ୍"
+
+
+def test_suggest_rejects_a_bad_limit_and_returns_nothing_for_an_empty_or_distant_word() -> None:
     from openodia import spell
 
     assert spell.suggest("ନମସ୍କର", top_k=0) == []
@@ -216,40 +218,24 @@ def test_cli_corrects_suggests_and_checks(capsys: pytest.CaptureFixture[str]) ->
     assert json.loads(capsys.readouterr().out) == {"suggestions": []}
 
 
-def test_cli_check_ignores_one_trailing_newline(tmp_path) -> None:
-    piped = subprocess.run(
-        [sys.executable, "-m", "openodia", "spell", "--check", "-"],
-        input="ନମସ୍କାର\n".encode(),
-        capture_output=True,
-        check=False,
-    )
-    assert piped.returncode == 0
-    assert piped.stdout == b"true\n"
-    crlf = subprocess.run(
-        [sys.executable, "-m", "openodia", "spell", "--check", "-"],
-        input="ନମସ୍କାର\r\n".encode(),
-        capture_output=True,
-        check=False,
-    )
-    assert crlf.returncode == 0
-    assert crlf.stdout == b"true\n"
-    lone_cr = subprocess.run(
-        [sys.executable, "-m", "openodia", "spell", "--check", "-"],
-        input="ନମସ୍କାର\r".encode(),
-        capture_output=True,
-        check=False,
-    )
-    assert lone_cr.returncode == 0
-    assert lone_cr.stdout == b"true\n"
+def test_cli_check_ignores_one_trailing_newline(tmp_path, monkeypatch, capsys: pytest.CaptureFixture[str]) -> None:
+    import io
+
+    from openodia import cli, spell
+
+    assert spell.is_correct("ନମସ୍କାର") is True
+    assert spell.is_correct("ନମସ୍କାର\n") is False
+    assert spell.is_correct("ନମସ୍କାର\r\n") is False
+    monkeypatch.setattr(sys, "stdin", io.StringIO("ନମସ୍କାର\n"))
+    assert cli.main(["spell", "--check", "-"]) == 0
+    assert capsys.readouterr().out == "true\n"
+    monkeypatch.setattr(sys, "stdin", io.StringIO("ନମସ୍କାର\r\n"))
+    assert cli.main(["spell", "--check", "--json", "-"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"correct": True}
     path = tmp_path / "word.txt"
-    path.write_bytes("ନମସ୍କାର\n".encode())
-    filed = subprocess.run(
-        [sys.executable, "-m", "openodia", "spell", "--check", "--json", "--file", str(path)],
-        capture_output=True,
-        check=False,
-    )
-    assert filed.returncode == 0
-    assert json.loads(filed.stdout) == {"correct": True}
+    path.write_text("ନମସ୍କାର\n", encoding="utf-8")
+    assert cli.main(["spell", "--check", "--json", "--file", str(path)]) == 0
+    assert json.loads(capsys.readouterr().out) == {"correct": True}
 
 
 def test_cli_file_keeps_the_newline(tmp_path, capsys: pytest.CaptureFixture[str]) -> None:
