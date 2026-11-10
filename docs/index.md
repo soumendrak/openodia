@@ -70,6 +70,7 @@ The tools are available in Odia language.
 - [x] [Unicode normalization & clean](#unicode-normalization)
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
+- [x] [Sandhi and compounds](#sandhi-and-compounds)
 - [x] [Indic-to-Indic transliteration](#indic-transliteration)
 - [x] [Romanisation](#romanisation)
 - [x] [Command-line interface](#command-line-interface)
@@ -165,6 +166,21 @@ syllable.hyphenate("ନମସ୍କାର ଓଡ଼ିଆ", separator="·")
 ??? note "Round-trip property"
     `"".join(syllable.split(word)) == word` for any input — the splitter
     is a strict tokeniser, never modifying or normalising characters.
+
+### :material-call-split: Sandhi and compounds
+
+- Splits a compound into the words sandhi joined, and joins those parts back.
+- A known lemma, or a word that does not split into two known words, is returned unchanged.
+
+```python
+from openodia import sandhi
+
+sandhi.split("ବିଦ୍ୟାଳୟ")        # ["ବିଦ୍ୟା", "ଆଳୟ"]
+sandhi.split("ସୂର୍ଯ୍ୟୋଦୟ")      # ["ସୂର୍ଯ୍ୟ", "ଉଦୟ"]
+sandhi.split("ରାଜ୍ୟପାଳ")        # ["ରାଜ୍ୟ", "ପାଳ"]
+sandhi.split("ରାମ")             # ["ରାମ"]
+sandhi.join(["ବିଦ୍ୟା", "ଆଳୟ"])   # "ବିଦ୍ୟାଳୟ"
+```
 
 ### :material-translate-variant: Indic transliteration
 

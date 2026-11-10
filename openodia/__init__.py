@@ -19,6 +19,7 @@ from . import indic
 from . import roman
 from . import numbers
 from . import syllable
+from . import sandhi
 from .segment import sentences
 from .stats import FreqDist, collocations, cooccurrence, ngrams
 from .stopwords import Stopwords
@@ -41,6 +42,7 @@ __all__ = [
     "other_lang_to_odia",
     "other_lang_to_odia_async",
     "roman",
+    "sandhi",
     "sentences",
     "STOPWORDS",
     "Stopwords",
