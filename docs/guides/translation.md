@@ -32,6 +32,10 @@ When the source is `"en"`, `other_lang_to_odia` looks the text up in an English 
 'ଶୁଭ ସକାଳ'
 >>> other_lang_to_odia("Good Morning")
 'ଶୁଭ ସକାଳ'
+>>> other_lang_to_odia("good morning ")
+'ଶୁଭ ସକାଳ'
+>>> other_lang_to_odia("  Good Morning")
+'ଶୁଭ ସକାଳ'
 >>> from openodia.corpus.dictionary import get_dictionary
 >>> dictionary = get_dictionary()
 >>> len(dictionary) > 100_000
@@ -43,7 +47,7 @@ True
 The dictionary is loaded once per process, so the first call pays for reading the JSON file and later calls reuse it.
 
 !!! note "Gotchas"
-    - The key is lowercased but not stripped. `"good morning "` with a trailing space misses the dictionary and goes to Google.
+    - The lookup lowercases the text, then tries again with surrounding whitespace removed. `"good morning "` and `"  Good Morning"` both hit the dictionary.
     - A non-English source never uses the dictionary, even for a word that is in it.
     - `odia_to_other_lang` and `universal_translation` always go to Google, never to the dictionary.
 
@@ -108,6 +112,33 @@ cache.configure(max_size=50_000, disk_path="~/.cache/openodia/translate")
 ```
 
 Reads check memory first, then disk. You can also set the defaults before the process starts with the environment variables `OPENODIA_CACHE_MAX_SIZE` and `OPENODIA_CACHE_DISK`. An invalid size raises `ValueError` the first time the cache is used.
+
+## Async and batch
+
+`odia_to_other_lang_async`, `other_lang_to_odia_async`, and `universal_translation_async` call the same functions on a worker thread and share this cache. `translate_batch` translates a list of strings and keeps the input order. Repeated strings in one call are translated once.
+
+Async translation needs a release newer than 0.1.14. `from openodia import translate_batch` fails on PyPI 0.1.14.
+
+```pycon
+>>> import asyncio
+>>> from openodia import odia_to_other_lang_async, translate_batch
+>>> cache.clear()
+>>> cache.get_cache().set(("ନମସ୍କାର", "or", "en"), "Hello")
+>>> asyncio.run(odia_to_other_lang_async("ନମସ୍କାର"))
+'Hello'
+>>> asyncio.run(translate_batch(["ନମସ୍କାର", "ନମସ୍କାର"], to="en"))
+['Hello', 'Hello']
+>>> asyncio.run(translate_batch("ନମସ୍କାର"))
+Traceback (most recent call last):
+  ...
+TypeError: texts must be a list of strings, not a single str or bytes; wrap it in a list
+```
+
+`concurrency` defaults to 8 and must be an integer of at least 1. `retries` defaults to 0. A retry waits `backoff * 2**attempt` seconds, and `backoff` defaults to 0.5. `backoff` must be a finite number of at least 0. A bad value raises `ValueError`.
+
+Only an HTTP 429 rate limit, an HTTP 5xx status, and a connection or timeout error are retried. The first other failure is raised, and texts that have not started are skipped. With `return_exceptions=True`, that failure is an entry in the result list instead.
+
+`source` defaults to `"or"` and `to` defaults to `"en"`. English to Odia still checks the offline dictionary first.
 
 ## Next
 
