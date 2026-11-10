@@ -4,6 +4,7 @@ import json
 import subprocess
 import sys
 import unicodedata
+from pathlib import Path
 from typing import Literal
 
 import pytest
@@ -361,12 +362,37 @@ def test_suffix_inventory_is_documented() -> None:
         assert item.kind in {"nominal", "verbal"}
 
 
-def test_import_openodia_does_not_load_morph_or_heavy_deps() -> None:
+def test_root_exports_morph_beside_phonetic() -> None:
     script = (
         "import json, sys\n"
         "import openodia\n"
-        "heavy = ('faker', 'deep_translator', 'requests', 'bs4', 'openodia.morph')\n"
-        "print(json.dumps(sorted(name for name in heavy if name in sys.modules)))\n"
+        "loaded = 'openodia.morph' in sys.modules\n"
+        "from openodia import morph\n"
+        "heavy = ('faker', 'deep_translator', 'requests', 'bs4')\n"
+        "print(json.dumps({\n"
+        "    'version': openodia.__version__,\n"
+        "    'all': openodia.__all__,\n"
+        "    'loaded': loaded,\n"
+        "    'same': openodia.morph is morph,\n"
+        "    'stem': morph.stem('ଘରଗୁଡ଼ିକର'),\n"
+        "    'heavy': sorted(name for name in heavy if name in sys.modules),\n"
+        "}, ensure_ascii=False))\n"
     )
     result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True)
-    assert json.loads(result.stdout.splitlines()[-1]) == []
+    payload = json.loads(result.stdout.splitlines()[-1])
+    assert payload["version"] == "0.1.14"
+    assert "phonetic" in payload["all"]
+    assert "morph" in payload["all"]
+    assert payload["loaded"] is True
+    assert payload["same"] is True
+    assert payload["stem"] == "ଘର"
+    assert payload["heavy"] == []
+
+
+def test_agent_docs_name_stem_and_lemma() -> None:
+    root = Path(__file__).resolve().parent.parent
+    for relative in ("AGENTS.md", "docs/llms.txt", "skills/openodia/SKILL.md"):
+        text = (root / relative).read_text(encoding="utf-8")
+        assert "morph" in text
+        assert "stem" in text
+        assert "lemma" in text
