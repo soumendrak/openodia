@@ -32,10 +32,6 @@ When the source is `"en"`, `other_lang_to_odia` looks the text up in an English 
 'ଶୁଭ ସକାଳ'
 >>> other_lang_to_odia("Good Morning")
 'ଶୁଭ ସକାଳ'
->>> other_lang_to_odia("good morning ")
-'ଶୁଭ ସକାଳ'
->>> other_lang_to_odia("  Good Morning")
-'ଶୁଭ ସକାଳ'
 >>> from openodia.corpus.dictionary import get_dictionary
 >>> dictionary = get_dictionary()
 >>> len(dictionary) > 100_000
@@ -46,8 +42,17 @@ True
 
 The dictionary is loaded once per process, so the first call pays for reading the JSON file and later calls reuse it.
 
+!!! warning "A padded phrase needs a release newer than 0.1.14"
+    The lookup lowercases the text. PyPI 0.1.14 stops there, so `"good morning "` misses the dictionary and the call goes to Google Translate. A newer release also tries the text with surrounding whitespace removed. The two calls below are that newer behavior, and they hit the dictionary.
+
+```pycon
+>>> other_lang_to_odia("good morning ")
+'ଶୁଭ ସକାଳ'
+>>> other_lang_to_odia("  Good Morning")
+'ଶୁଭ ସକାଳ'
+```
+
 !!! note "Gotchas"
-    - The lookup lowercases the text, then tries again with surrounding whitespace removed. `"good morning "` and `"  Good Morning"` both hit the dictionary.
     - A non-English source never uses the dictionary, even for a word that is in it.
     - `odia_to_other_lang` and `universal_translation` always go to Google, never to the dictionary.
 

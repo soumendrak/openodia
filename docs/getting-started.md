@@ -21,12 +21,20 @@ uv run python
 
 ## Tokenize a sentence
 
-`ud.word_tokenizer` splits on whitespace and ASCII punctuation. The Odia full stop `।` stays as its own token.
+`ud.word_tokenizer` splits on whitespace, on ASCII punctuation, and on `୲` and `—`. The Odia full stop `।` is not a separator. A space before `।` makes it its own token. With no space, `।` stays on the word.
 
 ```pycon
 >>> from openodia import ud
 >>> ud.word_tokenizer("ରାମ ସୀତା ଘରକୁ ଯାଏ ।")
 ['ରାମ', 'ସୀତା', 'ଘରକୁ', 'ଯାଏ', '।']
+>>> ud.word_tokenizer("ରାମ ସୀତା ଘରକୁ ଯାଏ।")
+['ରାମ', 'ସୀତା', 'ଘରକୁ', 'ଯାଏ।']
+>>> ud.word_tokenizer("ରାମ।ସୀତା")
+['ରାମ।ସୀତା']
+>>> ud.word_tokenizer("a୲b")
+['a', 'b']
+>>> ud.word_tokenizer("a—b")
+['a', 'b']
 ```
 
 ## Normalize text

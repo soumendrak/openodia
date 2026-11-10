@@ -13,6 +13,13 @@ GUIDES = sorted((DOCS / "guides").glob("*.md"))
 PYCON_GUIDES = [guide for guide in GUIDES if FENCE.search(guide.read_text(encoding="utf-8"))]
 PAGES = sorted(path for path in DOCS.rglob("*.md"))
 PYCON_PAGES = [page for page in PAGES if FENCE.search(page.read_text(encoding="utf-8"))]
+REQUIRED_PYCON_PAGES = frozenset(
+    {
+        "getting-started.md",
+        "guides/pii.md",
+        "guides/transliteration.md",
+    }
+)
 MD_REFERENCE = re.compile(r"[\w/.-]+\.md")
 
 
@@ -23,6 +30,11 @@ def nav_pages() -> set[str]:
 
 def test_guides_exist() -> None:
     assert len(PYCON_GUIDES) >= 5
+
+
+def test_required_pages_keep_pycon_fences() -> None:
+    present = {page.relative_to(DOCS).as_posix() for page in PYCON_PAGES}
+    assert REQUIRED_PYCON_PAGES <= present
 
 
 @pytest.mark.parametrize("guide", PYCON_PAGES, ids=lambda path: path.relative_to(DOCS).as_posix())
