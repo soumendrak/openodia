@@ -195,6 +195,9 @@ _TAILS: tuple[_Row, ...] = (
     _nonfinite("ଇବା", "ିବା", "infinitive"),
     _nonfinite("ଇବା", "ଇବା", "infinitive"),
     _nonfinite("ଇବା", "ବା", "infinitive", "verb"),
+    _finite("ଇବ", "ବ", "future", "simple", 3, "singular", "verb"),
+    _finite("ଇବି", "ବି", "future", "simple", 1, "singular", "verb"),
+    _finite("ଇବେ", "ବେ", "future", "simple", 3, "plural", "verb"),
     _nonfinite("ଇ", "ି", "conjunctive", "verb"),
     _nonfinite("ଇ", "ଇ", "conjunctive", "verb"),
 )
@@ -354,20 +357,30 @@ def _prepare(word: str) -> str:
     return _nfc(word)
 
 
+def _irregular(surface: str) -> tuple[str, Lemma] | None:
+    found = _IRREGULAR.get(surface)
+    if found is None:
+        return None
+    root, features = found
+    return root, Lemma(_infinitive(root), "VERB", features)
+
+
 def _analyze(word: str) -> tuple[str, Lemma]:
     text = _prepare(word)
     if text == "":
         return "", Lemma("", "UNKNOWN", UnknownFeatures())
-    irregular = _IRREGULAR.get(text)
+    irregular = _irregular(text)
     if irregular is not None:
-        root, features = irregular
-        return root, Lemma(_infinitive(root), "VERB", features)
+        return irregular
     if text in _VERBS:
         return text, Lemma(_infinitive(text), "VERB", NonfiniteVerb("infinitive"))
     if _known_nominal(text):
         return text, Lemma(text, "NOUN", NounFeatures("singular", "nominative", False))
     nominal = _peel_nominal(text)
     current = text if nominal is None else nominal[0]
+    peeled = _irregular(current)
+    if peeled is not None:
+        return peeled
     verbal_tails = tuple(tail for tail in _TAILS if isinstance(tail, _Verbal))
     verbal = _best(current, verbal_tails)
     if verbal is not None:

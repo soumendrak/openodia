@@ -124,6 +124,9 @@ _AA_ENDINGS: tuple[tuple[str, FiniteVerb | NonfiniteVerb], ...] = (
 )
 _E_ENDINGS: tuple[tuple[str, FiniteVerb | NonfiniteVerb], ...] = (
     ("ବା", NonfiniteVerb("infinitive")),
+    ("ବ", FiniteVerb("future", "simple", 3, "singular")),
+    ("ବି", FiniteVerb("future", "simple", 1, "singular")),
+    ("ବେ", FiniteVerb("future", "simple", 3, "plural")),
     ("ଉଛି", FiniteVerb("present", "progressive", 3, "singular")),
     ("ଉଥିଲେ", FiniteVerb("past", "progressive", 3, "plural")),
     ("ଉଥିଲା", FiniteVerb("past", "progressive", 3, "singular")),
@@ -302,6 +305,16 @@ def test_orthographic_traps() -> None:
     assert stem("ଖାଇବା") == "ଖା"
     assert stem("ଦେବା") == "ଦେ"
     assert lemma("ଦେଇ") == Lemma("ଦେବା", "VERB", NonfiniteVerb("conjunctive"))
+
+
+def test_case_on_an_irregular_infinitive_stays_a_verb() -> None:
+    assert stem("ଯିବାକୁ") == "ଯା"
+    assert stem(stem("ଯିବାକୁ")) == stem("ଯିବାକୁ")
+    assert lemma("ଯିବାକୁ") == Lemma("ଯିବା", "VERB", NonfiniteVerb("infinitive"))
+    assert stem("ଥିବାକୁ") == "ଥା"
+    assert stem(stem("ଥିବାକୁ")) == "ଥା"
+    assert lemma("ଥିବାକୁ") == Lemma("ଥିବା", "VERB", NonfiniteVerb("infinitive"))
+    assert lemma("ଦେବାକୁ") == Lemma("ଦେବା", "VERB", NonfiniteVerb("infinitive"))
 
 
 def test_verbal_tail_does_not_eat_a_listed_noun() -> None:
