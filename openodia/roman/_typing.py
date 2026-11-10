@@ -60,11 +60,9 @@ def _flap_spellings(word: str) -> tuple[str, ...]:
 
 def _keys(word: str) -> tuple[str, ...]:
     found: list[str] = []
-    seen: set[str] = set()
     for spelling in _flap_spellings(word):
         key = _fold(to_roman(spelling, "Hunterian"))
-        if key not in seen and _LATIN_KEY.fullmatch(key):
-            seen.add(key)
+        if _LATIN_KEY.fullmatch(key):
             found.append(key)
     return tuple(found)
 
@@ -125,16 +123,7 @@ def _extend(
 ) -> list[tuple[int, tuple[str, ...]]]:
     scored = [(score + count, words + (word,)) for score, words in beam for word, count in options]
     scored.sort(key=lambda item: (-item[0], item[1]))
-    kept: list[tuple[int, tuple[str, ...]]] = []
-    seen: set[tuple[str, ...]] = set()
-    for item in scored:
-        if item[1] in seen:
-            continue
-        seen.add(item[1])
-        kept.append(item)
-        if len(kept) == _LIMIT:
-            break
-    return kept
+    return scored[:_LIMIT]
 
 
 def _render(pieces: tuple[tuple[bool, str], ...], words: tuple[str, ...]) -> str:
@@ -152,14 +141,7 @@ def _ranked(text: str) -> list[str]:
     beam: list[tuple[int, tuple[str, ...]]] = [(0, ())]
     for opts in options:
         beam = _extend(beam, opts)
-    rows: list[str] = []
-    seen: set[str] = set()
-    for _score, words in beam:
-        row = _render(pieces, words)
-        if row not in seen:
-            seen.add(row)
-            rows.append(row)
-    return rows
+    return [_render(pieces, words) for _score, words in beam]
 
 
 @overload

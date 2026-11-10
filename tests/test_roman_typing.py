@@ -80,6 +80,19 @@ def test_type_errors() -> None:
         roman.type_odia("ki", candidates=1)
 
 
+def test_candidate_list_stops_at_eight() -> None:
+    alternatives = roman.type_odia("bada kala", candidates=True)
+    assert len(alternatives) == 8
+    assert len(set(alternatives)) == 8
+    assert alternatives[0] == roman.type_odia("bada kala")
+
+
+def test_avagraha_spelling_is_not_a_typing_key() -> None:
+    from openodia.roman._typing import _keys
+
+    assert _keys("କଽ") == ()
+
+
 def test_exported_from_roman() -> None:
     assert "type_odia" in roman.__all__
 
