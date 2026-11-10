@@ -57,7 +57,7 @@ uv sync  # or: pip install -e .
 
 ## Features
 
-The tools are available in Odia language.
+The tools are available in Odia language. [Getting started](getting-started.md) is the short path. The [guides](guides/text-processing.md) are one task each, and the [API reference](api/text.md) is generated from the docstrings.
 
 - [x] [Odia Alphabets](#odia-alphabets)
 - [x] [Generate random Odia names](#odia-names)

@@ -6,6 +6,7 @@ Version note: `--json` on every CLI subcommand (one machine-readable JSON docume
 
 ## Docs
 
+- [Getting started](https://openodia.soumendrak.com/getting-started/): install, tokenize, and normalize
 - [Documentation](https://openodia.soumendrak.com/): install, library API and command-line interface
 - [Applications](https://openodia.soumendrak.com/application/): worked examples such as name generation and data masking
 - [Text processing guide](https://openodia.soumendrak.com/guides/text-processing/): tokenize, sentences, stopwords, normalize, clean, detect language
@@ -14,8 +15,14 @@ Version note: `--json` on every CLI subcommand (one machine-readable JSON docume
 - [Analysis guide](https://openodia.soumendrak.com/guides/analysis/): n-grams, frequency, collocations, co-occurrence, summarization
 - [Translation guide](https://openodia.soumendrak.com/guides/translation/): offline dictionary, Google Translate, translation cache
 - [Command-line guide](https://openodia.soumendrak.com/guides/cli/): every subcommand with runnable examples
+- [Transliteration guide](https://openodia.soumendrak.com/guides/transliteration/): Indic scripts and romanisation
+- [PII guide](https://openodia.soumendrak.com/guides/pii/): find and mask phone numbers, emails, URLs, Aadhaar numbers, PAN and PIN codes
 - [API reference](https://openodia.soumendrak.com/api/text/): signatures and docstrings generated from the source
 - [Romanisation API](https://openodia.soumendrak.com/api/roman/): `to_roman` and `from_roman` for ISO 15919, Hunterian and ITRANS; `type_odia` types Roman input as Odia
+- [Indic API](https://openodia.soumendrak.com/api/indic/): `indic.transliterate` between Brahmic scripts
+- [PII API](https://openodia.soumendrak.com/api/pii/): `pii.detect` and `pii.mask`
+- [Contributing](https://openodia.soumendrak.com/contributing/): setup, checks, and change rules
+- [Changelog](https://openodia.soumendrak.com/changelog/): released and unreleased changes
 
 ## For agents
 
@@ -26,4 +33,4 @@ Version note: `--json` on every CLI subcommand (one machine-readable JSON docume
 
 - [PyPI](https://pypi.org/project/openodia/): releases and install
 - [Source code](https://github.com/soumendrak/openodia): issues and contributions
-- [Changelog](https://github.com/soumendrak/openodia/blob/main/CHANGELOG.md): what changed in each release
+- [Changelog file](https://github.com/soumendrak/openodia/blob/main/CHANGELOG.md): the same text as the changelog page, in the repository
