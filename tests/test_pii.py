@@ -126,7 +126,7 @@ def test_types_filter_and_validation() -> None:
     text = "a@b.com 9876543210"
     assert kinds(text, types=["EMAIL"]) == [("EMAIL", "a@b.com")]
     with pytest.raises(ValueError, match="unknown PII type"):
-        pii.detect(text, types=["NAME"])
+        pii.detect(text, types=["PASSPORT"])
 
 
 def test_detect_returns_entities_sorted_by_position() -> None:

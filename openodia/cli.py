@@ -443,7 +443,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     from openodia.pii import PII_TYPES
 
-    p = sub.add_parser("pii", help="Find or mask phone, email, URL, Aadhaar, PAN and PIN code")
+    p = sub.add_parser("pii", help="Find or mask phone, email, URL, Aadhaar, PAN, PIN, date, amount, name and address")
     p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
     p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
     p.add_argument("--mask", action="store_true", help="Print the text with each match replaced by <TYPE>")

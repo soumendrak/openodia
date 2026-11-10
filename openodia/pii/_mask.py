@@ -1,13 +1,13 @@
-"""Replace detected PII with placeholders."""
-
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Iterable
 
 from openodia.pii._detect import detect, validated_types
-from openodia.pii._entity import PIIEntity
+from openodia.pii._entity import PII_TYPES, PIIEntity
 
 _MAX_PASSES = 10
+_TOKEN = re.compile(rf"<({'|'.join(PII_TYPES)}):[1-9][0-9]*>")
 
 
 def _tag(entity: PIIEntity) -> str:
@@ -50,3 +50,54 @@ def mask(
             break
         text = masked
     return text
+
+
+class KeyStore:
+    def __init__(self) -> None:
+        self._token: dict[tuple[str, str], str] = {}
+        self._original: dict[str, str] = {}
+        self._counts: dict[str, int] = {}
+
+    def token_for(self, entity: PIIEntity) -> str:
+        key = (entity.type, entity.text)
+        token = self._token.get(key)
+        if token is not None:
+            return token
+        count = self._counts.get(entity.type, 0) + 1
+        self._counts[entity.type] = count
+        token = f"<{entity.type}:{count}>"
+        self._token[key] = token
+        self._original[token] = entity.text
+        return token
+
+    def original(self, token: str) -> str | None:
+        return self._original.get(token)
+
+
+def pseudonymize(
+    text: str,
+    store: KeyStore,
+    types: Iterable[str] | None = None,
+    min_confidence: float = 0.0,
+) -> str:
+    if not isinstance(store, KeyStore):
+        raise TypeError(f"store must be KeyStore, got {type(store).__name__}")
+    return mask(text, types, min_confidence, store.token_for)
+
+
+def restore(text: str, store: KeyStore) -> str:
+    if not isinstance(text, str):
+        raise TypeError(f"text must be str, got {type(text).__name__}")
+    if not isinstance(store, KeyStore):
+        raise TypeError(f"store must be KeyStore, got {type(store).__name__}")
+    pieces: list[str] = []
+    cursor = 0
+    for match in _TOKEN.finditer(text):
+        original = store.original(match.group(0))
+        if original is None:
+            continue
+        pieces.append(text[cursor : match.start()])
+        pieces.append(original)
+        cursor = match.end()
+    pieces.append(text[cursor:])
+    return "".join(pieces)

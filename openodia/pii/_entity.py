@@ -5,7 +5,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, get_args
 
-PIIType = Literal["PHONE", "EMAIL", "URL", "AADHAAR", "PAN", "PINCODE"]
+PIIType = Literal[
+    "PHONE",
+    "EMAIL",
+    "URL",
+    "AADHAAR",
+    "PAN",
+    "PINCODE",
+    "DATE",
+    "MONEY",
+    "NAME",
+    "ADDRESS",
+]
 PII_TYPES: tuple[PIIType, ...] = get_args(PIIType)
 
 

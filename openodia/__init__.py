@@ -18,6 +18,7 @@ from ._understandData import UnderstandData as ud
 from . import indic
 from . import roman
 from . import numbers
+from . import pii
 from . import syllable
 from .segment import sentences
 from .stats import FreqDist, collocations, cooccurrence, ngrams
@@ -37,6 +38,7 @@ __all__ = [
     "normalize",
     "numbers",
     "odia_to_other_lang",
+    "pii",
     "odia_to_other_lang_async",
     "other_lang_to_odia",
     "other_lang_to_odia_async",
