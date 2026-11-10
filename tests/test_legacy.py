@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from openodia import legacy
+from openodia.legacy import _convert
 
 FIXTURES = Path(__file__).parent / "fixtures" / "legacy_sentences.json"
 ODIA = "\u0b13\u0b21\u0b3c\u0b3f\u0b06"
@@ -111,6 +112,39 @@ def test_package_exports_the_module_once() -> None:
 
     assert openodia.legacy is legacy
     assert "legacy" in openodia.__all__
+
+
+def test_a_font_table_must_have_the_expected_shape(monkeypatch: pytest.MonkeyPatch) -> None:
+    with pytest.raises(TypeError):
+        _convert._pairs(None)
+    with pytest.raises(TypeError):
+        _convert._pairs([["only"]])
+    with pytest.raises(TypeError):
+        _convert._pairs([["", "x"]])
+    with pytest.raises(TypeError):
+        _convert._strings(None)
+    with pytest.raises(TypeError):
+        _convert._strings([""])
+    assert _convert._matra(None) is None
+    with pytest.raises(TypeError):
+        _convert._matra([])
+    with pytest.raises(TypeError):
+        _convert._matra({})
+    with pytest.raises(TypeError):
+        _convert._matra({"marker": "m", "default": "d", "forms": ["no"]})
+    with pytest.raises(TypeError):
+        _convert._matra({"marker": "m", "default": "d", "forms": [["", "x"]]})
+    with pytest.raises(TypeError):
+        _convert._rules("no")
+    with pytest.raises(TypeError):
+        _convert._rules([["a"]])
+    with pytest.raises(TypeError):
+        _convert._rules([["a", "b", "no"]])
+    with pytest.raises(TypeError):
+        _convert._reph("")
+    monkeypatch.setattr(_convert.json, "loads", lambda _text: [])
+    with pytest.raises(TypeError):
+        _convert._read_font("AkrutiOriSarala")
 
 
 def test_each_font_has_fifty_known_sentences() -> None:
