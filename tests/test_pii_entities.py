@@ -3,7 +3,7 @@ import time
 import pytest
 
 from openodia import numbers, pii
-from openodia.pii import KeyStore
+from openodia.pii import KeyStore, PIIEntity
 
 from .test_pii import CHECKSUM_FAILING, VALID_AADHAAR, kinds
 
@@ -80,6 +80,14 @@ def test_a_bare_number_or_inflected_tanka_is_not_money(text: str) -> None:
     assert kinds(text) == []
 
 
+@pytest.mark.parametrize(
+    "text",
+    ["1,5 ଟଙ୍କା", "1,2345 ଟଙ୍କା", "1234,50 ଟଙ୍କା", "500. ଟଙ୍କା", "500.123 ଟଙ୍କା", "₹", "ମୂଲ୍ୟ ଟଙ୍କା"],
+)
+def test_a_broken_amount_shape_is_not_money(text: str) -> None:
+    assert pii.detect(text, types=["MONEY"]) == []
+
+
 def test_an_overlong_ungrouped_amount_is_left_entirely_visible() -> None:
     text = "1234567890123 ଟଙ୍କା"
     assert pii.detect(text, types=["MONEY"]) == []
@@ -116,7 +124,7 @@ def test_an_honorific_plus_a_dictionary_name_is_a_name() -> None:
     assert pii.detect(text)[0].confidence == 0.8
 
 
-@pytest.mark.parametrize("text", ["ରାମ ସୀତା ଘରକୁ ଯାଏ ।", "ବୈଦ୍ୟନାଥ ଆସିଲେ", "ସିଂହଦେଓ ଆସିଲେ", "ଶ୍ରୀ ଆସିଲେ"])
+@pytest.mark.parametrize("text", ["ରାମ ସୀତା ଘରକୁ ଯାଏ ।", "ବୈଦ୍ୟନାଥ", "ବୈଦ୍ୟନାଥ ଆସିଲେ", "ସିଂହଦେଓ ଆସିଲେ", "ଶ୍ରୀ ଆସିଲେ"])
 def test_a_single_name_or_a_name_without_a_dictionary_partner_is_ignored(text: str) -> None:
     assert kinds(text) == []
 
@@ -208,6 +216,14 @@ def test_the_same_store_reuses_a_token_for_the_same_value() -> None:
     assert pii.pseudonymize("call 9876543210", store) == "call <PHONE:1>"
     assert pii.pseudonymize("again 9123456780", store) == "again <PHONE:2>"
     assert pii.pseudonymize("back 9876543210", store) == "back <PHONE:1>"
+
+
+def test_restore_follows_a_chain_as_long_as_the_pass_limit() -> None:
+    store = KeyStore()
+    store.token_for(PIIEntity("PHONE", "core", 0, 4, 0.9))
+    for number in range(1, 10):
+        store.token_for(PIIEntity("PHONE", f"<PHONE:{number}>", 0, 10, 0.9))
+    assert pii.restore("<PHONE:10>", store) == "core"
 
 
 def test_restore_leaves_a_token_the_store_does_not_know() -> None:

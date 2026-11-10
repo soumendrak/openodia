@@ -216,8 +216,6 @@ def _read_decimal(text: str, index: int) -> int | None:
 def _parse_amount(text: str, start: int) -> int | None:
     if start >= len(text) or text[start] not in _DIGITS:
         return None
-    if start > 0 and text[start - 1] in "0123456789,":
-        return None
     index, first, overflow = _read_digits(text, start, 12)
     if overflow or first == 0:
         return None
