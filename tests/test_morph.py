@@ -303,6 +303,11 @@ def test_orthographic_traps() -> None:
     assert lemma("ଦେଇ") == Lemma("ଦେବା", "VERB", NonfiniteVerb("conjunctive"))
 
 
+def test_verbal_tail_does_not_eat_a_listed_noun() -> None:
+    assert stem("ଘରୁଛି") == "ଘରୁଛି"
+    assert lemma("ଘରୁଛି") == Lemma("ଘରୁଛି", "UNKNOWN", UnknownFeatures())
+
+
 def test_empty_and_type() -> None:
     assert stem("") == ""
     assert lemma("") == Lemma("", "UNKNOWN", UnknownFeatures())
