@@ -14,17 +14,17 @@ from openodia._translate import odia_to_other_lang, other_lang_to_odia, universa
 
 
 async def odia_to_other_lang_async(text: str, dest_language_code: str = "en") -> str:
-    """Async :func:`openodia.odia_to_other_lang`; runs in a worker thread."""
+    """Async form of ``odia_to_other_lang``. Runs in a worker thread."""
     return await asyncio.to_thread(odia_to_other_lang, text, dest_language_code)
 
 
 async def other_lang_to_odia_async(text: str, source_language_code: str = "en") -> str:
-    """Async :func:`openodia.other_lang_to_odia`; runs in a worker thread."""
+    """Async form of ``other_lang_to_odia``. Runs in a worker thread."""
     return await asyncio.to_thread(other_lang_to_odia, text, source_language_code)
 
 
 async def universal_translation_async(text: str, source_language_code: str = "en", dest_language_code: str = "or") -> str:
-    """Async :func:`openodia.universal_translation`; runs in a worker thread."""
+    """Async form of ``universal_translation``. Runs in a worker thread."""
     return await asyncio.to_thread(universal_translation, text, source_language_code, dest_language_code)
 
 
@@ -122,9 +122,9 @@ async def translate_batch(
     ``texts`` can be any iterable of strings, including a generator; it is read once, up front.
 
     Each distinct text is translated once, through the same path and cache as the sync functions:
-    ``source="or"`` and ``to="or"`` behave like :func:`odia_to_other_lang` and
-    :func:`other_lang_to_odia` (so English to Odia uses the offline dictionary first); any other pair
-    behaves like :func:`universal_translation`.
+    ``source="or"`` and ``to="or"`` behave like ``odia_to_other_lang`` and
+    ``other_lang_to_odia``, so English to Odia uses the offline dictionary first. Any other pair
+    behaves like ``universal_translation``.
 
     At most ``concurrency`` requests run at once, on a thread pool private to this call.
     A request is retried up to ``retries`` times, sleeping ``backoff * 2**attempt`` seconds between
