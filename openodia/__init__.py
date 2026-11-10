@@ -18,6 +18,7 @@ from ._understandData import UnderstandData as ud
 from . import indic
 from . import roman
 from . import numbers
+from . import phonetic
 from . import syllable
 from . import sandhi
 from .segment import sentences
@@ -41,6 +42,7 @@ __all__ = [
     "odia_to_other_lang_async",
     "other_lang_to_odia",
     "other_lang_to_odia_async",
+    "phonetic",
     "roman",
     "sandhi",
     "sentences",

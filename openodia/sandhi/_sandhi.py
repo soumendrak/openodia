@@ -1,5 +1,3 @@
-"""A split is kept only when both parts are lemmas and joining them rebuilds the word."""
-
 from __future__ import annotations
 
 import unicodedata

@@ -1,5 +1,3 @@
-"""Sandhi and compound splitting."""
-
 import openodia
 from openodia import sandhi
 
