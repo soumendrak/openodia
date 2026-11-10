@@ -1220,3 +1220,7 @@ STOPWORDS: frozenset[str] = frozenset(
         "ଆଉ",
     }
 )
+"""Bundled Odia stopwords.
+
+``ud.remove_stopwords`` uses this ``frozenset`` when ``stop_words`` is omitted.
+"""
