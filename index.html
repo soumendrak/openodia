@@ -527,6 +527,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#indic-transliteration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Indic transliteration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#romanisation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1511,6 +1522,7 @@ uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># or: pi
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#unicode-normalization">Unicode normalization &amp; clean</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#corpus-statistics">Corpus statistics</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#syllabifier">Syllabifier (akshara)</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#indic-transliteration">Indic-to-Indic transliteration</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#romanisation">Romanisation</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#command-line-interface">Command-line interface</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#translation-cache">Translation cache configuration</a></li>
@@ -1602,6 +1614,31 @@ or sprinkle through a pipeline without compounding side-effects.</p>
 <summary>Round-trip property</summary>
 <p><code>"".join(syllable.split(word)) == word</code> for any input — the splitter
 is a strict tokeniser, never modifying or normalising characters.</p>
+</details>
+<h3 id="indic-transliteration"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11 1H3c-1.1 0-2 .9-2 2v12l3-3h5v-1c0-2.2 1.79-4 4-4V3c0-1.1-.9-2-2-2m0 3H9.5c-.34 1.19-.96 2.3-1.82 3.26l-.02.02 1.26 1.25-.37 1.01L7 8l-2.5 2.5-.69-.73 2.53-2.49A8.6 8.6 0 0 1 4.86 5h.99c.31.6.69 1.17 1.15 1.68A7.7 7.7 0 0 0 8.57 4H3V3h3.5V2h1v1H11zm10 5h-8c-1.1 0-2 .9-2 2v7c0 1.1.9 2 2 2h7l3 3V11c0-1.1-.9-2-2-2m-1.37 10-.85-2.25h-3.56L14.38 19h-1.5l3.37-9h1.5l3.38 9zM17 12l1.22 3.25h-2.43z"/></svg></span> Indic transliteration<a class="headerlink" href="#indic-transliteration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Script-only transliteration between Brahmic Indic scripts: <strong>Devanagari</strong>, <strong>Bengali / Assamese</strong>, <strong>Gurmukhi</strong>, <strong>Gujarati</strong>, <strong>Odia</strong>, <strong>Tamil</strong>, <strong>Telugu</strong>, <strong>Kannada</strong>, <strong>Malayalam</strong>.</li>
+<li>Deterministic, no external dependencies. Each character is mapped by its Unicode identity (e.g. <code>DEVANAGARI LETTER KA</code> → <code>ORIYA LETTER KA</code>), with short/long e/o aligned across north and south scripts. Chillus and khanda ta expand to consonant + virama. A composition-excluded nukta letter is consonant + nukta when the target has those parts, except Gurmukhi flap RRA and a target LLA, SHA, or YYA, which stay one letter. Characters with no counterpart are kept unchanged. Odia WA (<code>ୱ</code>) has no letter in the other scripts, so it stays and round-trips. Bengali has no VA and writes it as BA, so VA does not round-trip through Bengali.</li>
+<li>Useful for cross-script reading, ML corpus alignment, and name normalisation across regions.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">indic</span>
+
+<span class="n">indic</span><span class="o">.</span><span class="n">transliterate</span><span class="p">(</span><span class="s2">&quot;ଓଡ଼ିଆ&quot;</span><span class="p">,</span> <span class="n">from_script</span><span class="o">=</span><span class="s2">&quot;odia&quot;</span><span class="p">,</span> <span class="n">to_script</span><span class="o">=</span><span class="s2">&quot;devanagari&quot;</span><span class="p">)</span>
+<span class="c1"># &#39;ओड़िआ&#39;</span>
+
+<span class="n">indic</span><span class="o">.</span><span class="n">transliterate</span><span class="p">(</span><span class="s2">&quot;नमस्ते&quot;</span><span class="p">,</span> <span class="n">from_script</span><span class="o">=</span><span class="s2">&quot;devanagari&quot;</span><span class="p">,</span> <span class="n">to_script</span><span class="o">=</span><span class="s2">&quot;odia&quot;</span><span class="p">)</span>
+<span class="c1"># &#39;ନମସ୍ତେ&#39;</span>
+
+<span class="n">indic</span><span class="o">.</span><span class="n">SCRIPTS</span>  <span class="c1"># (&#39;devanagari&#39;, &#39;bengali&#39;, &#39;assamese&#39;, &#39;gurmukhi&#39;, &#39;gujarati&#39;, &#39;odia&#39;, &#39;tamil&#39;, &#39;telugu&#39;, &#39;kannada&#39;, &#39;malayalam&#39;)</span>
+</code></pre></div>
+<details class="note">
+<summary>Tamil caveat</summary>
+<p>Tamil's encoding has only one consonant per articulation group.
+Devanagari/Odia aspirated or voiced consonants have no Tamil letter, so
+they are kept in the source script rather than silently collapsed.
+Characters are mapped by Unicode identity, not by block offset: Malayalam
+chillus become consonant + virama, and shared marks such as the danda
+(<code>।</code>) are kept.</p>
 </details>
 <h3 id="romanisation"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 0-2 2v8h2v-4h2v4h2V9a2 2 0 0 0-2-2zm0 2h2v2H3m12-.5V9a2 2 0 0 0-2-2H9v10h4a2 2 0 0 0 2-2v-1.5a1.54 1.54 0 0 0-1.5-1.5 1.54 1.54 0 0 0 1.5-1.5M13 15h-2v-2h2zm0-4h-2V9h2m6-2a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-1h-2v1h-2V9h2v1h2V9a2 2 0 0 0-2-2Z"/></svg></span> Romanisation<a class="headerlink" href="#romanisation" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2251,7 +2288,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 9, 2026 21:53:31 UTC"><span class="timeago" datetime="2026-11-09T21:53:31+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 9, 2026 21:53:31 UTC">2026-11-09</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 10, 2026 04:08:57 UTC"><span class="timeago" datetime="2026-11-10T04:08:57+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 10, 2026 04:08:57 UTC">2026-11-10</span>
   </span>
 
     
