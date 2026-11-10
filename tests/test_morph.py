@@ -382,14 +382,15 @@ def test_root_exports_morph_beside_phonetic() -> None:
         "loaded = 'openodia.morph' in sys.modules\n"
         "from openodia import morph\n"
         "heavy = ('faker', 'deep_translator', 'requests', 'bs4')\n"
+        "word = '\\u0b18\\u0b30\\u0b17\\u0b41\\u0b21\\u0b3c\\u0b3f\\u0b15\\u0b30'\n"
         "print(json.dumps({\n"
         "    'version': openodia.__version__,\n"
         "    'all': openodia.__all__,\n"
         "    'loaded': loaded,\n"
         "    'same': openodia.morph is morph,\n"
-        "    'stem': morph.stem('ଘରଗୁଡ଼ିକର'),\n"
+        "    'stem_ok': morph.stem(word) == '\\u0b18\\u0b30',\n"
         "    'heavy': sorted(name for name in heavy if name in sys.modules),\n"
-        "}, ensure_ascii=False))\n"
+        "}))\n"
     )
     result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True)
     payload = json.loads(result.stdout.splitlines()[-1])
@@ -398,7 +399,7 @@ def test_root_exports_morph_beside_phonetic() -> None:
     assert "morph" in payload["all"]
     assert payload["loaded"] is True
     assert payload["same"] is True
-    assert payload["stem"] == "ଘର"
+    assert payload["stem_ok"] is True
     assert payload["heavy"] == []
 
 
