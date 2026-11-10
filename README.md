@@ -65,6 +65,17 @@ Text arguments are literal text, even when they match an existing filename.
 Use `--file` to read a UTF-8 file explicitly (implicit file detection has been
 removed). Pass `-` without `--file` to read UTF-8 text from stdin.
 
+### Legacy fonts
+
+`openodia.legacy` converts 8-bit Odia fonts to Unicode:
+
+```python
+from openodia import legacy
+
+legacy.to_unicode("IWÿò@û", font="AkrutiOriSarala")
+legacy.to_unicode_auto("JXÏÞA")
+```
+
 ### Use from an AI agent
 
 Every subcommand takes `--json` and prints one UTF-8 JSON document on stdout. Errors go to stderr with a nonzero exit code.
