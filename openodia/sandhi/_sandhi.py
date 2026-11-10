@@ -209,11 +209,15 @@ def _vowel_proposals(word: str) -> list[tuple[str, str]]:
 
 def _concat_proposals(word: str) -> list[tuple[str, str]]:
     offset = 0
-    ends: list[int] = []
+    cuts: set[int] = set()
     for piece in _aksharas(word):
         offset += len(piece)
-        ends.append(offset)
-    return [(word[:end], word[end:]) for end in ends[:-1]]
+        cuts.add(offset)
+    cuts.discard(len(word))
+    for index, ch in enumerate(word[:-1]):
+        if ch == _HALANT:
+            cuts.add(index + 1)
+    return [(word[:end], word[end:]) for end in sorted(cuts)]
 
 
 def _proposals(word: str) -> list[tuple[str, str]]:
