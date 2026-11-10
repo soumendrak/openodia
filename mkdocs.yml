@@ -148,3 +148,4 @@ nav:
       - api/names.md
       - api/corpus.md
       - api/roman.md
+      - api/legacy.md
