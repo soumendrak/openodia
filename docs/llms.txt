@@ -21,6 +21,7 @@ Version note: `--json` on every CLI subcommand (one machine-readable JSON docume
 - [Romanisation API](https://openodia.soumendrak.com/api/roman/): `to_roman` and `from_roman` for ISO 15919, Hunterian and ITRANS
 - [Indic API](https://openodia.soumendrak.com/api/indic/): `indic.transliterate` between Brahmic scripts
 - [PII API](https://openodia.soumendrak.com/api/pii/): `pii.detect` and `pii.mask`
+- [Spell checking API](https://openodia.soumendrak.com/api/spell/): `is_correct`, `suggest`, and `correct_text`
 - [Contributing](https://openodia.soumendrak.com/contributing/): setup, checks, and change rules
 - [Changelog](https://openodia.soumendrak.com/changelog/): released and unreleased changes
 

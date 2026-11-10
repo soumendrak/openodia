@@ -19,6 +19,7 @@ from . import indic
 from . import roman
 from . import numbers
 from . import phonetic
+from . import spell
 from . import syllable
 from .segment import sentences
 from .stats import FreqDist, collocations, cooccurrence, ngrams
@@ -44,6 +45,7 @@ __all__ = [
     "phonetic",
     "roman",
     "sentences",
+    "spell",
     "STOPWORDS",
     "Stopwords",
     "syllable",
