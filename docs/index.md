@@ -211,6 +211,8 @@ phonetic.similarity("ସୀତା", "ବିଜୟ")             # ~ 0.0
 
 - Splits a compound into the words sandhi joined, and joins those parts back.
 - A known lemma, or a word that does not split into two known words, is returned unchanged.
+- `openodia.sandhi` needs a release newer than 0.1.14: `import openodia.sandhi` fails on 0.1.14.
+- `split` and `join` NFC-normalize. For a compound the splitter accepts, `join(split(word))` equals the NFC form of the word.
 
 ```python
 from openodia import sandhi

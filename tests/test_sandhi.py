@@ -1,3 +1,5 @@
+import unicodedata
+
 import openodia
 from openodia import sandhi
 
@@ -70,6 +72,18 @@ def test_issue_examples() -> None:
     assert sandhi.split("ସୂର୍ଯ୍ୟୋଦୟ") == ["ସୂର୍ଯ୍ୟ", "ଉଦୟ"]
     assert sandhi.split("ରାଜ୍ୟପାଳ") == ["ରାଜ୍ୟ", "ପାଳ"]
     assert sandhi.join(["ବିଦ୍ୟା", "ଆଳୟ"]) == "ବିଦ୍ୟାଳୟ"
+
+
+def test_nfd_compound_round_trips_as_nfc() -> None:
+    word = unicodedata.normalize("NFD", "ମହୌଷଧ")
+    nfc = unicodedata.normalize("NFC", word)
+    assert word != nfc
+    assert sandhi.split(word) == ["ମହା", "ଔଷଧ"]
+    assert sandhi.join(sandhi.split(word)) == nfc
+    assert sandhi.join([word]) == nfc
+    au = unicodedata.normalize("NFD", "ମହୌ")
+    assert au != "ମହୌ"
+    assert sandhi.join(["ଦେବ", au]) == "ଦେବମହୌ"
 
 
 def test_round_trip_for_every_compound() -> None:

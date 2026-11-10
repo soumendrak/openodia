@@ -164,6 +164,8 @@ def _join_pair(left: str, right: str) -> str:
 def join(parts: Sequence[str]) -> str:
     """Join words, applying sandhi at each boundary.
 
+    Each part is NFC-normalized before the boundary rules run.
+
     Examples:
         >>> join(["ବିଦ୍ୟା", "ଆଳୟ"])
         'ବିଦ୍ୟାଳୟ'
@@ -256,9 +258,12 @@ def split(word: str, *, candidates: Literal[True]) -> list[list[str]]: ...
 def split(word: str, *, candidates: bool = False) -> list[str] | list[list[str]]:
     """Split a compound into the words sandhi joined.
 
-    A lemma, and any word that does not split into two lemmas, comes back
-    as ``[word]``. ``candidates=True`` returns every accepted split, longest
-    left part first, or ``[]`` when nothing splits.
+    The input is NFC-normalized before matching, and the parts of an accepted
+    split are NFC. A lemma, and any word that does not split into two lemmas,
+    comes back as ``[word]`` with its original spelling. ``candidates=True``
+    returns every accepted split, longest left part first, or ``[]`` when
+    nothing splits. For a compound the splitter accepts,
+    ``join(split(word))`` equals ``unicodedata.normalize("NFC", word)``.
 
     Examples:
         >>> split("ବିଦ୍ୟାଳୟ")
