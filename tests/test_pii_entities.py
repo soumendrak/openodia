@@ -1,3 +1,5 @@
+import time
+
 import pytest
 
 from openodia import numbers, pii
@@ -78,11 +80,30 @@ def test_a_bare_number_or_inflected_tanka_is_not_money(text: str) -> None:
     assert kinds(text) == []
 
 
+def test_an_overlong_ungrouped_amount_is_left_entirely_visible() -> None:
+    text = "1234567890123 ଟଙ୍କା"
+    assert pii.detect(text, types=["MONEY"]) == []
+    assert pii.mask(text, types=["MONEY"]) == text
+    assert kinds("123456789012 ଟଙ୍କା") == [("MONEY", "123456789012 ଟଙ୍କା")]
+
+
+def test_a_long_comma_separated_number_without_a_currency_marker_stays_fast() -> None:
+    text = "11," * 8_000 + "11"
+    started = time.perf_counter()
+    assert pii.detect(text) == []
+    assert time.perf_counter() - started < 0.5
+
+
 def test_dictionary_given_name_and_surname_is_a_name() -> None:
     text = "ବୈଦ୍ୟନାଥ ସିଂହଦେଓ ଆସିଲେ"
     assert kinds(text) == [("NAME", "ବୈଦ୍ୟନାଥ ସିଂହଦେଓ")]
     [entity] = pii.detect(text)
     assert entity.confidence == 0.7
+
+
+def test_a_dictionary_given_name_that_contains_a_space_is_detected() -> None:
+    assert kinds("ଗୁନ୍ ଗୁନ୍ ସିଂହଦେଓ ଆସିଲେ") == [("NAME", "ଗୁନ୍ ଗୁନ୍ ସିଂହଦେଓ")]
+    assert kinds("ଶ୍ରୀ ଗୁନ୍ ଗୁନ୍ ଆସିଲେ") == [("NAME", "ଶ୍ରୀ ଗୁନ୍ ଗୁନ୍")]
 
 
 def test_a_dictionary_middle_name_stays_inside_the_name() -> None:
@@ -163,6 +184,15 @@ def test_pseudonymize_round_trips_through_the_store_and_is_stable() -> None:
     assert pii.restore(hidden, store) == text
     assert pii.pseudonymize(hidden, store) == hidden
     assert pii.mask(hidden) == hidden
+
+
+def test_pseudonymize_round_trips_when_a_later_span_swallows_an_earlier_token() -> None:
+    text = "ଗ୍ରାମ " + "a" * 45 + "@example.com 751001"
+    store = KeyStore()
+    hidden = pii.pseudonymize(text, store)
+    assert "a" * 45 not in hidden
+    assert "@example.com" not in hidden
+    assert pii.restore(hidden, store) == text
 
 
 def test_pseudonymize_of_glued_values_round_trips() -> None:

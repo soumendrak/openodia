@@ -24,10 +24,9 @@ _PINCODE = re.compile(
     r"(?:(?<![A-Za-z])pin(?:[\s-]?code)?|ପିନ[\u0B00-\u0B7F\u200c\u200d]{0,10})[\s:.-]{0,3}(?<![0-9])([1-9][0-9]{5})(?![0-9])",
     re.IGNORECASE,
 )
-_AMOUNT = r"(?:[0-9]{1,3}(?:,[0-9]{2,3})+|[0-9]{1,12})(?:\.[0-9]{1,2})?"
-_MONEY = re.compile(
-    rf"(?:₹|(?<![A-Za-z])(?i:Rs\.?|INR)(?![A-Za-z]))\s*{_AMOUNT}(?![0-9])|{_AMOUNT}(?![0-9])\s*(?:ଟଙ୍କା|ରୁପିଆ)(?![\u0B00-\u0B7F])"
-)
+_CURRENCY_PREFIX = re.compile(r"(?:₹|(?<![A-Za-z])(?i:Rs\.?|INR)(?![A-Za-z]))")
+_CURRENCY_SUFFIX = re.compile(r"(?:ଟଙ୍କା|ରୁପିଆ)(?![\u0B00-\u0B7F])")
+_DIGITS = "0123456789"
 _DATE_NUMERIC = re.compile(r"(?<![0-9])(0?[1-9]|[12][0-9]|3[01])[./-](0?[1-9]|1[0-2])[./-]((?:19|20)[0-9]{2})(?![0-9])")
 _ADMIN = re.compile(r"(?<![\u0B00-\u0B7F])(?:ଗ୍ରାମ|ଜିଲ୍ଲା|ସହର|ବ୍ଲକ|ଥାନା|ପଞ୍ଚାୟତ)(?![\u0B00-\u0B7F])")
 _BARE_PIN = re.compile(r"(?<![0-9])[1-9][0-9]{5}(?![0-9])")
@@ -82,7 +81,6 @@ _DETECTORS: tuple[tuple[PIIType, re.Pattern[str], int, Callable[[str], float]], 
     ("AADHAAR", _AADHAAR, 0, _aadhaar_confidence),
     ("PAN", _PAN, 0, _fixed(0.95)),
     ("PHONE", _PHONE, 0, _fixed(0.9)),
-    ("MONEY", _MONEY, 0, _fixed(0.9)),
     ("PINCODE", _PINCODE, 1, _fixed(0.8)),
 )
 _TIE_ORDER: tuple[PIIType, ...] = (
@@ -190,8 +188,90 @@ def _date_candidates(text: str, wanted: frozenset[str], min_confidence: float) -
     return found
 
 
+def _read_digits(text: str, index: int, limit: int) -> tuple[int, int, bool]:
+    count = 0
+    while index < len(text) and text[index] in _DIGITS and count < limit:
+        count += 1
+        index += 1
+    return index, count, index < len(text) and text[index] in _DIGITS
+
+
+def _read_groups(text: str, index: int) -> int | None:
+    while index < len(text) and text[index] == ",":
+        index, count, overflow = _read_digits(text, index + 1, 3)
+        if count < 2 or overflow:
+            return None
+    return index
+
+
+def _read_decimal(text: str, index: int) -> int | None:
+    if index >= len(text) or text[index] != ".":
+        return index
+    index, count, overflow = _read_digits(text, index + 1, 2)
+    if count == 0 or overflow:
+        return None
+    return index
+
+
+def _parse_amount(text: str, start: int) -> int | None:
+    if start >= len(text) or text[start] not in _DIGITS:
+        return None
+    if start > 0 and text[start - 1] in "0123456789,":
+        return None
+    index, first, overflow = _read_digits(text, start, 12)
+    if overflow or first == 0:
+        return None
+    if index < len(text) and text[index] == ",":
+        if first > 3:
+            return None
+        grouped = _read_groups(text, index)
+        if grouped is None:
+            return None
+        index = grouped
+    return _read_decimal(text, index)
+
+
+def _amount_touching(text: str, end: int) -> int | None:
+    start = end
+    while start > 0 and text[start - 1] in "0123456789,.":
+        start -= 1
+    if _parse_amount(text, start) == end:
+        return start
+    return None
+
+
+def _money_candidates(text: str, wanted: frozenset[str], min_confidence: float) -> list[_Candidate]:
+    if "MONEY" not in wanted or min_confidence > 0.9:
+        return []
+    found: list[_Candidate] = []
+    for match in _CURRENCY_PREFIX.finditer(text):
+        start = match.end()
+        while start < len(text) and text[start] in " \t":
+            start += 1
+        end = _parse_amount(text, start)
+        if end is not None:
+            found.append(_Candidate(match.start(), end, "MONEY", 0.9))
+    for match in _CURRENCY_SUFFIX.finditer(text):
+        end = match.start()
+        while end > 0 and text[end - 1] in " \t":
+            end -= 1
+        amount_start = _amount_touching(text, end)
+        if amount_start is not None:
+            found.append(_Candidate(amount_start, match.end(), "MONEY", 0.9))
+    return found
+
+
 def _one_space(text: str, left: re.Match[str], right: re.Match[str]) -> bool:
     return right.start() == left.end() + 1 and text[left.end()] == " "
+
+
+def _piece_end(text: str, words: list[re.Match[str]], index: int, room: int) -> int | None:
+    if room >= 2 and index + 1 < len(words) and _one_space(text, words[index], words[index + 1]):
+        if f"{words[index].group()} {words[index + 1].group()}" in _GIVEN:
+            return index + 1
+    if room >= 1 and words[index].group() in _NAME_WORDS:
+        return index
+    return None
 
 
 def _honorific_end(text: str, words: list[re.Match[str]], index: int) -> int | None:
@@ -199,28 +279,44 @@ def _honorific_end(text: str, words: list[re.Match[str]], index: int) -> int | N
         return None
     end = index
     nxt = index + 1
-    while nxt < len(words) and nxt <= index + 3 and _one_space(text, words[nxt - 1], words[nxt]):
-        if words[nxt].group() not in _NAME_WORDS:
+    used = 0
+    while nxt < len(words) and used < 3 and _one_space(text, words[nxt - 1], words[nxt]):
+        piece = _piece_end(text, words, nxt, 3 - used)
+        if piece is None:
             break
-        end = nxt
-        nxt += 1
+        used += piece - nxt + 1
+        end = piece
+        nxt = piece + 1
     if end == index:
         return None
     return end
 
 
-def _surname_end(text: str, words: list[re.Match[str]], index: int) -> int | None:
-    if words[index].group() not in _GIVEN or index + 1 >= len(words):
+def _given_end(text: str, words: list[re.Match[str]], index: int) -> int | None:
+    given = _piece_end(text, words, index, 2)
+    if given is None:
         return None
+    if given > index or words[index].group() in _GIVEN:
+        return given
+    return None
+
+
+def _surname_end(text: str, words: list[re.Match[str]], index: int) -> int | None:
+    given = _given_end(text, words, index)
+    if given is None:
+        return None
+    nxt = given + 1
+    if nxt >= len(words) or not _one_space(text, words[given], words[nxt]):
+        return None
+    if words[nxt].group() in _SURNAMES:
+        return nxt
     if (
-        index + 2 < len(words)
-        and _one_space(text, words[index], words[index + 1])
-        and _one_space(text, words[index + 1], words[index + 2])
+        nxt + 1 < len(words)
+        and _one_space(text, words[nxt], words[nxt + 1])
+        and words[nxt].group() in _GIVEN
+        and words[nxt + 1].group() in _SURNAMES
     ):
-        if words[index + 1].group() in _GIVEN and words[index + 2].group() in _SURNAMES:
-            return index + 2
-    if _one_space(text, words[index], words[index + 1]) and words[index + 1].group() in _SURNAMES:
-        return index + 1
+        return nxt + 1
     return None
 
 
@@ -289,6 +385,7 @@ def detect(text: str, types: Iterable[str] | None = None, min_confidence: float 
     _validate_min_confidence(min_confidence)
     ascii_text = odia_to_ascii(text)
     candidates = _regex_candidates(ascii_text, wanted, min_confidence)
+    candidates.extend(_money_candidates(ascii_text, wanted, min_confidence))
     candidates.extend(_date_candidates(ascii_text, wanted, min_confidence))
     candidates.extend(_name_candidates(ascii_text, wanted, min_confidence))
     candidates.extend(_address_candidates(ascii_text, wanted, min_confidence))
