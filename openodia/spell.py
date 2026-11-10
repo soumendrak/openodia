@@ -118,8 +118,6 @@ def _cell(
 
 
 def _within(left: tuple[int, ...], right: tuple[int, ...], limit: int) -> int:
-    if abs(len(left) - len(right)) > limit:
-        return limit + 1
     earlier: list[int] | None = None
     previous = list(range(len(right) + 1))
     for i in range(1, len(left) + 1):
