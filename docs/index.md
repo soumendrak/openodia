@@ -78,6 +78,7 @@ The tools are available in Odia language.
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
 - [x] [Sentence segmenter](#sentence-segmenter)
 - [x] [PII detection and masking](#pii-detection-and-masking)
+- [x] [Stemmer and lemmatizer](#stemmer-and-lemmatizer)
 
 
 ### :material-broom: Unicode normalization
@@ -205,6 +206,24 @@ phonetic.similarity("ସୀତା", "ବିଜୟ")             # ~ 0.0
     Soundex maximises recall (more collisions, broader match). Metaphone
     is finer-grained. `similarity()` averages them so the score behaves
     well as a sortable threshold for fuzzy-match queries.
+
+### :material-alphabetical: Stemmer and lemmatizer
+
+`stem` is the fast suffix stripper for search. `lemma` returns the dictionary
+form and the grammatical features of that reading. A verb stem is the root;
+the lemma form is the infinitive. Pass one token. The cited ending list is
+`morph.suffixes()`.
+
+```python
+from openodia import morph
+
+morph.stem("ଘରଗୁଡ଼ିକର")  # ଘର
+morph.stem("ଆସୁଥିଲେ")      # ଆସ
+got = morph.lemma("ଆସୁଥିଲେ")
+got.form                 # ଆସିବା
+got.pos                  # VERB
+got.features.tense       # past
+```
 
 ### :material-translate-variant: Indic transliteration
 

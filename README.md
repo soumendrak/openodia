@@ -50,6 +50,21 @@ uv sync  # or: pip install -e .
 
 For usage and further documentation please visit the [Documentation](https://openodia.soumendrak.com/) page. 
 
+### Stemmer and lemmatizer
+
+`openodia.morph.stem` reduces one inflected word to a noun stem or a verb root.
+`openodia.morph.lemma` returns the citation form (the infinitive, for a verb)
+plus part of speech and grammatical features. Both are offline and idempotent
+on the stem: `stem(stem(word)) == stem(word)`.
+
+```python
+from openodia import morph
+
+morph.stem("ଘରଗୁଡ଼ିକର")  # "ଘର"
+morph.stem("ଆସୁଥିଲେ")      # "ଆସ"
+morph.lemma("ଆସୁଥିଲେ").form  # "ଆସିବା"
+```
+
 ### Phonetic matching
 
 These are Odia-adapted variants, not classic Soundex or Metaphone.
