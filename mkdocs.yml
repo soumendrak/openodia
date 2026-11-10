@@ -140,6 +140,7 @@ nav:
       - api/tokenizing.md
       - api/segment.md
       - api/syllable.md
+      - api/sandhi.md
       - api/numbers.md
       - api/stats.md
       - api/translation.md
