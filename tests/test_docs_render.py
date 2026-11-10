@@ -1,4 +1,5 @@
 import html
+import json
 import re
 import subprocess
 import sys
@@ -33,6 +34,27 @@ def rendered_text(page: Path) -> str:
 
 def test_api_pages_were_built(site: Path) -> None:
     assert len(list((site / "api").glob("*/index.html"))) >= 10
+
+
+def test_search_index_covers_the_new_pages(site: Path) -> None:
+    payload = json.loads((site / "search" / "search_index.json").read_text(encoding="utf-8"))
+    locations = {entry["location"] for entry in payload["docs"]}
+    assert {
+        "getting-started/",
+        "guides/pii/",
+        "guides/transliteration/",
+        "api/pii/",
+        "api/indic/",
+        "contributing/",
+        "changelog/",
+    } <= locations
+    page = (site / "getting-started" / "index.html").read_text(encoding="utf-8")
+    assert 'id="__search"' in page
+    assert "search.suggest" in page
+    assert "search.highlight" in page
+    assert "assets/javascripts/workers/search." in page
+    assert "search/main.js" not in page
+    assert not (site / "search.html").exists()
 
 
 def test_api_pages_show_no_raw_docstring_markup(site: Path) -> None:
