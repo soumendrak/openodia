@@ -99,6 +99,9 @@ def test_candidates_prefer_the_longer_left_part() -> None:
 
 def test_edges_outside_the_compound_list() -> None:
     assert sandhi.join(["ଆ", "ଆଳୟ"]) == "ଆଳୟ"
+    assert sandhi.join(["ଇ", "ଆଦି"]) == "ୟାଦି"
+    assert sandhi.join(["ଉ", "ଆଗତ"]) == "ୱାଗତ"
+    assert sandhi.join(["ସୁ", "ଆଗତ"]) == "ସ୍ୱାଗତ"
     assert sandhi.join(["ଉତ୍", "ପାଳ"]) == "ଉତ୍ପାଳ"
     assert sandhi.split("ଉତ୍ପାଳ") == ["ଉତ୍", "ପାଳ"]
     assert sandhi.join(["", "ରାମ"]) == "ରାମ"

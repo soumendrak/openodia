@@ -140,6 +140,14 @@ def _with_vowel(stem: str, vowel: str) -> str:
     return stem
 
 
+def _write_fused(stem: str, fused: str) -> str:
+    if stem:
+        return stem + fused
+    if fused.startswith(_HALANT):
+        return fused[len(_HALANT) :]
+    return _FROM_MATRA.get(fused, fused)
+
+
 def _join_pair(left: str, right: str) -> str:
     if not left or not right:
         return left + right
@@ -151,8 +159,7 @@ def _join_pair(left: str, right: str) -> str:
         stem, vowel = ending_vowel
         fused = _VOWEL_SANDHI.get((vowel, right[0]))
         if fused is not None:
-            written = stem + fused if stem else _FROM_MATRA.get(fused, fused)
-            return written + right[1:]
+            return _write_fused(stem, fused) + right[1:]
     return left + right
 
 
