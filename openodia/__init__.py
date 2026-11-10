@@ -15,6 +15,7 @@ from ._translate_async import (
     universal_translation_async,
 )
 from ._understandData import UnderstandData as ud
+from . import indic
 from . import roman
 from . import numbers
 from . import syllable
@@ -30,6 +31,7 @@ __all__ = [
     "collocations",
     "cooccurrence",
     "FreqDist",
+    "indic",
     "name",
     "ngrams",
     "normalize",

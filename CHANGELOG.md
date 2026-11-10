@@ -18,6 +18,8 @@
 
 ### Added
 
+- `openodia.indic`: transliterate between Brahmic Indic scripts. A composition-excluded nukta letter is consonant + nukta when the target has those parts, except Gurmukhi flap RRA and a target LLA, SHA, or YYA, which stay one letter. Odia WA stays when the target has no WA. Bengali writes VA as BA. A Malayalam chillu expands to consonant + virama.
+
 - `openodia.roman`: Odia romanisation (`to_roman` / `from_roman`) with the
   ISO 15919, Hunterian and ITRANS schemes.
 
