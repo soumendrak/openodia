@@ -15,7 +15,7 @@ Version note: `--json` on every CLI subcommand (one machine-readable JSON docume
 - [Translation guide](https://openodia.soumendrak.com/guides/translation/): offline dictionary, Google Translate, translation cache
 - [Command-line guide](https://openodia.soumendrak.com/guides/cli/): every subcommand with runnable examples
 - [API reference](https://openodia.soumendrak.com/api/text/): signatures and docstrings generated from the source
-- [Romanisation API](https://openodia.soumendrak.com/api/roman/): `to_roman` and `from_roman` for ISO 15919, Hunterian and ITRANS
+- [Romanisation API](https://openodia.soumendrak.com/api/roman/): `to_roman` and `from_roman` for ISO 15919, Hunterian and ITRANS; `type_odia` types Roman input as Odia
 
 ## For agents
 
