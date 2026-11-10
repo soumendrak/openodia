@@ -21,7 +21,6 @@ theme:
   highlights: true
 #  logo: images/logo.png
 
-  # Don't include MkDocs' JavaScript
   include_search_page: false
   search_index_only: true
 
@@ -34,6 +33,8 @@ theme:
     - navigation.tabs
     - tabs
     - toc.integrate
+    - search.suggest
+    - search.highlight
   palette:
   - scheme: default
     primary: indigo
@@ -108,7 +109,10 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path:
+        - .
+      check_paths: true
   - pymdownx.progressbar
 
 # Customization
@@ -126,14 +130,16 @@ extra:
       link: https://linkedin.com/in/soumendrak/
 
 nav:
+  - Getting started: getting-started.md
   - Documentation: index.md
-  - Application: application.md
   - Guides:
       - guides/text-processing.md
       - guides/script-and-names.md
+      - guides/transliteration.md
       - guides/numbers.md
       - guides/analysis.md
       - guides/translation.md
+      - guides/pii.md
       - guides/cli.md
   - API reference:
       - api/text.md
@@ -149,3 +155,8 @@ nav:
       - api/names.md
       - api/corpus.md
       - api/roman.md
+      - api/indic.md
+      - api/pii.md
+  - Application: application.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md

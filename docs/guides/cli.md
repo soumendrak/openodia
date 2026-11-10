@@ -37,7 +37,7 @@ $ openodia tokenize input.txt --file
 The default output is meant for reading and for `grep`, `sort` and `wc`. Add `--json` for one JSON document on stdout.
 
 !!! warning "Needs a release newer than 0.1.14"
-    `--json` on every subcommand is on `main` but not in PyPI 0.1.14. PyPI 0.1.14 has `--json` on `detect-language` only, and other subcommands exit with code 2 there. From a source checkout, `uv run openodia <subcommand> --json` works. See [AGENTS.md](https://github.com/soumendrak/openodia/blob/main/AGENTS.md) for the JSON shapes and exit codes.
+    `--json` on every subcommand is on `main` but not in PyPI 0.1.14. PyPI 0.1.14 has `--json` on `detect-language` only, and other subcommands exit with code 2 there. `pii` needs that release too: `openodia pii` exits with code 2 on PyPI 0.1.14. From a source checkout, `uv run openodia <subcommand> --json` works. See [AGENTS.md](https://github.com/soumendrak/openodia/blob/main/AGENTS.md) for the JSON shapes and exit codes.
 
 ```console
 $ openodia tokenize "ରାମ ସୀତା" --json
@@ -62,6 +62,7 @@ $ openodia detect-language "ନମସ୍କାର" --json
 | `remove-stopwords` | `ud.remove_stopwords` | `--get-str` |
 | `ngrams` | `ngrams` | `-n` |
 | `freq` | `FreqDist` | `--top` |
+| `pii` | `pii.detect`, `pii.mask` | `--mask`, `--type`, `--min-confidence` |
 
 ```console
 $ openodia clean "ଆଜି 2026" --latin-to-odia
@@ -75,9 +76,14 @@ $ openodia freq "ରାମ ସୀତା ରାମ" --top 1
 2	ରାମ
 $ openodia translate "good morning"
 ଶୁଭ ସକାଳ
+$ openodia pii "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ଓ a@b.com" --mask
+ମୋ ଫୋନ <PHONE> ଓ <EMAIL>
+$ openodia pii "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ଓ a@b.com"
+PHONE	7	17	୯୮୭୬୫୪୩୨୧୦
+EMAIL	20	27	a@b.com
 ```
 
-`freq` prints the count, a tab, then the token. `translate` answers English to Odia from the [offline dictionary](translation.md) when it can and uses Google Translate for everything else, so it needs the network then.
+`freq` prints the count, a tab, then the token. `pii` prints the type, the start, the end, and the matched text, separated by tabs. With `--mask` it prints the text with each match replaced by `<TYPE>`. What the patterns miss is in [Find and mask personal identifiers](pii.md). `translate` answers English to Odia from the [offline dictionary](translation.md) when it can and uses Google Translate for everything else, so it needs the network then.
 
 ## Errors
 
