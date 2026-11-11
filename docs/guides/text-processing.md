@@ -144,6 +144,24 @@ True
 !!! note "Gotcha: script, not language"
     This is a character-ratio check. Text in another language written in the Odia script scores `odia`, and Odia written in Latin letters scores `non-odia`.
 
+## Check spelling
+
+`spell` looks words up in the offline dictionary. `suggest` returns the closest dictionary words (akshara edit distance at most 2). `correct_text` replaces each unknown Odia word and leaves spaces and punctuation where they were. It needs a release newer than 0.1.14: `import openodia.spell` fails on 0.1.14.
+
+```pycon
+>>> from openodia import spell
+>>> spell.is_correct("ନମସ୍କାର")
+True
+>>> spell.is_correct("ନମସ୍କର")
+False
+>>> spell.suggest("ନମସ୍କର", top_k=1)
+['ନମସ୍କାର']
+>>> spell.correct_text("ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତ")
+'ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତି'
+>>> spell.correct_text("ସେ  ଆମ ଘରକୁ ଆସୁଛନ୍ତ!")
+'ସେ  ଆମ ଘରକୁ ଆସୁଛନ୍ତି!'
+```
+
 ## Next
 
 - [Analysis guide](analysis.md) for summaries and corpus statistics.

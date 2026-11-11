@@ -27,6 +27,11 @@ SAMPLES = {
     "ngrams": [["ngrams", "-n", "2", "ରାମ ସୀତା ଘରକୁ"]],
     "freq": [["freq", "ରାମ ସୀତା ରାମ"]],
     "pii": [["pii", "a@b.com"], ["pii", "--mask", "a@b.com"]],
+    "spell": [
+        ["spell", "ନମସ୍କର"],
+        ["spell", "--suggest", "ନମସ୍କର"],
+        ["spell", "--check", "ନମସ୍କାର"],
+    ],
 }
 
 
