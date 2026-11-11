@@ -181,6 +181,15 @@ RELEASE_SENTENCE = "`openodia.legacy` needs a release newer than 0.1.14"
 RELEASE_PAGES = ("README.md", "docs/index.md", "docs/llms.txt", "AGENTS.md")
 
 
+def test_auto_mode_passthrough_is_documented() -> None:
+    text = (Path(__file__).resolve().parents[1] / "docs/index.md").read_text(encoding="utf-8")
+    assert "A tie leaves `font` as None and `confidence` at 0.5." in text
+    assert "No legacy-font evidence leaves `font` as None and `confidence` at 0.0." in text
+    assert "`to_unicode_auto` returns the input unchanged in both cases." in text
+    assert "Call `detect_font` to tell them apart." in text
+    assert "auto mode converts 83 and leaves 17 unchanged." in text
+
+
 @pytest.mark.parametrize("page", RELEASE_PAGES)
 def test_legacy_pages_name_the_release(page: str) -> None:
     text = (Path(__file__).resolve().parents[1] / page).read_text(encoding="utf-8")
@@ -190,6 +199,18 @@ def test_legacy_pages_name_the_release(page: str) -> None:
 @pytest.mark.parametrize(("font", "byte", "expected"), CP1252_BYTES)
 def test_cp1252_only_bytes_convert(font: str, byte: int, expected: str) -> None:
     assert legacy.to_unicode(bytes([byte]).decode("cp1252"), font=font) == expected
+
+
+@pytest.mark.parametrize(
+    ("byte", "expected"),
+    ((0x81, "ଞ୍ଚ"), (0x8D, "ଣ୍ଟ"), (0x8F, "ତ୍ତ"), (0x9D, "ତ୍ଥ")),
+)
+def test_bytes_cp1252_leaves_undefined_still_convert(byte: int, expected: str) -> None:
+    assert legacy.to_unicode(legacy.decode(bytes([byte])), font="AkrutiOriSarala") == expected
+
+
+def test_ghanta_survives_the_documented_decode() -> None:
+    assert legacy.to_unicode(legacy.decode(b"N\x8d\xfb"), font="AkrutiOriSarala") == "ଘଣ୍ଟା"
 
 
 def test_ellipsis_byte_is_cp1252_not_latin_1() -> None:
@@ -203,6 +224,12 @@ def test_reph_walks_every_halant_in_the_conjunct() -> None:
 
 def test_yaphala_moves_past_every_vowel_sign() -> None:
     assert legacy.to_unicode("OãôÔg", font="ORTTSarala") == "ଘ୍ୟୁୃୱ"
+
+
+@pytest.mark.parametrize("text", ("ପ", "ପ ୧।୨", "ଓଡ଼ିଆ ଭାଷା ସୁନ୍ଦର ।", "୧୨୩ ॥"))
+def test_unicode_odia_is_not_detected_as_a_legacy_font(text: str) -> None:
+    assert legacy.detect_font(text)["font"] is None
+    assert legacy.to_unicode_auto(text) == text
 
 
 def test_each_font_has_fifty_known_sentences() -> None:
@@ -228,3 +255,5 @@ def test_each_font_has_fifty_known_sentences() -> None:
     assert legacy.to_unicode_auto(tied["legacy"]) == tied["legacy"]
     first = fixture["AkrutiOriSarala"][0]
     assert legacy.detect_font(first["legacy"]) == {"font": "AkrutiOriSarala", "confidence": 24 / 39}
+    converted = sum(legacy.to_unicode_auto(row["legacy"]) == row["unicode"] for rows in fixture.values() for row in rows)
+    assert converted == 83

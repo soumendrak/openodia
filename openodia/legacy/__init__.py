@@ -1,7 +1,7 @@
 """Convert legacy 8-bit Odia fonts to Unicode Odia.
 
-Decode the font bytes as cp1252. Output is NFC. ଡ଼ and ଢ଼ stay consonant
-plus nukta, which is the NFC spelling of those letters.
+Decode the font bytes with ``decode``. Output is NFC. ଡ଼ and ଢ଼ stay
+consonant plus nukta, which is the NFC spelling of those letters.
 
 A left matra is typed before the consonant in these fonts and is moved to the
 end of that conjunct.
@@ -14,6 +14,6 @@ Examples:
     'ଓଡ଼ିଆ'
 """
 
-from openodia.legacy._convert import SUPPORTED_FONTS, detect_font, to_unicode, to_unicode_auto
+from openodia.legacy._convert import SUPPORTED_FONTS, decode, detect_font, to_unicode, to_unicode_auto
 
-__all__ = ["SUPPORTED_FONTS", "detect_font", "to_unicode", "to_unicode_auto"]
+__all__ = ["SUPPORTED_FONTS", "decode", "detect_font", "to_unicode", "to_unicode_auto"]

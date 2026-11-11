@@ -113,15 +113,22 @@ def _reph(value: object) -> str | None:
     return value
 
 
+_NOT_LEGACY_EVIDENCE = frozenset(chr(code) for code in range(0x0B00, 0x0B80)) | frozenset("।॥")
+
+
+def _legacy_evidence(text: str) -> bool:
+    return all(character not in _NOT_LEGACY_EVIDENCE for character in text)
+
+
 def _alphabet(pairs: tuple[tuple[str, str], ...], matra: _Matra | None, reph: str | None) -> frozenset[str]:
     chars: set[str] = set()
     for src, _dst in pairs:
-        chars.update(src)
-    if matra is not None:
+        chars.update(character for character in src if character not in _NOT_LEGACY_EVIDENCE)
+    if matra is not None and _legacy_evidence(matra.marker):
         chars.add(matra.marker)
         for suffix, _sign in matra.forms:
-            chars.update(suffix)
-    if reph is not None:
+            chars.update(character for character in suffix if character not in _NOT_LEGACY_EVIDENCE)
+    if reph is not None and reph not in _NOT_LEGACY_EVIDENCE:
         chars.add(reph)
     return frozenset(chars)
 
@@ -156,7 +163,7 @@ def _load() -> tuple[_Font, ...]:
             _Font(
                 name=name,
                 pairs=pairs,
-                signatures=signatures,
+                signatures=tuple(item for item in signatures if _legacy_evidence(item)),
                 matra=matra,
                 reph=reph,
                 before_reph=before_reph,
@@ -353,11 +360,27 @@ def _convert(text: str, font: _Font) -> str:
     return unicodedata.normalize("NFC", text)
 
 
-def to_unicode(text: str, font: str) -> str:
-    """Convert cp1252 keystrokes from one legacy font to NFC Unicode Odia.
+def decode(data: bytes) -> str:
+    """Decode legacy font bytes for ``to_unicode``.
 
-    ``text`` is the font file decoded as cp1252, not Latin-1. ``font`` is a
-    name in ``SUPPORTED_FONTS``.
+    Defined bytes use cp1252. The four bytes that codec leaves undefined,
+    0x81, 0x8D, 0x8F and 0x9D, stay as those code points.
+    """
+    if not isinstance(data, bytes | bytearray):
+        raise TypeError("legacy font bytes are required")
+    chars: list[str] = []
+    for byte in data:
+        try:
+            chars.append(bytes((byte,)).decode("cp1252"))
+        except UnicodeDecodeError:
+            chars.append(chr(byte))
+    return "".join(chars)
+
+
+def to_unicode(text: str, font: str) -> str:
+    """Convert legacy font keystrokes to NFC Unicode Odia.
+
+    ``text`` comes from ``decode``. ``font`` is a name in ``SUPPORTED_FONTS``.
     """
     found = _BY_NAME.get(font)
     if found is None:
@@ -381,8 +404,9 @@ def _score(text: str, font: _Font) -> int:
 def detect_font(text: str) -> dict[str, str | float | None]:
     """Guess which legacy font produced ``text``.
 
-    Returns ``font`` and ``confidence``. Equal scores are a tie, so ``font``
-    is None and nothing is guessed.
+    Returns ``font`` and ``confidence``. ``font`` is None on a tie, where
+    ``confidence`` is 0.5, and when the text has no legacy-font evidence,
+    where ``confidence`` is 0.0. Odia letters and dandas are not evidence.
     """
     if text == "":
         return {"font": None, "confidence": 0.0}
@@ -399,7 +423,9 @@ def detect_font(text: str) -> dict[str, str | float | None]:
 def to_unicode_auto(text: str) -> str:
     """Detect the legacy font and convert it.
 
-    A tie returns ``text`` unchanged.
+    Returns ``text`` unchanged when ``detect_font`` has no font: a tie
+    (``confidence`` 0.5) or no legacy-font evidence (``confidence`` 0.0).
+    Call ``detect_font`` to tell those apart.
     """
     font = detect_font(text)["font"]
     if not isinstance(font, str):

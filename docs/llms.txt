@@ -19,7 +19,7 @@ Version note: `--json` on every CLI subcommand (one machine-readable JSON docume
 - [PII guide](https://openodia.soumendrak.com/guides/pii/): find and mask phone numbers, emails, URLs, Aadhaar numbers, PAN and PIN codes
 - [API reference](https://openodia.soumendrak.com/api/text/): signatures and docstrings generated from the source
 - [Romanisation API](https://openodia.soumendrak.com/api/roman/): `to_roman` and `from_roman` for ISO 15919, Hunterian and ITRANS
-- [Legacy fonts API](https://openodia.soumendrak.com/api/legacy/): `openodia.legacy` needs a release newer than 0.1.14. Decode the bytes as cp1252. It converts AkrutiOriSarala and ORTTSarala to Unicode
+- [Legacy fonts API](https://openodia.soumendrak.com/api/legacy/): `openodia.legacy` needs a release newer than 0.1.14. Decode the bytes with `legacy.decode`. It converts AkrutiOriSarala and ORTTSarala to Unicode. A tie or no evidence leaves `to_unicode_auto` unchanged.
 - [Indic API](https://openodia.soumendrak.com/api/indic/): `indic.transliterate` between Brahmic scripts
 - [PII API](https://openodia.soumendrak.com/api/pii/): `pii.detect` and `pii.mask`
 - [Contributing](https://openodia.soumendrak.com/contributing/): setup, checks, and change rules
