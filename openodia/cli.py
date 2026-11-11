@@ -292,7 +292,11 @@ def _cmd_freq(args: argparse.Namespace) -> int:
 def _cmd_spell(args: argparse.Namespace) -> int:
     from openodia import spell
 
-    text = _read_input(args.text, file=args.file)
+    if args.check and args.file:
+        with Path(args.text).open(encoding="utf-8-sig", newline="") as handle:
+            text = handle.read()
+    else:
+        text = _read_input(args.text, file=args.file)
     if args.check:
         correct = spell.is_correct(_without_trailing_break(text))
         if args.json:

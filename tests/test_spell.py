@@ -218,30 +218,43 @@ def test_cli_corrects_suggests_and_checks(capsys: pytest.CaptureFixture[str]) ->
     assert json.loads(capsys.readouterr().out) == {"suggestions": []}
 
 
-def test_cli_check_ignores_one_trailing_newline(tmp_path, monkeypatch, capsys: pytest.CaptureFixture[str]) -> None:
-    import io
-
-    from openodia import cli, spell
+def test_library_keeps_a_newline_inside_the_word() -> None:
+    from openodia import spell
 
     assert spell.is_correct("ନମସ୍କାର") is True
     assert spell.is_correct("ନମସ୍କାର\n") is False
     assert spell.is_correct("ନମସ୍କାର\r\n") is False
-    monkeypatch.setattr(sys, "stdin", io.StringIO("ନମସ୍କାର\n"))
-    assert cli.main(["spell", "--check", "--json", "-"]) == 0
-    assert json.loads(capsys.readouterr().out) == {"correct": True}
-    monkeypatch.setattr(sys, "stdin", io.StringIO("ନମସ୍କାର\r\n"))
-    assert cli.main(["spell", "--check", "--json", "-"]) == 0
-    assert json.loads(capsys.readouterr().out) == {"correct": True}
-    monkeypatch.setattr(sys, "stdin", io.StringIO("ନମସ୍କାର\n\n"))
-    assert cli.main(["spell", "--check", "--json", "-"]) == 0
-    assert json.loads(capsys.readouterr().out) == {"correct": False}
-    monkeypatch.setattr(sys, "stdin", io.StringIO("ନମସ୍କାର\r"))
-    assert cli.main(["spell", "--check", "--json", "-"]) == 0
-    assert json.loads(capsys.readouterr().out) == {"correct": False}
-    path = tmp_path / "word.txt"
-    path.write_text("ନମସ୍କାର\n", encoding="utf-8")
-    assert cli.main(["spell", "--check", "--json", "--file", str(path)]) == 0
-    assert json.loads(capsys.readouterr().out) == {"correct": True}
+
+
+@pytest.mark.parametrize("ending", ["\n", "\r\n", "\r", "\n\n", "\r\n\r\n"])
+@pytest.mark.parametrize("source", ["stdin", "file"])
+def test_spell_check_uses_one_newline_rule(
+    ending: str, source: str, tmp_path, monkeypatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import io
+
+    from openodia import cli
+
+    text = "ନମସ୍କାର" + ending
+    if source == "stdin":
+        monkeypatch.setattr(sys, "stdin", io.StringIO(text))
+        argv = ["spell", "--check", "--json", "-"]
+    else:
+        path = tmp_path / "word.txt"
+        path.write_bytes(text.encode("utf-8"))
+        argv = ["spell", "--check", "--json", "--file", str(path)]
+    assert cli.main(argv) == 0
+    assert json.loads(capsys.readouterr().out) == {"correct": ending in {"\n", "\r\n"}}
+
+
+def test_cli_check_prints_false_for_a_non_word(monkeypatch, capsys: pytest.CaptureFixture[str]) -> None:
+    import io
+
+    from openodia import cli
+
+    monkeypatch.setattr(sys, "stdin", io.StringIO("x"))
+    assert cli.main(["spell", "--check", "-"]) == 0
+    assert capsys.readouterr().out == "false\n"
 
 
 def test_cli_file_keeps_the_newline(tmp_path, capsys: pytest.CaptureFixture[str]) -> None:
