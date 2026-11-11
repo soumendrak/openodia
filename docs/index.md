@@ -71,6 +71,7 @@ The tools are available in Odia language. [Getting started](getting-started.md) 
 - [x] [Corpus statistics](#corpus-statistics)
 - [x] [Syllabifier (akshara)](#syllabifier)
 - [x] [Phonetic matching](#phonetic-matching)
+- [x] [Sandhi and compounds](#sandhi-and-compounds)
 - [x] [Indic-to-Indic transliteration](#indic-transliteration)
 - [x] [Romanisation](#romanisation)
 - [x] [Phonetic typing](#phonetic-typing)
@@ -206,6 +207,23 @@ phonetic.similarity("ସୀତା", "ବିଜୟ")             # ~ 0.0
     Soundex maximises recall (more collisions, broader match). Metaphone
     is finer-grained. `similarity()` averages them so the score behaves
     well as a sortable threshold for fuzzy-match queries.
+
+### :material-call-split: Sandhi and compounds
+
+- Splits a compound into the words sandhi joined, and joins those parts back.
+- A known lemma, or a word that does not split into two known words, is returned unchanged.
+- `openodia.sandhi` needs a release newer than 0.1.14: `import openodia.sandhi` fails on 0.1.14.
+- `split` and `join` NFC-normalize. For a compound the splitter accepts, `join(split(word))` equals the NFC form of the word.
+
+```python
+from openodia import sandhi
+
+sandhi.split("ବିଦ୍ୟାଳୟ")        # ["ବିଦ୍ୟା", "ଆଳୟ"]
+sandhi.split("ସୂର୍ଯ୍ୟୋଦୟ")      # ["ସୂର୍ଯ୍ୟ", "ଉଦୟ"]
+sandhi.split("ରାଜ୍ୟପାଳ")        # ["ରାଜ୍ୟ", "ପାଳ"]
+sandhi.split("ରାମ")             # ["ରାମ"]
+sandhi.join(["ବିଦ୍ୟା", "ଆଳୟ"])   # "ବିଦ୍ୟାଳୟ"
+```
 
 ### :material-translate-variant: Indic transliteration
 

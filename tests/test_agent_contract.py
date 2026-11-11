@@ -195,6 +195,27 @@ def test_pii_index_documents_the_domain_label_limit_and_url_apostrophes() -> Non
     assert "an apostrophe inside the URL is part of it" in text
 
 
+def test_pages_that_name_sandhi_say_0_1_14_cannot_import_it() -> None:
+    note = "`import openodia.sandhi` fails on 0.1.14"
+    pages = [ROOT / "AGENTS.md", ROOT / "README.md", ROOT / "CHANGELOG.md", ROOT / "skills/openodia/SKILL.md"]
+    pages.extend((ROOT / "docs").rglob("*.md"))
+    pages.append(ROOT / "docs/llms.txt")
+    named = []
+    for path in pages:
+        text = path.read_text(encoding="utf-8")
+        if "openodia.sandhi" in text or "import sandhi" in text:
+            named.append(path.relative_to(ROOT).as_posix())
+            assert note in text
+            assert "`openodia.sandhi` needs a release newer than 0.1.14" in text
+    assert {
+        "AGENTS.md",
+        "CHANGELOG.md",
+        "docs/llms.txt",
+        "docs/index.md",
+        "docs/api/sandhi.md",
+    } <= set(named)
+
+
 def test_pii_index_says_a_closing_apostrophe_is_swallowed_when_a_url_character_follows() -> None:
     text = (ROOT / "docs/index.md").read_text(encoding="utf-8")
     assert "unless a URL character follows it" in text
