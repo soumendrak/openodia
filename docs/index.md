@@ -211,7 +211,8 @@ phonetic.similarity("ସୀତା", "ବିଜୟ")             # ~ 0.0
 
 `stem` is the fast suffix stripper for search. `lemma` returns the dictionary
 form and the grammatical features of that reading. A verb stem is the root;
-the lemma form is the infinitive. Pass one token. The cited ending list is
+the lemma form is the infinitive. `openodia.morph` needs a release newer than 0.1.14.
+Pass one token. The cited ending list is
 `morph.suffixes()`.
 
 ```python

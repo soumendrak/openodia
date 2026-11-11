@@ -16,7 +16,7 @@ Rules:
 - Exit codes: 0 success, 1 runtime error (`openodia: error: ...` on stderr), 2 usage error.
 - `pii` is rule-based and finds only phone, email, URL, Aadhaar, PAN and PIN code; it does not find names or addresses. `pii` needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there. Each entity's `text` is the raw value, so use `pii --mask --json` when the output must not contain PII.
 - `translate` works offline only for English to Odia dictionary hits; other pairs need the network and can be rate limited.
-- Stemming and lemmatization are not subcommands. `from openodia import morph`, then `morph.stem(word)` for the noun stem or verb root and `morph.lemma(word)` for the citation form, part of speech, and features.
+- Stemming and lemmatization are not subcommands. `from openodia import morph`, then `morph.stem(word)` for the noun stem or verb root and `morph.lemma(word)` for the citation form, part of speech, and features. `openodia.morph` needs a release newer than 0.1.14.
 
 ```console
 $ openodia tokenize --json 'ରାମ ସୀତା ଘରକୁ ଯାଏ ।'

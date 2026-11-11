@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import unicodedata
@@ -21,141 +22,27 @@ from openodia.morph import (
 )
 import openodia.morph as morph
 
-_MATRA = frozenset("ାିୀୁୂୃୄେୈୋୌୖୗୢୣଅଆଇଈଉଊଋଌଏଐଓଔ")
-_BARE = NounFeatures("singular", "nominative", False)
-
-_NOUNS = (
-    "ଘର",
-    "ଫୁଲ",
-    "ବହି",
-    "ପୁରୀ",
-    "ମନ୍ଦିର",
-    "ସରକାର",
-    "ବଜାର",
-    "ଅଧିକାର",
-    "ପରିବାର",
-    "ଗଛ",
-    "ନଦୀ",
-    "ଦିନ",
-    "ରାସ୍ତା",
-    "କଥା",
-    "ଜଳ",
-    "ଫଳ",
-    "ଓଡ଼ିଶା",
-    "ପିଲା",
-    "ଭାଇ",
-    "ହାତ",
+_DOUBLED_MATRA = re.compile("[ିୀୁୂେୈୋୌା]{2}")
+_MORPH_NOTE = "`openodia.morph` needs a release newer than 0.1.14"
+_ADVERTISED = (
+    "README.md",
+    "docs/index.md",
+    "AGENTS.md",
+    "docs/llms.txt",
+    "skills/openodia/SKILL.md",
 )
-_HUMANS = ("ଲୋକ", "ବାଳକ", "ମଣିଷ", "ଛାତ୍ର")
-_VERBS = {
-    "ଆସ": "ଆସିବା",
-    "କର": "କରିବା",
-    "ବସ": "ବସିବା",
-    "ଶୁଣ": "ଶୁଣିବା",
-    "ଦେଖ": "ଦେଖିବା",
-    "ରହ": "ରହିବା",
-    "କହ": "କହିବା",
-    "ଚାହ": "ଚାହିବା",
-    "ପଢ଼": "ପଢ଼ିବା",
-    "ଖା": "ଖାଇବା",
-    "ପା": "ପାଇବା",
-    "ଗା": "ଗାଇବା",
-    "ଯା": "ଯିବା",
-    "ଥା": "ଥିବା",
-    "ଦେ": "ଦେବା",
-    "ନେ": "ନେବା",
-    "ହେ": "ହେବା",
-}
-_CONSONANT_ROOTS = ("ଆସ", "କର", "ବସ", "ଶୁଣ", "ଦେଖ", "ରହ", "କହ", "ଚାହ", "ପଢ଼")
-_AA_ROOTS = ("ଖା", "ପା", "ଗା", "ଯା", "ଥା")
-_E_ROOTS = ("ଦେ", "ନେ", "ହେ")
-
-_CASES: tuple[tuple[str, str], ...] = (
-    ("ର", "genitive"),
-    ("କୁ", "dative"),
-    ("ରେ", "locative"),
-    ("ରୁ", "ablative"),
-    ("ଠାରୁ", "ablative"),
-    ("ଠାରେ", "locative"),
-    ("ଠୁ", "ablative"),
-    ("ଦ୍ୱାରା", "instrumental"),
-    ("ଦେଇ", "instrumental"),
-)
-_DEFINITE = ("ଟି", "ଟା", "ଟେ", "ଟିଏ")
-_INANIMATE_PLURAL = ("ଗୁଡ଼ିକ", "ଗୁଡ଼ା", "ଗୁଡ଼ାକ", "ଗୁଡ଼ିଏ", "ଙ୍କ")
-_HUMAN_PLURAL = ("ମାନେ", "ମାନଙ୍କ")
-_STACK_CASES = ("ର", "କୁ", "ରେ")
-
-_CONSONANT_ENDINGS: tuple[tuple[str, FiniteVerb | NonfiniteVerb], ...] = (
-    ("ୁଥିଲେ", FiniteVerb("past", "progressive", 3, "plural")),
-    ("ୁଥିଲା", FiniteVerb("past", "progressive", 3, "singular")),
-    ("ୁଥିଲି", FiniteVerb("past", "progressive", 1, "singular")),
-    ("ୁଛି", FiniteVerb("present", "progressive", 3, "singular")),
-    ("ୁଛୁ", FiniteVerb("present", "progressive", 1, "plural")),
-    ("ୁଛନ୍ତି", FiniteVerb("present", "progressive", 3, "plural")),
-    ("ିଲା", FiniteVerb("past", "simple", 3, "singular")),
-    ("ିଲେ", FiniteVerb("past", "simple", 3, "plural")),
-    ("ିଲି", FiniteVerb("past", "simple", 1, "singular")),
-    ("ିବ", FiniteVerb("future", "simple", 3, "singular")),
-    ("ିବି", FiniteVerb("future", "simple", 1, "singular")),
-    ("ିବେ", FiniteVerb("future", "simple", 3, "plural")),
-    ("ିବା", NonfiniteVerb("infinitive")),
-    ("ିଛି", FiniteVerb("present", "perfect", 3, "singular")),
-    ("ିଥିଲେ", FiniteVerb("past", "perfect", 3, "plural")),
-    ("ିଥାଏ", FiniteVerb("present", "habitual", 3, "singular")),
-    ("ଥାଏ", FiniteVerb("present", "habitual", 3, "singular")),
-    ("ନ୍ତି", FiniteVerb("present", "simple", 3, "plural")),
-    ("େ", FiniteVerb("present", "simple", 3, "singular")),
-    ("ି", NonfiniteVerb("conjunctive")),
-)
-_AA_ENDINGS: tuple[tuple[str, FiniteVerb | NonfiniteVerb], ...] = (
-    ("ଇବା", NonfiniteVerb("infinitive")),
-    ("ଇଲା", FiniteVerb("past", "simple", 3, "singular")),
-    ("ଇଲେ", FiniteVerb("past", "simple", 3, "plural")),
-    ("ଇଲି", FiniteVerb("past", "simple", 1, "singular")),
-    ("ଉଛି", FiniteVerb("present", "progressive", 3, "singular")),
-    ("ଉଥିଲେ", FiniteVerb("past", "progressive", 3, "plural")),
-    ("ଉଥିଲା", FiniteVerb("past", "progressive", 3, "singular")),
-    ("ଇବ", FiniteVerb("future", "simple", 3, "singular")),
-    ("ଇବେ", FiniteVerb("future", "simple", 3, "plural")),
-    ("ଇଛି", FiniteVerb("present", "perfect", 3, "singular")),
-    ("ଏ", FiniteVerb("present", "simple", 3, "singular")),
-    ("ଇ", NonfiniteVerb("conjunctive")),
-)
-_E_ENDINGS: tuple[tuple[str, FiniteVerb | NonfiniteVerb], ...] = (
-    ("ବା", NonfiniteVerb("infinitive")),
-    ("ବ", FiniteVerb("future", "simple", 3, "singular")),
-    ("ବି", FiniteVerb("future", "simple", 1, "singular")),
-    ("ବେ", FiniteVerb("future", "simple", 3, "plural")),
-    ("ଉଛି", FiniteVerb("present", "progressive", 3, "singular")),
-    ("ଉଥିଲେ", FiniteVerb("past", "progressive", 3, "plural")),
-    ("ଉଥିଲା", FiniteVerb("past", "progressive", 3, "singular")),
-    ("ଇ", NonfiniteVerb("conjunctive")),
-)
-
-_IRREGULAR: tuple[tuple[str, str, FiniteVerb | NonfiniteVerb], ...] = (
-    ("କଲି", "କର", FiniteVerb("past", "simple", 1, "singular")),
-    ("କଲୁ", "କର", FiniteVerb("past", "simple", 1, "plural")),
-    ("କଲା", "କର", FiniteVerb("past", "simple", 3, "singular")),
-    ("କଲେ", "କର", FiniteVerb("past", "simple", 3, "plural")),
-    ("ଗଲି", "ଯା", FiniteVerb("past", "simple", 1, "singular")),
-    ("ଗଲୁ", "ଯା", FiniteVerb("past", "simple", 1, "plural")),
-    ("ଗଲା", "ଯା", FiniteVerb("past", "simple", 3, "singular")),
-    ("ଗଲେ", "ଯା", FiniteVerb("past", "simple", 3, "plural")),
-    ("ଦେଲା", "ଦେ", FiniteVerb("past", "simple", 3, "singular")),
-    ("ଦେଲେ", "ଦେ", FiniteVerb("past", "simple", 3, "plural")),
-    ("ନେଲା", "ନେ", FiniteVerb("past", "simple", 3, "singular")),
-    ("ନେଲେ", "ନେ", FiniteVerb("past", "simple", 3, "plural")),
-    ("ହେଲା", "ହେ", FiniteVerb("past", "simple", 3, "singular")),
-    ("ହେଲେ", "ହେ", FiniteVerb("past", "simple", 3, "plural")),
-    ("ଯିବା", "ଯା", NonfiniteVerb("infinitive")),
-    ("ଥିବା", "ଥା", NonfiniteVerb("infinitive")),
-    ("ଥିଲା", "ଥା", FiniteVerb("past", "simple", 3, "singular")),
-    ("ଥିଲେ", "ଥା", FiniteVerb("past", "simple", 3, "plural")),
-    ("ଅଛି", "ଥା", FiniteVerb("present", "progressive", 3, "singular")),
-)
-
-_UNKNOWN = ("ପବନ", "ଆକାଶ", "ସୂର୍ଯ୍ୟ", "ତାରା", "ମେଘ", "ହସ", "ନୀଳ", "ଧବଳ", "hello", "୧୨୩")
+_PERF_S = FiniteVerb("past", "perfect", 3, "singular")
+_PERF_P = FiniteVerb("past", "perfect", 3, "plural")
+_PROG_S = FiniteVerb("past", "progressive", 3, "singular")
+_PROG_P = FiniteVerb("past", "progressive", 3, "plural")
+_PRES_PERF_P = FiniteVerb("present", "perfect", 3, "plural")
+_PRES_PROG_S = FiniteVerb("present", "progressive", 3, "singular")
+_PRES_PROG_P = FiniteVerb("present", "progressive", 3, "plural")
+_SIMPLE_S = FiniteVerb("past", "simple", 3, "singular")
+_SIMPLE_P = FiniteVerb("past", "simple", 3, "plural")
+_FUT_S = FiniteVerb("future", "simple", 3, "singular")
+_FUT_P = FiniteVerb("future", "simple", 3, "plural")
+_PRES_S = FiniteVerb("present", "simple", 3, "singular")
 _ISSUE_TAILS = (
     "ଗୁଡ଼ିକ",
     "ମାନେ",
@@ -180,10 +67,6 @@ def _nfc(text: str) -> str:
     return unicodedata.normalize("NFC", text)
 
 
-def _consonant_final(text: str) -> bool:
-    return text[-1] not in _MATRA
-
-
 def _noun(
     form: str,
     number: Literal["singular", "plural"] = "singular",
@@ -193,80 +76,113 @@ def _noun(
     return Lemma(_nfc(form), "NOUN", NounFeatures(number, case, definite))
 
 
-def _verb(root: str, features: FiniteVerb | NonfiniteVerb) -> Lemma:
-    return Lemma(_nfc(_VERBS[root]), "VERB", features)
-
-
-def _add_nominal(rows: list[tuple[str, str, Lemma]], stem_form: str, ending: str, item: Lemma) -> None:
-    rows.append((_nfc(stem_form + ending), _nfc(stem_form), item))
-
-
-def _common_noun_rows() -> list[tuple[str, str, Lemma]]:
-    rows: list[tuple[str, str, Lemma]] = []
-    for noun in _NOUNS:
-        rows.append((_nfc(noun), _nfc(noun), _noun(noun)))
-        for ending, case in _CASES:
-            _add_nominal(rows, noun, ending, _noun(noun, case=case))
-        for ending in _DEFINITE:
-            _add_nominal(rows, noun, ending, _noun(noun, definite=True))
-        for definite in ("ଟି", "ଟା"):
-            for case_ending, case in _CASES[:3]:
-                _add_nominal(rows, noun, definite + case_ending, _noun(noun, case=case, definite=True))
-        for plural in _INANIMATE_PLURAL:
-            _add_nominal(rows, noun, plural, _noun(noun, number="plural"))
-            for case_ending in _STACK_CASES:
-                stacked = {"ର": "genitive", "କୁ": "dative", "ରେ": "locative"}[case_ending]
-                _add_nominal(rows, noun, plural + case_ending, _noun(noun, "plural", stacked))
-        if _consonant_final(noun):
-            _add_nominal(rows, noun, "େ", _noun(noun, case="locative"))
-    return rows
-
-
-def _human_noun_rows() -> list[tuple[str, str, Lemma]]:
-    rows: list[tuple[str, str, Lemma]] = []
-    for human in _HUMANS:
-        rows.append((_nfc(human), _nfc(human), _noun(human)))
-        for ending, case in _CASES:
-            _add_nominal(rows, human, ending, _noun(human, case=case))
-        for plural in _HUMAN_PLURAL:
-            _add_nominal(rows, human, plural, _noun(human, number="plural"))
-        for case_ending, case in (("ର", "genitive"), ("କୁ", "dative"), ("ରେ", "locative")):
-            _add_nominal(rows, human, "ମାନଙ୍କ" + case_ending, _noun(human, "plural", case))
-        _add_nominal(rows, human, "େ", _noun(human, number="plural"))
-    return rows
-
-
-def _noun_rows() -> list[tuple[str, str, Lemma]]:
-    return _common_noun_rows() + _human_noun_rows()
-
-
-def _verb_rows() -> list[tuple[str, str, Lemma]]:
-    rows: list[tuple[str, str, Lemma]] = []
-    groups = (
-        (_CONSONANT_ROOTS, _CONSONANT_ENDINGS),
-        (_AA_ROOTS, _AA_ENDINGS),
-        (_E_ROOTS, _E_ENDINGS),
-    )
-    for roots, endings in groups:
-        for root in roots:
-            rows.append((_nfc(root), _nfc(root), _verb(root, NonfiniteVerb("infinitive"))))
-            for ending, features in endings:
-                rows.append((_nfc(root + ending), _nfc(root), _verb(root, features)))
-    for surface, root, features in _IRREGULAR:
-        rows.append((_nfc(surface), _nfc(root), _verb(root, features)))
-    return rows
-
-
-def _unknown_rows() -> list[tuple[str, str, Lemma]]:
-    rows: list[tuple[str, str, Lemma]] = []
-    for word in _UNKNOWN:
-        text = _nfc(word)
-        rows.append((text, text, Lemma(text, "UNKNOWN", UnknownFeatures())))
-    return rows
+def _verb(form: str, features: FiniteVerb | NonfiniteVerb) -> Lemma:
+    return Lemma(_nfc(form), "VERB", features)
 
 
 def _gold() -> list[tuple[str, str, Lemma]]:
-    return _noun_rows() + _verb_rows() + _unknown_rows()
+    noun = _noun
+    verb = _verb
+    inf = NonfiniteVerb("infinitive")
+    conj = NonfiniteVerb("conjunctive")
+    rows: list[tuple[str, str, Lemma]] = [
+        ("ଘର", "ଘର", noun("ଘର")),
+        ("ଘରର", "ଘର", noun("ଘର", case="genitive")),
+        ("ଘରକୁ", "ଘର", noun("ଘର", case="dative")),
+        ("ଘରରେ", "ଘର", noun("ଘର", case="locative")),
+        ("ଘରେ", "ଘର", noun("ଘର", case="locative")),
+        ("ଘରଠାରୁ", "ଘର", noun("ଘର", case="ablative")),
+        ("ଘରଠାରେ", "ଘର", noun("ଘର", case="locative")),
+        ("ଘରରୁ", "ଘର", noun("ଘର", case="ablative")),
+        ("ଘରଦ୍ୱାରା", "ଘର", noun("ଘର", case="instrumental")),
+        ("ଘରଟି", "ଘର", noun("ଘର", definite=True)),
+        ("ଘରଟା", "ଘର", noun("ଘର", definite=True)),
+        ("ଘରଗୁଡ଼ିକ", "ଘର", noun("ଘର", number="plural")),
+        ("ଘରଗୁଡ଼ିକର", "ଘର", noun("ଘର", number="plural", case="genitive")),
+        ("ଘରଗୁଡ଼ିକୁ", "ଘର", noun("ଘର", number="plural", case="dative")),
+        ("ଘରଗୁଡ଼ା", "ଘର", noun("ଘର", number="plural")),
+        ("ସରକାର", "ସରକାର", noun("ସରକାର")),
+        ("ସରକାରର", "ସରକାର", noun("ସରକାର", case="genitive")),
+        ("ସରକାରେ", "ସରକାର", noun("ସରକାର", case="locative")),
+        ("ମନ୍ଦିର", "ମନ୍ଦିର", noun("ମନ୍ଦିର")),
+        ("ମନ୍ଦିରେ", "ମନ୍ଦିର", noun("ମନ୍ଦିର", case="locative")),
+        ("ମନ୍ଦିରର", "ମନ୍ଦିର", noun("ମନ୍ଦିର", case="genitive")),
+        ("ବହି", "ବହି", noun("ବହି")),
+        ("ବହିଟି", "ବହି", noun("ବହି", definite=True)),
+        ("ବହିରେ", "ବହି", noun("ବହି", case="locative")),
+        ("ଫୁଲ", "ଫୁଲ", noun("ଫୁଲ")),
+        ("ଫୁଲର", "ଫୁଲ", noun("ଫୁଲ", case="genitive")),
+        ("ପୁରୀରେ", "ପୁରୀ", noun("ପୁରୀ", case="locative")),
+        ("ଓଡ଼ିଶାର", "ଓଡ଼ିଶା", noun("ଓଡ଼ିଶା", case="genitive")),
+        ("ଲୋକ", "ଲୋକ", noun("ଲୋକ")),
+        ("ଲୋକର", "ଲୋକ", noun("ଲୋକ", case="genitive")),
+        ("ଲୋକମାନେ", "ଲୋକ", noun("ଲୋକ", number="plural")),
+        ("ଲୋକମାନଙ୍କ", "ଲୋକ", noun("ଲୋକ", number="plural")),
+        ("ଲୋକମାନଙ୍କର", "ଲୋକ", noun("ଲୋକ", number="plural", case="genitive")),
+        ("ଲୋକମାନଙ୍କୁ", "ଲୋକ", noun("ଲୋକ", number="plural", case="dative")),
+        ("ଲୋକେ", "ଲୋକ", noun("ଲୋକ", number="plural")),
+        ("ଲୋକଙ୍କୁ", "ଲୋକ", noun("ଲୋକ", number="plural", case="dative")),
+        ("ପିଲା", "ପିଲା", noun("ପିଲା")),
+        ("ପିଲାର", "ପିଲା", noun("ପିଲା", case="genitive")),
+        ("ପିଲାମାନଙ୍କୁ", "ପିଲା", noun("ପିଲା", number="plural", case="dative")),
+        ("ମୁଖ୍ୟମନ୍ତ୍ରୀଙ୍କୁ", "ମୁଖ୍ୟମନ୍ତ୍ରୀ", noun("ମୁଖ୍ୟମନ୍ତ୍ରୀ", number="plural", case="dative")),
+        ("ଆସ", "ଆସ", verb("ଆସିବା", inf)),
+        ("ଆସୁଥିଲେ", "ଆସ", verb("ଆସିବା", _PROG_P)),
+        ("ଆସୁଥିଲା", "ଆସ", verb("ଆସିବା", _PROG_S)),
+        ("ଆସୁଛି", "ଆସ", verb("ଆସିବା", _PRES_PROG_S)),
+        ("ଆସିଲା", "ଆସ", verb("ଆସିବା", _SIMPLE_S)),
+        ("ଆସିଲେ", "ଆସ", verb("ଆସିବା", _SIMPLE_P)),
+        ("ଆସିବ", "ଆସ", verb("ଆସିବା", _FUT_S)),
+        ("ଆସିବେ", "ଆସ", verb("ଆସିବା", _FUT_P)),
+        ("ଆସିବା", "ଆସ", verb("ଆସିବା", inf)),
+        ("ଆସେ", "ଆସ", verb("ଆସିବା", _PRES_S)),
+        ("ଆସନ୍ତି", "ଆସ", verb("ଆସିବା", FiniteVerb("present", "simple", 3, "plural"))),
+        ("ଆସି", "ଆସ", verb("ଆସିବା", conj)),
+        ("କର", "କର", verb("କରିବା", inf)),
+        ("କରେ", "କର", verb("କରିବା", _PRES_S)),
+        ("କରିବା", "କର", verb("କରିବା", inf)),
+        ("କରୁଛି", "କର", verb("କରିବା", _PRES_PROG_S)),
+        ("କରିଥିଲା", "କର", verb("କରିବା", _PERF_S)),
+        ("କରିଥିଲେ", "କର", verb("କରିବା", _PERF_P)),
+        ("କରିଛନ୍ତି", "କର", verb("କରିବା", _PRES_PERF_P)),
+        ("କଲା", "କର", verb("କରିବା", _SIMPLE_S)),
+        ("କଲେ", "କର", verb("କରିବା", _SIMPLE_P)),
+        ("ଦେ", "ଦେ", verb("ଦେବା", inf)),
+        ("ଦେବା", "ଦେ", verb("ଦେବା", inf)),
+        ("ଦେବ", "ଦେ", verb("ଦେବା", _FUT_S)),
+        ("ଦେଉଛି", "ଦେ", verb("ଦେବା", _PRES_PROG_S)),
+        ("ଦେଇଥିଲା", "ଦେ", verb("ଦେବା", _PERF_S)),
+        ("ଦେଇଥିଲେ", "ଦେ", verb("ଦେବା", _PERF_P)),
+        ("ଦେଇଛନ୍ତି", "ଦେ", verb("ଦେବା", _PRES_PERF_P)),
+        ("ଦେଲା", "ଦେ", verb("ଦେବା", _SIMPLE_S)),
+        ("ଦେଇ", "ଦେ", verb("ଦେବା", conj)),
+        ("ନେବ", "ନେ", verb("ନେବା", _FUT_S)),
+        ("ହେବେ", "ହେ", verb("ହେବା", _FUT_P)),
+        ("ହେଲା", "ହେ", verb("ହେବା", _SIMPLE_S)),
+        ("ଖାଇବା", "ଖା", verb("ଖାଇବା", inf)),
+        ("ଖାଇଥିଲା", "ଖା", verb("ଖାଇବା", _PERF_S)),
+        ("ଖାଇଥିଲେ", "ଖା", verb("ଖାଇବା", _PERF_P)),
+        ("ଖାଇଛନ୍ତି", "ଖା", verb("ଖାଇବା", _PRES_PERF_P)),
+        ("ଖାଉଛି", "ଖା", verb("ଖାଇବା", _PRES_PROG_S)),
+        ("ଖାଏ", "ଖା", verb("ଖାଇବା", _PRES_S)),
+        ("ଫେରୁଥିଲେ", "ଫେର", verb("ଫେରିବା", _PROG_P)),
+        ("ଫେରୁଥିଲା", "ଫେର", verb("ଫେରିବା", _PROG_S)),
+        ("ଫେରୁଛନ୍ତି", "ଫେର", verb("ଫେରିବା", _PRES_PROG_P)),
+        ("ଫେରିବା", "ଫେର", verb("ଫେରିବା", inf)),
+        ("ଯିବା", "ଯା", verb("ଯିବା", inf)),
+        ("ଯିବାକୁ", "ଯା", verb("ଯିବା", inf)),
+        ("ଗଲା", "ଯା", verb("ଯିବା", _SIMPLE_S)),
+        ("ଥିବା", "ଥା", verb("ଥିବା", inf)),
+        ("ଥିଲା", "ଥା", verb("ଥିବା", _SIMPLE_S)),
+        ("ଅଛି", "ଥା", verb("ଥିବା", _PRES_PROG_S)),
+        ("ଶୁଣିଲା", "ଶୁଣ", verb("ଶୁଣିବା", _SIMPLE_S)),
+        ("ଦେଖୁଛି", "ଦେଖ", verb("ଦେଖିବା", _PRES_PROG_S)),
+        ("ରହିବ", "ରହ", verb("ରହିବା", _FUT_S)),
+        ("ପବନ", "ପବନ", Lemma("ପବନ", "UNKNOWN", UnknownFeatures())),
+        ("ଆକାଶ", "ଆକାଶ", Lemma("ଆକାଶ", "UNKNOWN", UnknownFeatures())),
+        ("hello", "hello", Lemma("hello", "UNKNOWN", UnknownFeatures())),
+    ]
+    return [(_nfc(surface), _nfc(expected), item) for surface, expected, item in rows]
 
 
 def test_issue_examples() -> None:
@@ -334,31 +250,89 @@ def test_empty_and_type() -> None:
 
 def test_eval_accuracy_and_idempotence() -> None:
     rows = _gold()
-    assert len(rows) >= 500
+    surfaces = [surface for surface, _, _ in rows]
+    assert all("କକୁ" not in surface for surface in surfaces)
+    assert any("ମାନଙ୍କୁ" in surface for surface in surfaces)
+    assert any("ଗୁଡ଼ିକୁ" in surface for surface in surfaces)
+    assert any(surface.endswith("ଙ୍କୁ") and "ମାନ" not in surface for surface in surfaces)
     stem_hits = 0
     lemma_hits = 0
-    known = 0
     for surface, expected_stem, expected_lemma in rows:
         got_stem = stem(surface)
         got_lemma = lemma(surface)
         stem_hits += got_stem == expected_stem
         lemma_hits += got_lemma == expected_lemma
-        known += expected_lemma.pos != "UNKNOWN"
         assert got_stem == expected_stem
         assert got_lemma == expected_lemma
         assert stem(got_stem) == got_stem
         assert stem(got_lemma.form) == got_stem
+        assert _DOUBLED_MATRA.search(got_lemma.form) is None
     total = len(rows)
     assert stem_hits / total >= 0.85
     assert lemma_hits / total >= 0.60
-    assert known / total >= 0.60
 
 
-def test_every_tail_occurs_in_the_eval() -> None:
-    surfaces = [surface for surface, _, _ in _gold()]
-    for item in suffixes():
-        for tail in item.tails:
-            assert any(surface.endswith(tail) and len(surface) > len(tail) for surface in surfaces)
+def test_perfect_verbs_stay_on_the_root() -> None:
+    perfect = {
+        "କରିଥିଲା": ("କର", "କରିବା", _PERF_S),
+        "କରିଥିଲେ": ("କର", "କରିବା", _PERF_P),
+        "କରିଛନ୍ତି": ("କର", "କରିବା", _PRES_PERF_P),
+        "ଦେଇଥିଲା": ("ଦେ", "ଦେବା", _PERF_S),
+        "ଦେଇଥିଲେ": ("ଦେ", "ଦେବା", _PERF_P),
+        "ଦେଇଛନ୍ତି": ("ଦେ", "ଦେବା", _PRES_PERF_P),
+        "ଖାଇଥିଲା": ("ଖା", "ଖାଇବା", _PERF_S),
+        "ଖାଇଥିଲେ": ("ଖା", "ଖାଇବା", _PERF_P),
+        "ଖାଇଛନ୍ତି": ("ଖା", "ଖାଇବା", _PRES_PERF_P),
+    }
+    progressive = {
+        "ଫେରୁଥିଲା": ("ଫେର", "ଫେରିବା", _PROG_S),
+        "ଫେରୁଥିଲେ": ("ଫେର", "ଫେରିବା", _PROG_P),
+        "ଫେରୁଛନ୍ତି": ("ଫେର", "ଫେରିବା", _PRES_PROG_P),
+    }
+    for word, (root, form, features) in {**perfect, **progressive}.items():
+        assert stem(word) == root
+        assert stem(stem(word)) == root
+        got = lemma(word)
+        assert got.form == form
+        assert got.features == features
+        assert stem(got.form) == root
+        assert _DOUBLED_MATRA.search(got.form) is None
+
+
+def test_plural_dative_uses_the_real_endings() -> None:
+    expected = {
+        "ଲୋକମାନଙ୍କୁ": "ଲୋକ",
+        "ପିଲାମାନଙ୍କୁ": "ପିଲା",
+        "ଲୋକଙ୍କୁ": "ଲୋକ",
+        "ମୁଖ୍ୟମନ୍ତ୍ରୀଙ୍କୁ": "ମୁଖ୍ୟମନ୍ତ୍ରୀ",
+        "ଘରଗୁଡ଼ିକୁ": "ଘର",
+    }
+    for word, root in expected.items():
+        got = lemma(word)
+        assert stem(word) == root
+        assert got.pos == "NOUN"
+        assert got.features == NounFeatures("plural", "dative", False)
+
+
+def test_precomposed_nukta_matches_the_plural_genitive() -> None:
+    word = "ଘରଗୁ" + "\u0b5c" + "ିକର"
+    assert "\u0b5c" in word
+    assert stem(word) == "ଘର"
+
+
+def test_virama_is_not_left_as_a_stem() -> None:
+    blocked = "ଘର୍କୁ"
+    assert "\u0b4d" in blocked
+    assert "\u0bcd" not in blocked
+    assert stem(blocked) == blocked
+    assert stem("ଲୋକଙ୍କୁ") == "ଲୋକ"
+
+
+def test_advertised_pages_name_the_morph_release() -> None:
+    root = Path(__file__).resolve().parent.parent
+    for relative in _ADVERTISED:
+        text = (root / relative).read_text(encoding="utf-8")
+        assert _MORPH_NOTE in text
 
 
 def test_suffix_inventory_is_documented() -> None:

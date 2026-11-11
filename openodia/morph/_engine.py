@@ -92,6 +92,7 @@ class _Nominal:
     number: Number | None = None
     case: Case | None = None
     definite: bool = False
+    min_aksharas: int = 1
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,8 +111,8 @@ def _nfc(text: str) -> str:
     return unicodedata.normalize("NFC", text)
 
 
-def _case(citation: str, text: str, case: Case, guard: Guard = "any") -> _Nominal:
-    return _Nominal(_nfc(citation), _nfc(text), guard, case=case)
+def _case(citation: str, text: str, case: Case, guard: Guard = "any", min_aksharas: int = 1) -> _Nominal:
+    return _Nominal(_nfc(citation), _nfc(text), guard, case=case, min_aksharas=min_aksharas)
 
 
 def _definite(text: str) -> _Nominal:
@@ -121,6 +122,11 @@ def _definite(text: str) -> _Nominal:
 
 def _plural(citation: str, text: str, guard: Guard = "any") -> _Nominal:
     return _Nominal(_nfc(citation), _nfc(text), guard, number="plural")
+
+
+def _plural_dative(text: str) -> _Nominal:
+    normalized = _nfc(text)
+    return _Nominal(normalized, normalized, "any", number="plural", case="dative")
 
 
 def _finite(
@@ -152,7 +158,7 @@ def _same(
 
 
 _TAILS: tuple[_Row, ...] = (
-    _case("ର", "ର", "genitive"),
+    _case("ର", "ର", "genitive", min_aksharas=2),
     _case("କୁ", "କୁ", "dative"),
     _case("ରେ", "ରେ", "locative"),
     _case("ରେ", "େ", "locative", "noun_c"),
@@ -174,8 +180,13 @@ _TAILS: tuple[_Row, ...] = (
     _plural("ଗୁଡ଼ିଏ", "ଗୁଡ଼ିଏ"),
     _plural("ଙ୍କ", "ଙ୍କ"),
     _plural("େ", "େ", "human"),
-    *_same("ଉଥିଲେ", ("ୁଥିଲେ", "ଉଥିଲେ", "ଥିଲେ"), "past", "progressive", 3, "plural"),
-    *_same("ଉଥିଲା", ("ୁଥିଲା", "ଉଥିଲା", "ଥିଲା"), "past", "progressive", 3, "singular"),
+    _plural_dative("ମାନଙ୍କୁ"),
+    _plural_dative("ଙ୍କୁ"),
+    _plural_dative("ଗୁଡ଼ିକୁ"),
+    *_same("ଉଥିଲେ", ("ୁଥିଲେ", "ଉଥିଲେ"), "past", "progressive", 3, "plural"),
+    _finite("ଉଥିଲେ", "ଥିଲେ", "past", "progressive", 3, "plural", "verb"),
+    *_same("ଉଥିଲା", ("ୁଥିଲା", "ଉଥିଲା"), "past", "progressive", 3, "singular"),
+    _finite("ଉଥିଲା", "ଥିଲା", "past", "progressive", 3, "singular", "verb"),
     _finite("ଉଥିଲି", "ୁଥିଲି", "past", "progressive", 1, "singular"),
     *_same("ଉଛି", ("ୁଛି", "ଉଛି"), "present", "progressive", 3, "singular"),
     _finite("ଉଛୁ", "ୁଛୁ", "present", "progressive", 1, "plural"),
@@ -189,6 +200,11 @@ _TAILS: tuple[_Row, ...] = (
     *_same("ଇବେ", ("ିବେ", "ଇବେ"), "future", "simple", 3, "plural"),
     *_same("ଥାଏ", ("ଥାଏ", "ିଥାଏ"), "present", "habitual", 3, "singular"),
     _finite("ଇଥିଲେ", "ିଥିଲେ", "past", "perfect", 3, "plural"),
+    _finite("ଇଥିଲେ", "ଇଥିଲେ", "past", "perfect", 3, "plural"),
+    _finite("ଇଥିଲା", "ିଥିଲା", "past", "perfect", 3, "singular"),
+    _finite("ଇଥିଲା", "ଇଥିଲା", "past", "perfect", 3, "singular"),
+    _finite("ଇଛନ୍ତି", "ିଛନ୍ତି", "present", "perfect", 3, "plural"),
+    _finite("ଇଛନ୍ତି", "ଇଛନ୍ତି", "present", "perfect", 3, "plural"),
     _finite("ନ୍ତି", "ନ୍ତି", "present", "simple", 3, "plural"),
     _finite("ଏ", "େ", "present", "simple", 3, "singular", "verb"),
     _finite("ଏ", "ଏ", "present", "simple", 3, "singular", "verb"),
@@ -259,6 +275,11 @@ def suffixes() -> tuple[Suffix, ...]:
     )
 
 
+def _aksharas(text: str) -> int:
+    skipped = _MATRA | set("଼୍ଁଂଃ")
+    return sum(1 for char in text if char not in skipped)
+
+
 def _consonant_final(text: str) -> bool:
     last = text[-1]
     return last not in _MATRA and last not in _INDEPENDENT
@@ -290,6 +311,8 @@ def _candidate(word: str, tail: _Row) -> str | None:
     remainder = word[: -len(tail.text)]
     if len(remainder) < 2 or not _shape(remainder) or not _allows(tail.guard, remainder):
         return None
+    if isinstance(tail, _Nominal) and _aksharas(remainder) < tail.min_aksharas:
+        return None
     if isinstance(tail, _Verbal) and _known_nominal(remainder) and remainder not in _VERBS:
         return None
     return remainder
@@ -316,7 +339,7 @@ def _infinitive(root: str) -> str:
         return override
     if root.endswith("ା"):
         return root + "ଇବା"
-    if root.endswith(("େ", "ୋ")):
+    if root.endswith(("େ", "ୋ", "ି", "ୀ", "ୁ", "ୂ", "ୈ", "ୌ")):
         return root + "ବା"
     return root + "ିବା"
 
