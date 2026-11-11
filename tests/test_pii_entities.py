@@ -112,7 +112,7 @@ def test_dictionary_given_name_and_surname_is_a_name() -> None:
     assert entity.confidence == 0.7
 
 
-@pytest.mark.parametrize("text", ["ବ\u0B5C ଘର", "କ\u0B4D\u0B3C", "ପ\u0B5Dା", "a\u0301\u0323", "ଉ\u0B5Cାଣଗୁଡିକ"])
+@pytest.mark.parametrize("text", ["ବ\u0b5c ଘର", "କ\u0b4d\u0b3c", "ପ\u0b5dା", "a\u0301\u0323", "ଉ\u0b5cାଣଗୁଡିକ"])
 def test_expanded_nfc_keeps_offsets_inside_the_original_text(text: str) -> None:
     pii.mask(text)
     for entity in pii.detect(text):
