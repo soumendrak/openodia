@@ -921,6 +921,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../api/sandhi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sandhi
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api/numbers/" class="md-nav__link">
         
   
@@ -1403,6 +1431,7 @@
 <p>Released and unreleased changes. The text below is <code>CHANGELOG.md</code> from the repository. The newest section is Unreleased.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <ul>
+<li>Add <code>openodia.sandhi</code> to split an Odia compound into the words sandhi joined (<code>split</code>) and to join those parts (<code>join</code>). A known lemma, or a word that does not split into two known words, is returned unchanged. <code>split</code> and <code>join</code> NFC-normalize, so for a compound the splitter accepts <code>join(split(word))</code> equals the NFC form of that word. <code>openodia.sandhi</code> needs a release newer than 0.1.14: <code>import openodia.sandhi</code> fails on 0.1.14.</li>
 <li>Add <code>openodia.pii</code> and <code>openodia pii</code> to find or mask phone numbers, emails, URLs, Aadhaar (Verhoeff checksum), PAN and PIN codes in Odia or ASCII digits. Names, addresses, dates and amounts are not detected. Overlapping matches merge into one span, so for every detected value <code>mask</code> never leaves part of it visible (see the limits below), and <code>mask</code> repeats until stable so masking its output changes nothing (up to 10 glued values). Detection is linear in the input size.</li>
 <li>Every CLI subcommand accepts <code>--json</code> and prints one UTF-8 JSON document on stdout; default text output is unchanged by <code>--json</code>. With <code>--json</code>, invalid UTF-8 in stdin or in the text argument is an <code>openodia: error:</code> with exit code 1; <code>detect-language --json</code> used to pass it through in 0.1.14.</li>
 <li>Docs for AI agents: <code>AGENTS.md</code>, <code>skills/openodia/SKILL.md</code> and <code>llms.txt</code> on the docs site.</li>
@@ -1484,7 +1513,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 10, 2026 07:16:10 UTC"><span class="timeago" datetime="2026-11-10T07:16:10+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 10, 2026 07:16:10 UTC">2026-11-10</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 11, 2026 09:04:47 UTC"><span class="timeago" datetime="2026-11-11T09:04:47+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 11, 2026 09:04:47 UTC">2026-11-11</span>
   </span>
 
     
