@@ -32,6 +32,13 @@ def rendered_text(page: Path) -> str:
     return html.unescape(TAGS.sub("\n", page.read_text(encoding="utf-8")))
 
 
+def test_legacy_api_page_lists_the_public_functions(site: Path) -> None:
+    page = (site / "api" / "legacy" / "index.html").read_text(encoding="utf-8")
+    assert page.count("doc-function") >= 3
+    for name in ("to_unicode", "detect_font", "to_unicode_auto"):
+        assert f'id="{name}"' in page or name in page
+
+
 def test_api_pages_were_built(site: Path) -> None:
     assert len(list((site / "api").glob("*/index.html"))) >= 10
 

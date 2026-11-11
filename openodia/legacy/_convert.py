@@ -354,6 +354,11 @@ def _convert(text: str, font: _Font) -> str:
 
 
 def to_unicode(text: str, font: str) -> str:
+    """Convert cp1252 keystrokes from one legacy font to NFC Unicode Odia.
+
+    ``text`` is the font file decoded as cp1252, not Latin-1. ``font`` is a
+    name in ``SUPPORTED_FONTS``.
+    """
     found = _BY_NAME.get(font)
     if found is None:
         choices = ", ".join(SUPPORTED_FONTS)
@@ -374,17 +379,28 @@ def _score(text: str, font: _Font) -> int:
 
 
 def detect_font(text: str) -> dict[str, str | float | None]:
+    """Guess which legacy font produced ``text``.
+
+    Returns ``font`` and ``confidence``. Equal scores are a tie, so ``font``
+    is None and nothing is guessed.
+    """
     if text == "":
         return {"font": None, "confidence": 0.0}
     scores = [_score(text, font) for font in _FONTS]
     best = max(scores)
     if best == 0:
         return {"font": None, "confidence": 0.0}
-    chosen = scores.index(best)
-    return {"font": _FONTS[chosen].name, "confidence": best / sum(scores)}
+    winners = [font for font, score in zip(_FONTS, scores, strict=True) if score == best]
+    if len(winners) != 1:
+        return {"font": None, "confidence": best / sum(scores)}
+    return {"font": winners[0].name, "confidence": best / sum(scores)}
 
 
 def to_unicode_auto(text: str) -> str:
+    """Detect the legacy font and convert it.
+
+    A tie returns ``text`` unchanged.
+    """
     font = detect_font(text)["font"]
     if not isinstance(font, str):
         return text

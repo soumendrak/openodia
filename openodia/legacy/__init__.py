@@ -1,7 +1,7 @@
 """Convert legacy 8-bit Odia fonts to Unicode Odia.
 
-Output is NFC. ଡ଼ and ଢ଼ stay consonant plus nukta, which is the
-NFC spelling of those letters.
+Decode the font bytes as cp1252. Output is NFC. ଡ଼ and ଢ଼ stay consonant
+plus nukta, which is the NFC spelling of those letters.
 
 A left matra is typed before the consonant in these fonts and is moved to the
 end of that conjunct.

@@ -84,7 +84,7 @@ removed). Pass `-` without `--file` to read UTF-8 text from stdin.
 
 ### Legacy fonts
 
-`openodia.legacy` converts 8-bit Odia fonts to Unicode:
+`openodia.legacy` needs a release newer than 0.1.14. It converts 8-bit Odia fonts to Unicode. Decode the font bytes as cp1252:
 
 ```python
 from openodia import legacy
