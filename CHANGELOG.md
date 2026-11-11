@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add `openodia.morph`, exported as `from openodia import morph`: `stem` (noun stem or verb root) and `lemma` (citation form plus part of speech and features) for Odia inflection. `openodia.morph` needs a release newer than 0.1.14. Offline suffix rules and a small irregular dictionary; no new dependency. Perfect `ଇଥିଲା` forms keep the conjunctive vowel on the suffix, and plural dative uses `ମାନଙ୍କୁ`, `ଙ୍କୁ` and `ଗୁଡ଼ିକୁ`.
 - Add `openodia.pii` and `openodia pii` to find or mask phone numbers, emails, URLs, Aadhaar (Verhoeff checksum), PAN and PIN codes in Odia or ASCII digits. Names, addresses, dates and amounts are not detected. Overlapping matches merge into one span, so for every detected value `mask` never leaves part of it visible (see the limits below), and `mask` repeats until stable so masking its output changes nothing (up to 10 glued values). Detection is linear in the input size.
 - Every CLI subcommand accepts `--json` and prints one UTF-8 JSON document on stdout; default text output is unchanged by `--json`. With `--json`, invalid UTF-8 in stdin or in the text argument is an `openodia: error:` with exit code 1; `detect-language --json` used to pass it through in 0.1.14.
 - Docs for AI agents: `AGENTS.md`, `skills/openodia/SKILL.md` and `llms.txt` on the docs site.

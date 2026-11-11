@@ -154,6 +154,7 @@ nav:
       - api/names.md
       - api/corpus.md
       - api/roman.md
+      - api/morph.md
       - api/indic.md
       - api/pii.md
   - Application: application.md

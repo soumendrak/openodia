@@ -1,6 +1,6 @@
 # AGENTS.md
 
-`openodia` is a Python library and command-line tool for Odia (ଓଡ଼ିଆ) text: tokenize, normalize, clean, translate, detect language, generate names, romanize (ISO 15919, Hunterian, ITRANS), summarize, remove stopwords, n-grams, word frequency and PII masking. Docs: https://openodia.soumendrak.com. Skill file: [skills/openodia/SKILL.md](skills/openodia/SKILL.md).
+`openodia` is a Python library and command-line tool for Odia (ଓଡ଼ିଆ) text: tokenize, normalize, clean, translate, detect language, generate names, romanize (ISO 15919, Hunterian, ITRANS), summarize, remove stopwords, n-grams, word frequency, PII masking, and stemming and lemmatization (`from openodia import morph`, then `morph.stem` and `morph.lemma`). `openodia.morph` needs a release newer than 0.1.14. Docs: https://openodia.soumendrak.com. Skill file: [skills/openodia/SKILL.md](skills/openodia/SKILL.md).
 
 ## Install
 
