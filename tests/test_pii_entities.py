@@ -1,3 +1,5 @@
+import subprocess
+import sys
 import time
 import unicodedata
 
@@ -110,6 +112,31 @@ def test_dictionary_given_name_and_surname_is_a_name() -> None:
     assert entity.confidence == 0.7
 
 
+def test_detect_finishes_when_nfc_expands_a_letter() -> None:
+    script = """
+import unicodedata
+from openodia import pii
+samples = ["ବ\\u0B5C ଘର", "କ\\u0B4D\\u0B3C", "ପ\\u0B5Dା", "a\\u0301\\u0323", "ଉ\\u0B5Cାଣଗୁଡିକ"]
+for text in samples:
+    for entity in pii.detect(text):
+        assert text[entity.start:entity.end] == entity.text, text
+    pii.mask(text)
+    pii.pseudonymize(text, pii.KeyStore())
+print("ok")
+"""
+    completed = subprocess.run([sys.executable, "-c", script], check=False, capture_output=True, text=True, timeout=5)
+    assert completed.returncode == 0, completed.stderr
+    assert completed.stdout.strip() == "ok"
+
+
+def test_a_decomposed_letter_before_a_span_does_not_shift_it() -> None:
+    for prefix in ("ମୋ ଗୌରବ ", "ଗୋ"):
+        text = unicodedata.normalize("NFD", prefix) + "a@b.com"
+        assert pii.mask(text) == unicodedata.normalize("NFD", prefix) + "<EMAIL>"
+        for entity in pii.detect(text):
+            assert text[entity.start : entity.end] == entity.text
+
+
 def test_nfd_text_masks_the_same_name_and_date_as_nfc() -> None:
     for text in ("ଶ୍ରୀ ଗୌତମ ଦାସ", "ଜନ୍ମ ୧୫ ଅକ୍ଟୋବର ୨୦୨୪"):
         nfd = unicodedata.normalize("NFD", text)
@@ -122,6 +149,12 @@ def test_nfd_text_masks_the_same_name_and_date_as_nfc() -> None:
 def test_consecutive_surnames_are_masked_with_the_given_name() -> None:
     assert pii.mask("ଅଶୋକ କୁମାର ଦାସ") == "<NAME>"
     assert pii.mask("ଶ୍ରୀ ଅଶୋକ କୁମାର ଦାସ ମହାପାତ୍ର") == "<NAME>"
+    assert pii.mask("ଅଶୋକ ଚନ୍ଦ୍ର ଦାସ ମହାପାତ୍ର") == "<NAME>"
+
+
+def test_a_surname_run_stops_at_a_comma_and_at_a_given_name() -> None:
+    assert pii.mask("ଅଶୋକ ଦାସ, ମହାପାତ୍ର ଆସିଲେ") == "<NAME>, ମହାପାତ୍ର ଆସିଲେ"
+    assert pii.mask("ଅଶୋକ ଦାସ ଅଶୋକ") == "<NAME> ଅଶୋକ"
 
 
 def test_an_honorific_includes_three_dictionary_words_and_not_only_two() -> None:

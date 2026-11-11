@@ -260,19 +260,49 @@ def _money_candidates(text: str, wanted: frozenset[str], min_confidence: float) 
     return found
 
 
+def _attaches_to_previous(char: str) -> bool:
+    return unicodedata.combining(char) > 0 or unicodedata.category(char) in {"Mn", "Mc", "Me"}
+
+
+def _mark_runs(text: str) -> list[tuple[int, int]]:
+    runs: list[tuple[int, int]] = []
+    start = 0
+    while start < len(text):
+        end = start + 1
+        while end < len(text) and _attaches_to_previous(text[end]):
+            end += 1
+        runs.append((start, end))
+        start = end
+    return runs
+
+
+def _nfc_ends(chunk: str, nfc_chunk: str, origin: int) -> list[int]:
+    ends: list[int] = []
+    taken = 0
+    for length in range(1, len(nfc_chunk) + 1):
+        target = nfc_chunk[:length]
+        end = taken + 1
+        while end <= len(chunk) and unicodedata.normalize("NFC", chunk[:end]) != target:
+            end += 1
+        if end > len(chunk):
+            ends.extend([origin + len(chunk)] * (len(nfc_chunk) - len(ends)))
+            return ends
+        ends.append(origin + end)
+        taken = end
+    return ends
+
+
 def _nfc_bounds(text: str) -> tuple[str, list[int] | None]:
     if unicodedata.is_normalized("NFC", text):
         return text, None
-    nfc = unicodedata.normalize("NFC", text)
+    parts: list[str] = []
     bounds = [0]
-    start = 0
-    for char in nfc:
-        end = start + 1
-        while unicodedata.normalize("NFC", text[start:end]) != char:
-            end += 1
-        bounds.append(end)
-        start = end
-    return nfc, bounds
+    for start, end in _mark_runs(text):
+        nfc_chunk = unicodedata.normalize("NFC", text[start:end])
+        parts.append(nfc_chunk)
+        for end in _nfc_ends(text[start:end], nfc_chunk, start):
+            bounds.append(end)
+    return "".join(parts), bounds
 
 
 def _one_space(text: str, left: re.Match[str], right: re.Match[str]) -> bool:
