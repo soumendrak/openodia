@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add `openodia.sandhi` to split an Odia compound into the words sandhi joined (`split`) and to join those parts (`join`). A known lemma, or a word that does not split into two known words, is returned unchanged. `split` and `join` NFC-normalize, so for a compound the splitter accepts `join(split(word))` equals the NFC form of that word. `openodia.sandhi` needs a release newer than 0.1.14: `import openodia.sandhi` fails on 0.1.14.
 - Add `openodia.pii` and `openodia pii` to find or mask phone numbers, emails, URLs, Aadhaar (Verhoeff checksum), PAN and PIN codes in Odia or ASCII digits. Names, addresses, dates and amounts are not detected. Overlapping matches merge into one span, so for every detected value `mask` never leaves part of it visible (see the limits below), and `mask` repeats until stable so masking its output changes nothing (up to 10 glued values). Detection is linear in the input size.
 - Every CLI subcommand accepts `--json` and prints one UTF-8 JSON document on stdout; default text output is unchanged by `--json`. With `--json`, invalid UTF-8 in stdin or in the text argument is an `openodia: error:` with exit code 1; `detect-language --json` used to pass it through in 0.1.14.
 - Docs for AI agents: `AGENTS.md`, `skills/openodia/SKILL.md` and `llms.txt` on the docs site.
