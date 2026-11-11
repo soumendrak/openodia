@@ -206,7 +206,7 @@ def test_pages_that_name_sandhi_say_0_1_14_cannot_import_it() -> None:
         if "openodia.sandhi" in text or "import sandhi" in text:
             named.append(path.relative_to(ROOT).as_posix())
             assert note in text
-            assert "needs a release newer than 0.1.14" in text
+            assert "`openodia.sandhi` needs a release newer than 0.1.14" in text
     assert {
         "AGENTS.md",
         "CHANGELOG.md",
