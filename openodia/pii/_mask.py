@@ -53,6 +53,12 @@ def mask(
 
 
 class KeyStore:
+    """Record each detected value as one stable ``<TYPE:n>`` token.
+
+    The same type and text always receive the same token. The store keeps the
+    original text, so anyone who has it can reverse the tokens.
+    """
+
     def __init__(self) -> None:
         self._token: dict[tuple[str, str], str] = {}
         self._original: dict[str, str] = {}
@@ -80,12 +86,24 @@ def pseudonymize(
     types: Iterable[str] | None = None,
     min_confidence: float = 0.0,
 ) -> str:
+    """Replace each detected span with a ``<TYPE:n>`` token recorded in ``store``.
+
+    The same value of the same type keeps one token. Replacement repeats the
+    way ``mask`` does, so a value glued onto another is still replaced.
+    """
     if not isinstance(store, KeyStore):
         raise TypeError(f"store must be KeyStore, got {type(store).__name__}")
     return mask(text, types, min_confidence, store.token_for)
 
 
 def restore(text: str, store: KeyStore) -> str:
+    """Put back the values ``store`` recorded for ``<TYPE:n>`` tokens.
+
+    Expansion repeats, so a token nested inside a later span is expanded too.
+    A ``<TYPE:n>`` that was already in ``text`` is rewritten when that token is
+    in the store, and a round-trip does not preserve it. Expansion stops after
+    10 passes.
+    """
     if not isinstance(text, str):
         raise TypeError(f"text must be str, got {type(text).__name__}")
     if not isinstance(store, KeyStore):

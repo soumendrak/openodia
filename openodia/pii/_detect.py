@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections.abc import Callable, Iterable
 from datetime import date
 from typing import NamedTuple
@@ -259,6 +260,21 @@ def _money_candidates(text: str, wanted: frozenset[str], min_confidence: float) 
     return found
 
 
+def _nfc_bounds(text: str) -> tuple[str, list[int] | None]:
+    if unicodedata.is_normalized("NFC", text):
+        return text, None
+    nfc = unicodedata.normalize("NFC", text)
+    bounds = [0]
+    start = 0
+    for char in nfc:
+        end = start + 1
+        while unicodedata.normalize("NFC", text[start:end]) != char:
+            end += 1
+        bounds.append(end)
+        start = end
+    return nfc, bounds
+
+
 def _one_space(text: str, left: re.Match[str], right: re.Match[str]) -> bool:
     return right.start() == left.end() + 1 and text[left.end()] == " "
 
@@ -287,6 +303,16 @@ def _honorific_end(text: str, words: list[re.Match[str]], index: int) -> int | N
         nxt = piece + 1
     if end == index:
         return None
+    if used == 3:
+        end = _more_surnames(text, words, end)
+    return end
+
+
+def _more_surnames(text: str, words: list[re.Match[str]], end: int) -> int:
+    nxt = end + 1
+    while nxt < len(words) and _one_space(text, words[end], words[nxt]) and words[nxt].group() in _SURNAMES:
+        end = nxt
+        nxt += 1
     return end
 
 
@@ -307,14 +333,14 @@ def _surname_end(text: str, words: list[re.Match[str]], index: int) -> int | Non
     if nxt >= len(words) or not _one_space(text, words[given], words[nxt]):
         return None
     if words[nxt].group() in _SURNAMES:
-        return nxt
+        return _more_surnames(text, words, nxt)
     if (
         nxt + 1 < len(words)
         and _one_space(text, words[nxt], words[nxt + 1])
         and words[nxt].group() in _GIVEN
         and words[nxt + 1].group() in _SURNAMES
     ):
-        return nxt + 1
+        return _more_surnames(text, words, nxt + 1)
     return None
 
 
@@ -381,10 +407,17 @@ def detect(text: str, types: Iterable[str] | None = None, min_confidence: float 
         raise TypeError(f"text must be str, got {type(text).__name__}")
     wanted = validated_types(types)
     _validate_min_confidence(min_confidence)
-    ascii_text = odia_to_ascii(text)
+    nfc_text, bounds = _nfc_bounds(text)
+    ascii_text = odia_to_ascii(nfc_text)
     candidates = _regex_candidates(ascii_text, wanted, min_confidence)
     candidates.extend(_money_candidates(ascii_text, wanted, min_confidence))
     candidates.extend(_date_candidates(ascii_text, wanted, min_confidence))
     candidates.extend(_name_candidates(ascii_text, wanted, min_confidence))
     candidates.extend(_address_candidates(ascii_text, wanted, min_confidence))
-    return [PIIEntity(c.kind, text[c.start : c.end], c.start, c.end, c.confidence) for c in _merge(candidates)]
+    entities = []
+    for candidate in _merge(candidates):
+        start, end = candidate.start, candidate.end
+        if bounds is not None:
+            start, end = bounds[start], bounds[end]
+        entities.append(PIIEntity(candidate.kind, text[start:end], start, end, candidate.confidence))
+    return entities

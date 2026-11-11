@@ -1,4 +1,13 @@
-"""Masking is not anonymisation.
+"""Find, mask, and pseudonymize Indian PII in Odia or Latin text.
+
+``detect`` and ``mask`` find phone numbers, emails, URLs, Aadhaar numbers, PAN,
+PIN codes, dates, currency amounts, dictionary names, and a low-confidence
+address span. ``KeyStore`` records each value as ``<TYPE:n>``. ``pseudonymize``
+writes those tokens and ``restore`` puts the values back. ``restore`` also
+rewrites a ``<TYPE:n>`` already in the text when that token is in the store, so
+a round-trip does not preserve it.
+
+Masking is not anonymisation.
 
 Examples:
     >>> from openodia import pii

@@ -1,4 +1,5 @@
 import time
+import unicodedata
 
 import pytest
 
@@ -107,6 +108,42 @@ def test_dictionary_given_name_and_surname_is_a_name() -> None:
     assert kinds(text) == [("NAME", "ବୈଦ୍ୟନାଥ ସିଂହଦେଓ")]
     [entity] = pii.detect(text)
     assert entity.confidence == 0.7
+
+
+def test_nfd_text_masks_the_same_name_and_date_as_nfc() -> None:
+    for text in ("ଶ୍ରୀ ଗୌତମ ଦାସ", "ଜନ୍ମ ୧୫ ଅକ୍ଟୋବର ୨୦୨୪"):
+        nfd = unicodedata.normalize("NFD", text)
+        assert nfd != text
+        assert pii.mask(nfd) == unicodedata.normalize("NFD", pii.mask(text))
+        for entity in pii.detect(nfd):
+            assert nfd[entity.start : entity.end] == entity.text
+
+
+def test_consecutive_surnames_are_masked_with_the_given_name() -> None:
+    assert pii.mask("ଅଶୋକ କୁମାର ଦାସ") == "<NAME>"
+    assert pii.mask("ଶ୍ରୀ ଅଶୋକ କୁମାର ଦାସ ମହାପାତ୍ର") == "<NAME>"
+
+
+def test_an_honorific_includes_three_dictionary_words_and_not_only_two() -> None:
+    assert pii.mask("ଶ୍ରୀ ଅଶୋକ କୁମାର ଦାସ") == "<NAME>"
+
+
+def test_a_currency_prefix_does_not_mask_part_of_an_overlong_amount() -> None:
+    assert pii.mask("₹1234567890123") == "₹1234567890123"
+    assert pii.mask("₹123456789012") == "<MONEY>"
+
+
+def test_address_gap_includes_40_characters_and_excludes_41() -> None:
+    inside = "ଜିଲ୍ଲା" + "x" * 40 + "123456"
+    outside = "ଜିଲ୍ଲା" + "x" * 41 + "123456"
+    assert kinds(inside, types=["ADDRESS"]) == [("ADDRESS", inside)]
+    assert kinds(outside, types=["ADDRESS"]) == []
+
+
+def test_a_token_already_in_the_input_is_rewritten_on_restore() -> None:
+    store = KeyStore()
+    text = "ପୂର୍ବ <EMAIL:1> ଓ a@b.com"
+    assert pii.restore(pii.pseudonymize(text, store), store) == "ପୂର୍ବ a@b.com ଓ a@b.com"
 
 
 def test_a_dictionary_given_name_that_contains_a_space_is_detected() -> None:

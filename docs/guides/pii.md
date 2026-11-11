@@ -1,6 +1,6 @@
 # Find and mask personal identifiers
 
-`pii` finds Indian mobile numbers, email addresses, URLs, Aadhaar numbers, PAN codes, and PIN codes. It reads Odia digits and ASCII digits, and it runs offline. It does not find names, street addresses, dates, or amounts, so masked text can still identify a person.
+`pii` finds phone numbers, emails, URLs, Aadhaar numbers, PAN, PIN codes, dates, currency amounts, dictionary names, and a low-confidence address span. It reads Odia digits and ASCII digits, including text in NFD, and it runs offline. A lone name, a bare amount, and a street with no administrative word within 40 characters of a PIN stay visible, so masked text can still identify a person. `pseudonymize` records `<TYPE:n>` tokens in a `KeyStore` and `restore` puts them back, except a `<TYPE:n>` already in the input is rewritten when that token is in the store.
 
 `pii` needs a release newer than 0.1.14. On PyPI 0.1.14, `import openodia.pii` fails and `openodia pii` exits with code 2. From a source checkout, `uv run python` can import it.
 
@@ -41,7 +41,7 @@ A 10-digit number that starts with 6, 7, 8, or 9 is a `PHONE`, including an orde
 'ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ଓ <EMAIL>'
 ```
 
-`types` is a list of `PHONE`, `EMAIL`, `URL`, `AADHAAR`, `PAN`, and `PINCODE`. A bare string raises `TypeError`.
+`types` is a list of `PHONE`, `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PINCODE`, `DATE`, `MONEY`, `NAME`, and `ADDRESS`. A bare string raises `TypeError`.
 
 ```pycon
 >>> pii.detect(text, types="EMAIL")
@@ -65,7 +65,7 @@ An Aadhaar-shaped number that passes the Verhoeff checksum has confidence 0.95. 
 
 ## Limits
 
-Overlapping matches become one span. The type is the longest match. When the lengths are equal, the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, and `PINCODE` wins, so `mask` does not leave part of a detected value visible.
+Overlapping matches become one span. The type is the longest match. When the lengths are equal, the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `DATE`, `MONEY`, `NAME`, `ADDRESS`, and `PINCODE` wins, so `mask` does not leave part of a detected value visible.
 
 `mask` repeats until the text stops changing, and it stops after 10 passes. After more than 10 glued values, the text it returns can still contain a raw value.
 
@@ -78,4 +78,4 @@ The pattern for each type is in [PII detection and masking](../index.md#pii-dete
 ## Next
 
 - [API reference](../api/pii.md) for the signatures.
-- [Applications](../application.md) for name masking, which `pii` does not do.
+- [Applications](../application.md) for why masking a name is not the same as anonymising a person.
