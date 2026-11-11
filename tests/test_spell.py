@@ -247,11 +247,13 @@ def test_spell_check_uses_one_newline_rule(
     assert json.loads(capsys.readouterr().out) == {"correct": ending in {"\n", "\r\n"}}
 
 
-def test_cli_check_prints_false_for_a_non_word(monkeypatch, capsys: pytest.CaptureFixture[str]) -> None:
+def test_cli_check_prints_true_and_false(monkeypatch, capsys: pytest.CaptureFixture[str]) -> None:
     import io
 
     from openodia import cli
 
+    assert cli.main(["spell", "--check", "ନମସ୍କାର"]) == 0
+    assert capsys.readouterr().out == "true\n"
     monkeypatch.setattr(sys, "stdin", io.StringIO("x"))
     assert cli.main(["spell", "--check", "-"]) == 0
     assert capsys.readouterr().out == "false\n"
