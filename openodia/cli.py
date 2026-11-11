@@ -40,7 +40,7 @@ def _read_input(value: str, *, file: bool = False) -> str:
 def _without_trailing_break(text: str) -> str:
     if text.endswith("\r\n"):
         return text[:-2]
-    if text.endswith("\n") or text.endswith("\r"):
+    if text.endswith("\n"):
         return text[:-1]
     return text
 

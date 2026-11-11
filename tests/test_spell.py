@@ -227,11 +227,17 @@ def test_cli_check_ignores_one_trailing_newline(tmp_path, monkeypatch, capsys: p
     assert spell.is_correct("ନମସ୍କାର\n") is False
     assert spell.is_correct("ନମସ୍କାର\r\n") is False
     monkeypatch.setattr(sys, "stdin", io.StringIO("ନମସ୍କାର\n"))
-    assert cli.main(["spell", "--check", "-"]) == 0
-    assert capsys.readouterr().out == "true\n"
+    assert cli.main(["spell", "--check", "--json", "-"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"correct": True}
     monkeypatch.setattr(sys, "stdin", io.StringIO("ନମସ୍କାର\r\n"))
     assert cli.main(["spell", "--check", "--json", "-"]) == 0
     assert json.loads(capsys.readouterr().out) == {"correct": True}
+    monkeypatch.setattr(sys, "stdin", io.StringIO("ନମସ୍କାର\n\n"))
+    assert cli.main(["spell", "--check", "--json", "-"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"correct": False}
+    monkeypatch.setattr(sys, "stdin", io.StringIO("ନମସ୍କାର\r"))
+    assert cli.main(["spell", "--check", "--json", "-"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"correct": False}
     path = tmp_path / "word.txt"
     path.write_text("ନମସ୍କାର\n", encoding="utf-8")
     assert cli.main(["spell", "--check", "--json", "--file", str(path)]) == 0
