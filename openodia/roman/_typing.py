@@ -200,9 +200,16 @@ def _chain(node: _Beam) -> tuple[str, ...]:
     return tuple(words)
 
 
+def _parent_lex(item: _Beam) -> int:
+    parent = item.parent
+    if parent is None:
+        return 0
+    return parent.lex
+
+
 def _extend(beam: list[_Beam], options: Iterable[tuple[str, int]]) -> list[_Beam]:
     grown = [_Beam(node.score + count, word, node, 0) for node in beam for word, count in options]
-    order = sorted(range(len(grown)), key=lambda i: (grown[i].parent.lex if grown[i].parent is not None else 0, grown[i].word))
+    order = sorted(range(len(grown)), key=lambda i: (_parent_lex(grown[i]), grown[i].word))
     for lex, index in enumerate(order):
         grown[index].lex = lex
     grown.sort(key=lambda item: (-item.score, item.lex))
