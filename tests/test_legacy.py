@@ -213,6 +213,11 @@ def test_ghanta_survives_the_documented_decode() -> None:
     assert legacy.to_unicode(legacy.decode(b"N\x8d\xfb"), font="AkrutiOriSarala") == "ଘଣ୍ଟା"
 
 
+def test_decode_rejects_text() -> None:
+    with pytest.raises(TypeError):
+        legacy.decode("N")
+
+
 def test_ellipsis_byte_is_cp1252_not_latin_1() -> None:
     assert legacy.to_unicode(b"\x85".decode("cp1252"), font="AkrutiOriSarala") == "ଟ୍ଟ"
     assert legacy.to_unicode(b"\x85".decode("latin-1"), font="AkrutiOriSarala") == "\u0085"
