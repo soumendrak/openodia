@@ -82,6 +82,8 @@ Text arguments are literal text, even when they match an existing filename.
 Use `--file` to read a UTF-8 file explicitly (implicit file detection has been
 removed). Pass `-` without `--file` to read UTF-8 text from stdin.
 
+`openodia.pii.detect` and `openodia.pii.mask` find phone numbers, emails, URLs, Aadhaar, PAN, PIN codes, dates, currency amounts, dictionary names and a low-confidence address span in Odia or ASCII digits. `pseudonymize` replaces each value with a `<TYPE:n>` token that `restore` puts back through a `KeyStore`, except a `<TYPE:n>` already in the input is rewritten when that token is in the store. It is offline. A lone name, a bare amount and a street with no administrative word next to a PIN are missed, so this is not anonymisation. `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there; it needs a newer release. Details are in [the PII section of the docs](docs/index.md#pii-detection-and-masking).
+
 ### Use from an AI agent
 
 Every subcommand takes `--json` and prints one UTF-8 JSON document on stdout. Errors go to stderr with a nonzero exit code.

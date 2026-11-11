@@ -1,6 +1,6 @@
 ---
 name: openodia
-description: Process Odia (ଓଡ଼ିଆ) text with the openodia command-line tool. Use when a task needs to tokenize, normalize, clean, translate, detect the language of, summarize, remove stopwords from, count words or n-grams in, generate names from, or find and mask phone, email, Aadhaar, PAN and PIN code in Odia text, and you want machine-readable output.
+description: Process Odia (ଓଡ଼ିଆ) text with the openodia command-line tool. Use when a task needs to tokenize, normalize, clean, translate, detect the language of, summarize, remove stopwords from, count words or n-grams in, generate names from, or find and mask phone, email, Aadhaar, PAN, PIN code, date, amount and name in Odia text, and you want machine-readable output.
 ---
 
 # openodia
@@ -14,7 +14,7 @@ Rules:
 - Text is a literal argument, `-` for stdin, or a path with `--file`. Input is UTF-8.
 - Add `--json` and parse stdout as one JSON document. Errors go to stderr and stdout stays empty. `--json` on every subcommand needs a release newer than 0.1.14; PyPI 0.1.14 has it on `detect-language` only.
 - Exit codes: 0 success, 1 runtime error (`openodia: error: ...` on stderr), 2 usage error.
-- `pii` is rule-based and finds only phone, email, URL, Aadhaar, PAN and PIN code; it does not find names or addresses. `pii` needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there. Each entity's `text` is the raw value, so use `pii --mask --json` when the output must not contain PII.
+- `pii` is rule-based and finds phone, email, URL, Aadhaar, PAN, PIN code, dates, currency amounts, dictionary names and a low-confidence address span. A lone name, a bare amount and a street with no administrative word within 40 characters of a PIN stay visible. `pii` needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there. Each entity's `text` is the raw value, so use `pii --mask --json` when the output must not contain PII. `pseudonymize` records `<TYPE:n>` tokens in a `KeyStore` that `restore` puts back, except a `<TYPE:n>` already in the input is rewritten when that token is in the store.
 - `translate` works offline only for English to Odia dictionary hits; other pairs need the network and can be rate limited.
 
 ```console

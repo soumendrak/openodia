@@ -16,12 +16,12 @@ Version note: `--json` on every CLI subcommand (one machine-readable JSON docume
 - [Translation guide](https://openodia.soumendrak.com/guides/translation/): offline dictionary, Google Translate, translation cache
 - [Command-line guide](https://openodia.soumendrak.com/guides/cli/): every subcommand with runnable examples
 - [Transliteration guide](https://openodia.soumendrak.com/guides/transliteration/): Indic scripts and romanisation
-- [PII guide](https://openodia.soumendrak.com/guides/pii/): find and mask phone numbers, emails, URLs, Aadhaar numbers, PAN and PIN codes
+- [PII guide](https://openodia.soumendrak.com/guides/pii/): find and mask phone numbers, emails, URLs, Aadhaar numbers, PAN, PIN codes, dates, currency amounts, dictionary names, and address spans
 - [API reference](https://openodia.soumendrak.com/api/text/): signatures and docstrings generated from the source
 - [Romanisation API](https://openodia.soumendrak.com/api/roman/): `to_roman` and `from_roman` for ISO 15919, Hunterian and ITRANS
 - [Sandhi API](https://openodia.soumendrak.com/api/sandhi/): `sandhi.split` and `sandhi.join`
 - [Indic API](https://openodia.soumendrak.com/api/indic/): `indic.transliterate` between Brahmic scripts
-- [PII API](https://openodia.soumendrak.com/api/pii/): `pii.detect` and `pii.mask`
+- [PII API](https://openodia.soumendrak.com/api/pii/): `pii.detect`, `pii.mask`, `pii.pseudonymize`, `pii.restore`, and `pii.KeyStore`
 - [Contributing](https://openodia.soumendrak.com/contributing/): setup, checks, and change rules
 - [Changelog](https://openodia.soumendrak.com/changelog/): released and unreleased changes
 

@@ -1,7 +1,13 @@
-"""Detect and mask Indian PII in Odia text: phone, email, URL, Aadhaar, PAN and PIN code.
+"""Find, mask, and pseudonymize Indian PII in Odia or Latin text.
 
-Rule-based and offline: patterns plus the Verhoeff checksum for Aadhaar. Person names, street
-addresses, dates and amounts are not detected, so masking is not anonymisation.
+``detect`` and ``mask`` find phone numbers, emails, URLs, Aadhaar numbers, PAN,
+PIN codes, dates, currency amounts, dictionary names, and a low-confidence
+address span. ``KeyStore`` records each value as ``<TYPE:n>``. ``pseudonymize``
+writes those tokens and ``restore`` puts the values back. ``restore`` also
+rewrites a ``<TYPE:n>`` already in the text when that token is in the store, so
+a round-trip does not preserve it.
+
+Masking is not anonymisation.
 
 Examples:
     >>> from openodia import pii
@@ -11,6 +17,15 @@ Examples:
 
 from openodia.pii._detect import detect
 from openodia.pii._entity import PII_TYPES, PIIEntity, PIIType
-from openodia.pii._mask import mask
+from openodia.pii._mask import KeyStore, mask, pseudonymize, restore
 
-__all__ = ["PII_TYPES", "PIIEntity", "PIIType", "detect", "mask"]
+__all__ = [
+    "KeyStore",
+    "PII_TYPES",
+    "PIIEntity",
+    "PIIType",
+    "detect",
+    "mask",
+    "pseudonymize",
+    "restore",
+]

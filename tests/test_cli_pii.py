@@ -47,9 +47,15 @@ def test_min_confidence(capsys: pytest.CaptureFixture[str]) -> None:
     assert json.loads(run([TEXT, "--min-confidence", "0.92", "--json"], capsys)) == {"entities": [EMAIL]}
 
 
+def test_json_reports_a_date(capsys: pytest.CaptureFixture[str]) -> None:
+    assert json.loads(run(["born 15/01/2024", "--json"], capsys)) == {
+        "entities": [{"type": "DATE", "text": "15/01/2024", "start": 5, "end": 15, "confidence": 0.7}]
+    }
+
+
 def test_unknown_type_is_a_usage_error() -> None:
     with pytest.raises(SystemExit) as exc:
-        cli.main(["pii", TEXT, "--type", "NAME"])
+        cli.main(["pii", TEXT, "--type", "PASSPORT"])
     assert exc.value.code == 2
 
 

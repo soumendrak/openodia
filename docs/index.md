@@ -350,7 +350,7 @@ openodia name --kind first --count 5
 # Extractive summary
 openodia summarize --file article.txt --threshold 3
 
-# Find or mask phone, email, Aadhaar, PAN, PIN code
+# Find or mask phone, email, Aadhaar, PAN, PIN, date, amount, name and address
 openodia pii "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦" --mask
 
 # Stopword removal + corpus stats
@@ -470,9 +470,9 @@ sentences("Hello. World!", keep_terminators=False)
 
 ### :material-shield-account: PII detection and masking
 
-- `openodia.pii` finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there.
+- `openodia.pii` finds and masks personal identifiers in Odia text with patterns, the Odia name lists and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there.
 - Odia digits (`୦`-`୯`) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: `--file` drops a leading BOM and turns CRLF and a lone CR into LF. `-` (stdin) drops a leading BOM only and keeps any `\r`: a Linux or macOS pipe delivers `\r\n` unchanged, so offsets from `-` can differ from `--file` by one per line break.
-- Matches that overlap merge into one span typed by the longest match, so for every detected value no part of it stays visible; see the limits below. A tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`. `min_confidence` is applied before merging.
+- Matches that overlap merge into one span typed by the longest match, so for every detected value no part of it stays visible; see the limits below. A tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `DATE`, `MONEY`, `NAME`, `ADDRESS`, `PINCODE`. `min_confidence` is applied before merging.
 - `openodia pii --json` puts the raw matched `text` in every entity, so it contains the PII. Use `--mask --json` for output that holds only the masked text.
 
 ```python
@@ -485,6 +485,11 @@ pii.mask(text)
 # 'ମୋ ଫୋନ <PHONE>, ମେଲ <EMAIL>, ଆଧାର <AADHAAR>, PIN <PINCODE>'
 pii.mask(text, types=["EMAIL"], placeholder=lambda entity: "***")
 pii.detect(text, min_confidence=0.9)
+store = pii.KeyStore()
+hidden = pii.pseudonymize("ଫୋନ 9876543210", store)
+# 'ଫୋନ <PHONE:1>'
+pii.restore(hidden, store)
+# 'ଫୋନ 9876543210'
 ```
 
 | Type | What it matches | Confidence |
@@ -495,23 +500,28 @@ pii.detect(text, min_confidence=0.9)
 | `AADHAAR` | 12 digits starting 2-9, contiguous or grouped 4-4-4 by one space or `-`. 0.95 when the Verhoeff checksum passes, 0.5 when it fails | 0.95 / 0.5 |
 | `PAN` | `AAAPA1234A`: uppercase, fourth letter one of `PCHFATBLJG` | 0.95 |
 | `PINCODE` | 6 digits, first 1-9, directly after `PIN`, `Pincode`, `PIN code` or `ପିନ` | 0.8 |
+| `DATE` | A real calendar day from 1900 to 2099. Named: `D Month YYYY` or `Month D, YYYY` in English or Odia (`15 January 2024`, `15th January 2024`, `May 4, 2024`, `୧୫ ଜାନୁଆରୀ ୨୦୨୪`), confidence 0.85. Numeric day-month-year with `/`, `-` or `.` (`15/01/2024`, `5.1.2024`), confidence 0.7. `31/02/2024`, month 13, years outside that range and a date split by a line break are not found. `1.2.2024` is reported | 0.85 / 0.7 |
+| `MONEY` | A number of up to 12 digits, or Indian comma groups, with an optional two-digit decimal, next to `₹`, `Rs`, `INR`, `ଟଙ୍କା` or `ରୁପିଆ`. `ଟଙ୍କାରେ` is not the marker. A bare number is not money. An ungrouped number longer than 12 digits stays entirely visible (`1234567890123 ଟଙ୍କା` is unchanged) | 0.9 |
+| `NAME` | A dictionary given name plus one or more consecutive surnames, with at most one dictionary word between the given name and the first surname, or an honorific (`ଶ୍ରୀ`, `ଶ୍ରୀମତୀ`, `ଶ୍ରୀମାନ`, `ଶ୍ରୀଯୁକ୍ତ`, `ସୁଶ୍ରୀ`, `କୁମାରୀ`) plus one to three dictionary name words and any surnames after those three. A given name may contain a space (`ଗୁନ୍ ଗୁନ୍`). NFD text is matched as NFC, and the offsets point at the original characters. A single name is not found. Confidence 0.8 with an honorific, 0.7 without. A common surname such as `କର` or `ରାମ` can be a false positive when the previous word is a dictionary given name | 0.8 / 0.7 |
+| `ADDRESS` | One of `ଗ୍ରାମ`, `ଜିଲ୍ଲା`, `ସହର`, `ବ୍ଲକ`, `ଥାନା`, `ପଞ୍ଚାୟତ` within 40 characters of a 6-digit PIN (first digit 1-9). The span covers both, so it swallows a `PINCODE` inside it when both are requested. `min_confidence` 0.5 drops it. A suffixed word such as `ଜିଲ୍ଲାରେ` is not matched. This is not a street parser | 0.45 |
 
 The wider local-part class can mask more than the address: leading delimiters can be swallowed, so `key=val@host.com`, `?q=a@b.com`, `path/to/a@c.com` and `price$5@x.com` lose their prefix, `` `a@b.com` ``, `'a@b.com'` and `**a@b.com**` swallow only the leading delimiter, `ssh://git@host.com` loses `//` (`ssh://git@host` has no top-level domain and stays unchanged), and `www.x.com/a@b.com` becomes `<EMAIL>` instead of `<URL>`; nothing leaks.
 
 Confidence ranks how specific a pattern is; it is not a probability.
 
 ??? warning "What it does not catch"
-    - **Names**, nicknames and addresses. A masked text can still identify a person, so this is not anonymisation.
-    - Dates of birth, amounts, bank account and card numbers, landline numbers, passport and voter IDs.
+    - Nicknames and names that are not in the dictionary shape above. A masked text can still identify a person, so this is not anonymisation.
+    - Bank account and card numbers, landline numbers, passport and voter IDs.
+    - A date, amount or address outside the shapes in the table.
     - Lowercase PAN, Aadhaar written with other separators or split by line breaks, and a PIN code with no `PIN` or `ପିନ` before it.
     - Aadhaar numbers starting with 0 or 1, which UIDAI does not issue.
     - A bare domain with no `http(s)://` or `www.`, an email whose local part is over 64 characters (see the `EMAIL` row), and digits of other scripts such as Devanagari.
-    - **False positives**: a 10-digit number starting 6-9 (an order or account number) is reported as `PHONE` even if nobody owns it, a 12-digit number starting 2-9 as `AADHAAR` at confidence 0.5, and a PAN-shaped code as `PAN`. Filter with `types` and `min_confidence`.
+    - **False positives**: a 10-digit number starting 6-9 (an order or account number) is reported as `PHONE` even if nobody owns it, a 12-digit number starting 2-9 as `AADHAAR` at confidence 0.5, a PAN-shaped code as `PAN`, a real calendar date that is not personal (including `1.2.2024`) as `DATE`, a dictionary given name before a common surname as `NAME`, and a 6-digit number within 40 characters of an administrative word as `ADDRESS` at confidence 0.45. Filter with `types` and `min_confidence`.
     - A bare `91` before a mobile number is taken as its country code only when a space or `-` follows it.
 
 - `mask` repeats detection and replacement until nothing changes, at most 10 passes, because masking a value can expose one that was glued to it, such as a PAN written right before a URL. With the default `<TYPE>` tags, masking its own output therefore changes nothing, unless the input chains more than 10 glued values. Past that, the text `mask` returns can still contain raw PII, so do not rely on it for input like that. A custom `placeholder` receives entities from the later passes too, with offsets into the partly masked text, and one that returns PII-shaped text, for example one that keeps the last four digits, can keep the loop running to its limit.
 - `detect` and `mask` raise `TypeError` for a `text` that is not a `str` or `types` given as a bare string, and `ValueError` for an unknown type or a `min_confidence` outside 0 to 1.
-- There is no pseudonymisation or reversible mapping: masking is one-way.
+- `mask` is one-way. `pseudonymize(text, store)` writes each value into a `KeyStore` as `<TYPE:n>`, and `restore(text, store)` puts that value back. The same value of the same type keeps one token. `restore` rewrites a `<TYPE:n>` that was already in the input when that token is in the store, and repeats so a token nested inside a later span is expanded too. Anyone who has the store can reverse the tokens.
 
 ### :material-format-letter-case: Odia alphabets 
 
