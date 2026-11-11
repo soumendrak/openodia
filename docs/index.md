@@ -79,6 +79,7 @@ The tools are available in Odia language. [Getting started](getting-started.md) 
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
 - [x] [Sentence segmenter](#sentence-segmenter)
 - [x] [PII detection and masking](#pii-detection-and-masking)
+- [x] [Legacy font conversion](#legacy-fonts)
 
 
 ### :material-broom: Unicode normalization
@@ -852,6 +853,21 @@ wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
     2. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Found --> Return result from Cache
     3. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Not Found --> Hit Google Translate API --> Update the Cache --> Return result
 
+
+### :material-format-font: Legacy fonts
+
+Text typed in an 8-bit Odia font is decoded with `legacy.decode` (cp1252, keeping bytes 0x81, 0x8D, 0x8F and 0x9D, which that codec leaves undefined). `openodia.legacy` needs a release newer than 0.1.14. It maps those keystrokes to Unicode. The result is NFC, so ଡ଼ is consonant plus nukta.
+
+```python
+from openodia import legacy
+
+legacy.to_unicode("IWÿò@û", font="AkrutiOriSarala")
+legacy.to_unicode("JXÏÞA", font="ORTTSarala")
+legacy.detect_font("IWÿò@û")
+legacy.to_unicode_auto("JXÏÞA")
+```
+
+`SUPPORTED_FONTS` is `AkrutiOriSarala` and `ORTTSarala`. `detect_font` returns `font` and `confidence`. A tie leaves `font` as None and `confidence` at 0.5. No legacy-font evidence leaves `font` as None and `confidence` at 0.0. `to_unicode_auto` returns the input unchanged in both cases. Call `detect_font` to tell them apart. Of the 100 checked sentences, auto mode converts 83 and leaves 17 unchanged. A left matra, typed before the consonant, moves to the end of that conjunct.
 
 ## :bug: Known Issues
 

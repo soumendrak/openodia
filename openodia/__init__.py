@@ -16,6 +16,7 @@ from ._translate_async import (
 )
 from ._understandData import UnderstandData as ud
 from . import indic
+from . import legacy
 from . import roman
 from . import numbers
 from . import phonetic
@@ -34,6 +35,7 @@ __all__ = [
     "cooccurrence",
     "FreqDist",
     "indic",
+    "legacy",
     "name",
     "ngrams",
     "normalize",
