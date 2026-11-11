@@ -74,6 +74,7 @@ The tools are available in Odia language. [Getting started](getting-started.md) 
 - [x] [Sandhi and compounds](#sandhi-and-compounds)
 - [x] [Indic-to-Indic transliteration](#indic-transliteration)
 - [x] [Romanisation](#romanisation)
+- [x] [Phonetic typing](#phonetic-typing)
 - [x] [Command-line interface](#command-line-interface)
 - [x] [Translation cache configuration](#translation-cache)
 - [x] [Numbers, dates, and currency in words](#numbers-and-words)
@@ -265,6 +266,21 @@ roman.to_roman("ଓଡ଼ିଆ", "Hunterian")  # 'oria'
 roman.to_roman("ଓଡ଼ିଆ", "ITRANS")     # 'o.DiA'
 
 roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort: Hunterian drops ā)
+```
+
+#### Phonetic typing
+
+`openodia.roman` needs a release newer than 0.1.14. `roman.type_odia` turns Roman typing into Odia, offline, without an IME.
+Each ASCII word is the bundled-dictionary word with that folded Hunterian
+spelling, and the more common gloss wins when several words share it.
+Spaces and punctuation are left where they were. `from_roman("namaskara", "Hunterian")`
+is still `ନମସ୍କର`; typing is a different call, and it is not `openodia.phonetic`.
+
+```python
+roman.type_odia("namaskara")                 # 'ନମସ୍କାର'
+roman.type_odia("odisha bhasha")             # 'ଓଡ଼ିଶା ଭାଷା'
+roman.type_odia("ki bhabare achanti")        # 'କି ଭାବରେ ଅଛନ୍ତି'
+roman.type_odia("ki", candidates=True)       # ['କି', 'କୀ']
 ```
 
 ??? note "Round-trip"

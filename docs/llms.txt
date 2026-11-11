@@ -18,7 +18,7 @@ Version note: `--json` on every CLI subcommand (one machine-readable JSON docume
 - [Transliteration guide](https://openodia.soumendrak.com/guides/transliteration/): Indic scripts and romanisation
 - [PII guide](https://openodia.soumendrak.com/guides/pii/): find and mask phone numbers, emails, URLs, Aadhaar numbers, PAN and PIN codes
 - [API reference](https://openodia.soumendrak.com/api/text/): signatures and docstrings generated from the source
-- [Romanisation API](https://openodia.soumendrak.com/api/roman/): `to_roman` and `from_roman` for ISO 15919, Hunterian and ITRANS
+- [Romanisation API](https://openodia.soumendrak.com/api/roman/): `to_roman` and `from_roman` for ISO 15919, Hunterian and ITRANS; `type_odia` types Roman input as Odia. `openodia.roman` needs a release newer than 0.1.14.
 - [Sandhi API](https://openodia.soumendrak.com/api/sandhi/): `sandhi.split` and `sandhi.join`
 - [Indic API](https://openodia.soumendrak.com/api/indic/): `indic.transliterate` between Brahmic scripts
 - [PII API](https://openodia.soumendrak.com/api/pii/): `pii.detect` and `pii.mask`
