@@ -14,9 +14,14 @@ from openodia.syllable import count as akshara_count
 
 _LIMIT = 8
 _NUKTA = "\u0b3c"
+_VIRAMA = "୍"
 _FLAP = frozenset("ଡଢ")
 _MATRAS = frozenset(HUNTERIAN["matras"])
+_VOWELS = frozenset(HUNTERIAN["vowels"])
+_CONS = frozenset(HUNTERIAN["consonants"])
+_MODS = frozenset("ଁଂଃ")
 _FOLDS = (("chh", "ch"), ("aa", "a"), ("ii", "i"), ("uu", "u"))
+_LOAN = {"c": "k", "f": "ph", "q": "k", "x": "ks", "z": "j"}
 _WORD = re.compile(r"[A-Za-z]+")
 _ODIA_RUN = re.compile(r"[\u0b00-\u0b7f]+")
 _LATIN_KEY = re.compile(r"[a-z]+")
@@ -40,6 +45,66 @@ def _doubled_matra(word: str) -> bool:
             return True
         previous = ch
     return False
+
+
+def _read_vowel(word: str, index: int) -> int:
+    index += 1
+    if index < len(word) and word[index] in _MODS:
+        return index + 1
+    return index
+
+
+def _read_consonant(word: str, index: int) -> int:
+    index += 1
+    size = len(word)
+    if index < size and word[index] == _NUKTA:
+        index += 1
+    if index < size and word[index] == _VIRAMA:
+        return index + 1
+    if index < size and word[index] in _MATRAS:
+        sign = word[index]
+        index += 1
+        while index < size and word[index] == sign:
+            index += 1
+    if index < size and word[index] in _MODS:
+        index += 1
+    return index
+
+
+def _signs_in_order(word: str) -> bool:
+    index = 0
+    while index < len(word):
+        ch = word[index]
+        if ch in _VOWELS:
+            index = _read_vowel(word, index)
+            continue
+        if ch in _CONS:
+            index = _read_consonant(word, index)
+            continue
+        return False
+    return True
+
+
+def _well_formed(word: str) -> bool:
+    return _signs_in_order(word) and not _doubled_matra(word)
+
+
+def _fallback_spelling(token: str) -> str:
+    lowered = token.lower()
+    parts: list[str] = []
+    index = 0
+    while index < len(lowered):
+        if lowered.startswith("chh", index):
+            parts.append("chh")
+            index += 3
+            continue
+        if lowered.startswith("ch", index):
+            parts.append("ch")
+            index += 2
+            continue
+        parts.append(_LOAN.get(lowered[index], lowered[index]))
+        index += 1
+    return "".join(parts)
 
 
 def _flap_indexes(chars: list[str]) -> list[int]:
@@ -71,7 +136,7 @@ def _token_counts() -> Counter[str]:
     counts: Counter[str] = Counter()
     for value in get_dictionary().values():
         for token in _ODIA_RUN.findall(unicodedata.normalize("NFC", value)):
-            if akshara_count(token) >= 1 and not _doubled_matra(token):
+            if akshara_count(token) >= 1 and _well_formed(token):
                 counts[token] += 1
     return counts
 
@@ -104,11 +169,10 @@ def _pieces(text: str) -> tuple[tuple[bool, str], ...]:
 
 
 def _options(token: str) -> tuple[tuple[str, int], ...]:
-    key = _fold(token)
-    bucket = _lexicon().get(key)
+    bucket = _lexicon().get(_fold(token))
     if bucket:
         return bucket
-    return ((from_roman(key, "Hunterian"), 0),)
+    return ((from_roman(_fallback_spelling(token), "Hunterian"), 0),)
 
 
 def _best(text: str) -> str:
@@ -117,13 +181,32 @@ def _best(text: str) -> str:
     return "".join(_options(span)[0][0] if is_word else span for is_word, span in _pieces(text))
 
 
-def _extend(
-    beam: list[tuple[int, tuple[str, ...]]],
-    options: Iterable[tuple[str, int]],
-) -> list[tuple[int, tuple[str, ...]]]:
-    scored = [(score + count, words + (word,)) for score, words in beam for word, count in options]
-    scored.sort(key=lambda item: (-item[0], item[1]))
-    return scored[:_LIMIT]
+class _Beam:
+    __slots__ = ("score", "word", "parent", "lex")
+
+    def __init__(self, score: int, word: str, parent: _Beam | None, lex: int) -> None:
+        self.score = score
+        self.word = word
+        self.parent = parent
+        self.lex = lex
+
+
+def _chain(node: _Beam) -> tuple[str, ...]:
+    words: list[str] = []
+    while node.parent is not None:
+        words.append(node.word)
+        node = node.parent
+    words.reverse()
+    return tuple(words)
+
+
+def _extend(beam: list[_Beam], options: Iterable[tuple[str, int]]) -> list[_Beam]:
+    grown = [_Beam(node.score + count, word, node, 0) for node in beam for word, count in options]
+    order = sorted(range(len(grown)), key=lambda i: (grown[i].parent.lex if grown[i].parent is not None else 0, grown[i].word))
+    for lex, index in enumerate(order):
+        grown[index].lex = lex
+    grown.sort(key=lambda item: (-item.score, item.lex))
+    return grown[:_LIMIT]
 
 
 def _render(pieces: tuple[tuple[bool, str], ...], words: tuple[str, ...]) -> str:
@@ -138,10 +221,10 @@ def _ranked(text: str) -> list[str]:
     options = [_options(span) for is_word, span in pieces if is_word]
     if not options:
         return [text]
-    beam: list[tuple[int, tuple[str, ...]]] = [(0, ())]
+    beam: list[_Beam] = [_Beam(0, "", None, 0)]
     for opts in options:
         beam = _extend(beam, opts)
-    return [_render(pieces, words) for _score, words in beam]
+    return [_render(pieces, _chain(node)) for node in beam]
 
 
 @overload
@@ -157,8 +240,10 @@ def type_odia(text: str, *, candidates: bool = False) -> str | list[str]:
 
     Each run of ASCII letters becomes the bundled-dictionary word whose
     folded Hunterian spelling matches, most frequent gloss first. A run
-    with no such word is read by Hunterian ``from_roman``. Every other
-    character is copied, so whitespace and punctuation stay put.
+    with no such word is lowercased, ``ch`` and ``chh`` are kept, and
+    ``c``, ``f``, ``q``, ``x`` and ``z`` are read as ``k``, ``ph``, ``k``,
+    ``ks`` and ``j``. That spelling is passed to Hunterian ``from_roman``.
+    Every other character is copied, so whitespace and punctuation stay put.
 
     Args:
         text: Roman typing, or text that mixes it with Odia and punctuation.
