@@ -21,6 +21,7 @@ from . import numbers
 from . import phonetic
 from . import spell
 from . import syllable
+from . import sandhi
 from .segment import sentences
 from .stats import FreqDist, collocations, cooccurrence, ngrams
 from .stopwords import Stopwords
@@ -44,6 +45,7 @@ __all__ = [
     "other_lang_to_odia_async",
     "phonetic",
     "roman",
+    "sandhi",
     "sentences",
     "spell",
     "STOPWORDS",
