@@ -202,8 +202,7 @@ def _chain(node: _Beam) -> tuple[str, ...]:
 
 def _parent_lex(item: _Beam) -> int:
     parent = item.parent
-    if parent is None:
-        return 0
+    assert parent is not None
     return parent.lex
 
 
