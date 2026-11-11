@@ -112,6 +112,13 @@ def test_dictionary_given_name_and_surname_is_a_name() -> None:
     assert entity.confidence == 0.7
 
 
+@pytest.mark.parametrize("text", ["ବ\u0B5C ଘର", "କ\u0B4D\u0B3C", "ପ\u0B5Dା", "a\u0301\u0323", "ଉ\u0B5Cାଣଗୁଡିକ"])
+def test_expanded_nfc_keeps_offsets_inside_the_original_text(text: str) -> None:
+    pii.mask(text)
+    for entity in pii.detect(text):
+        assert text[entity.start : entity.end] == entity.text
+
+
 def test_detect_finishes_when_nfc_expands_a_letter() -> None:
     script = """
 import unicodedata
