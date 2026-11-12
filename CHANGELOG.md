@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+## 0.2.0 (2026-11-13)
+
+### Highlights
+
+- Phonetic matching in `openodia.phonetic` (`soundex`, `metaphone`, and `similarity`): https://github.com/soumendrak/openodia/pull/226
+- Odia romanisation in `openodia.roman` (`to_roman` / `from_roman`) with the ISO 15919, Hunterian and ITRANS schemes: https://github.com/soumendrak/openodia/pull/227
+- Cross-script Indic transliteration in `openodia.indic` (for example Odia to Devanagari): https://github.com/soumendrak/openodia/pull/228
+- Sandhi split and join in `openodia.sandhi` (`split` and `join`): https://github.com/soumendrak/openodia/pull/299
+- PII detection and masking in `openodia.pii` and `openodia pii`: https://github.com/soumendrak/openodia/pull/281
+- `--json` on every CLI subcommand: https://github.com/soumendrak/openodia/pull/278
+- Async translation and `translate_batch` with bounded concurrency: https://github.com/soumendrak/openodia/pull/284
+- **Behaviour change, changes default output:** `ud.sentence_tokenizer` now splits after `।`, `॥`, `?` and `!`: https://github.com/soumendrak/openodia/pull/293
+- `TranslationCache` and `openodia.cache.get_cache()` are thread-safe: https://github.com/soumendrak/openodia/pull/296
+- `openodia translate` and `other_lang_to_odia` find offline-dictionary words when the text has leading or trailing whitespace: https://github.com/soumendrak/openodia/pull/294
+- `import openodia` and `openodia --help` no longer import `faker`, `deep_translator`, `requests` or `bs4`: https://github.com/soumendrak/openodia/pull/292
+- `import openodia` no longer configures logging: https://github.com/soumendrak/openodia/pull/290
+- The package ships `py.typed` and is fully type-annotated (mypy strict): https://github.com/soumendrak/openodia/pull/280 and https://github.com/soumendrak/openodia/pull/283
+- Docs: generated API reference and usage guides: https://github.com/soumendrak/openodia/pull/289 and https://github.com/soumendrak/openodia/pull/297
+- Docs for AI agents: `AGENTS.md`, `skills/openodia/SKILL.md` and `llms.txt` on the docs site: https://github.com/soumendrak/openodia/pull/278
+
+### Known limits
+
+- Sandhi: the splitter knows 74 lemmas. `split` returns at most two known lemmas, so it does not unpack a longer compound (for example `join(["ଲୋକ", "ସଭା", "ଗୃହ"])` is `ଲୋକସଭାଗୃହ`, and `split` of that string does not return three parts). `split` takes one word; a spaced phrase such as `ବିଦ୍ୟା ଆଳୟ` is returned unchanged. `join` can still fold more than two parts.
+- Hunterian is intentionally lossy (no diacritics) and ignores `reversible`. It drops vowel length, so `to_roman("ନମସ୍କାର", "Hunterian")` is `namaskara` and `from_roman` of that spelling is `ନମସ୍କର`, not `ନମସ୍କାର`. Odia digits become ASCII `0`-`9` even when `reversible=True`. Hunterian `from_roman` decodes no Roman spelling as anusvara, candrabindu or visarga. `ନ୍` endings and clusters such as `ନ୍ସ` and `ଙ୍କ` do round-trip. In ISO 15919 and ITRANS, `from_roman(to_roman(text, scheme, reversible=True), scheme)` gives back the text with each run of Odia characters in NFC.
+- `pii` does not detect names, addresses, dates or amounts, so masked text can still identify a person.
+- English to Odia is served from the bundled offline dictionary when the phrase is in it; every other translation pair calls Google Translate over the network, which can be rate limited and refuses text over 5,000 characters.
+
 - Add `openodia.sandhi` to split an Odia compound into the words sandhi joined (`split`) and to join those parts (`join`). A known lemma, or a word that does not split into two known words, is returned unchanged. `split` and `join` NFC-normalize, so for a compound the splitter accepts `join(split(word))` equals the NFC form of that word. `openodia.sandhi` needs a release newer than 0.1.14: `import openodia.sandhi` fails on 0.1.14.
 - Add `openodia.pii` and `openodia pii` to find or mask phone numbers, emails, URLs, Aadhaar (Verhoeff checksum), PAN and PIN codes in Odia or ASCII digits. Names, addresses, dates and amounts are not detected. Overlapping matches merge into one span, so for every detected value `mask` never leaves part of it visible (see the limits below), and `mask` repeats until stable so masking its output changes nothing (up to 10 glued values). Detection is linear in the input size.
 - Every CLI subcommand accepts `--json` and prints one UTF-8 JSON document on stdout; default text output is unchanged by `--json`. With `--json`, invalid UTF-8 in stdin or in the text argument is an `openodia: error:` with exit code 1; `detect-language --json` used to pass it through in 0.1.14.
