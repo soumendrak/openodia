@@ -1,6 +1,6 @@
 """Open Odia language tools"""
 
-__version__ = "0.1.14"
+__version__ = "0.2.0"
 
 from . import cache
 from .common.constants import STOPWORDS
@@ -21,6 +21,7 @@ from . import numbers
 from . import morph
 from . import phonetic
 from . import syllable
+from . import sandhi
 from .segment import sentences
 from .stats import FreqDist, collocations, cooccurrence, ngrams
 from .stopwords import Stopwords
@@ -45,6 +46,7 @@ __all__ = [
     "morph",
     "phonetic",
     "roman",
+    "sandhi",
     "sentences",
     "STOPWORDS",
     "Stopwords",
