@@ -1,3 +1,4 @@
+import re
 import subprocess
 import sys
 import time
@@ -7,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from openodia import numbers, pii
-from openodia.pii import KeyStore, PIIEntity
+from openodia.pii import KeyStore, PIIEntity, _detect
 
 from .test_pii import CHECKSUM_FAILING, VALID_AADHAAR, kinds
 
@@ -394,13 +395,17 @@ def test_sentence_punctuation_ends_a_prefixed_amount(text: str, masked: str) -> 
     assert pii.mask(text, types=["MONEY"]) == masked
 
 
-def test_names_above_surname_confidence_skip_the_surname_scan() -> None:
-    def elapsed(count: int) -> float:
-        text = " ".join(["ରାମ"] * count)
-        started = time.perf_counter()
-        assert pii.detect(text, types=["NAME"], min_confidence=0.8) == []
-        return time.perf_counter() - started
+def test_names_above_surname_confidence_skip_the_surname_scan(monkeypatch: pytest.MonkeyPatch) -> None:
+    scanned: list[int] = []
+    real = _detect._surname_end
 
-    small = min(elapsed(1000) for _ in range(3))
-    large = min(elapsed(4000) for _ in range(3))
-    assert large < small * 8
+    def counting(text: str, words: list[re.Match[str]], index: int) -> int | None:
+        scanned.append(index)
+        return real(text, words, index)
+
+    monkeypatch.setattr(_detect, "_surname_end", counting)
+    text = " ".join(["ରାମ"] * 50)
+    assert pii.detect(text, types=["NAME"], min_confidence=0.8) == []
+    assert scanned == []
+    assert pii.detect(text, types=["NAME"], min_confidence=0.7) != []
+    assert scanned != []
