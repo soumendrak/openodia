@@ -197,8 +197,12 @@ def _read_digits(text: str, index: int, limit: int) -> tuple[int, int, bool]:
     return index, count, index < len(text) and text[index] in _DIGITS
 
 
+def _separator_then_digit(text: str, index: int, separator: str) -> bool:
+    return index + 1 < len(text) and text[index] == separator and text[index + 1] in _DIGITS
+
+
 def _read_groups(text: str, index: int) -> int | None:
-    while index < len(text) and text[index] == ",":
+    while _separator_then_digit(text, index, ","):
         index, count, overflow = _read_digits(text, index + 1, 3)
         if count < 2 or overflow:
             return None
@@ -206,10 +210,10 @@ def _read_groups(text: str, index: int) -> int | None:
 
 
 def _read_decimal(text: str, index: int) -> int | None:
-    if index >= len(text) or text[index] != ".":
+    if not _separator_then_digit(text, index, "."):
         return index
     index, count, overflow = _read_digits(text, index + 1, 2)
-    if count == 0 or overflow:
+    if overflow:
         return None
     return index
 
@@ -220,7 +224,7 @@ def _parse_amount(text: str, start: int) -> int | None:
     index, first, overflow = _read_digits(text, start, 12)
     if overflow or first == 0:
         return None
-    if index < len(text) and text[index] == ",":
+    if _separator_then_digit(text, index, ","):
         if first > 3:
             return None
         grouped = _read_groups(text, index)
@@ -391,8 +395,8 @@ def _name_candidates(text: str, wanted: frozenset[str], min_confidence: float) -
             found.append(_Candidate(words[index].start(), words[honorific].end(), "NAME", 0.8))
             index = honorific + 1
             continue
-        surname = _surname_end(text, words, index)
-        if surname is not None and 0.7 >= min_confidence:
+        surname = _surname_end(text, words, index) if 0.7 >= min_confidence else None
+        if surname is not None:
             found.append(_Candidate(words[index].start(), words[surname].end(), "NAME", 0.7))
             index = surname + 1
             continue

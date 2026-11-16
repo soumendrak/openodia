@@ -378,3 +378,29 @@ def test_docs_name_the_release_that_adds_the_new_pii_types(doc: str) -> None:
     root = Path(__file__).resolve().parents[1]
     text = " ".join((root / doc).read_text(encoding="utf-8").split())
     assert NEW_PII_RELEASE in text
+
+
+@pytest.mark.parametrize(
+    ("text", "masked"),
+    [
+        ("paid ₹500.", "paid <MONEY>."),
+        ("paid Rs. 1,500, thanks", "paid <MONEY>, thanks"),
+        ("paid ₹500.50.", "paid <MONEY>."),
+        ("₹1,5 x", "₹1,5 x"),
+        ("₹1,50000 x", "₹1,50000 x"),
+    ],
+)
+def test_sentence_punctuation_ends_a_prefixed_amount(text: str, masked: str) -> None:
+    assert pii.mask(text, types=["MONEY"]) == masked
+
+
+def test_names_above_surname_confidence_skip_the_surname_scan() -> None:
+    def elapsed(count: int) -> float:
+        text = " ".join(["ରାମ"] * count)
+        started = time.perf_counter()
+        assert pii.detect(text, types=["NAME"], min_confidence=0.8) == []
+        return time.perf_counter() - started
+
+    small = min(elapsed(1000) for _ in range(3))
+    large = min(elapsed(4000) for _ in range(3))
+    assert large < small * 8
