@@ -270,7 +270,7 @@ roman.from_roman("namaskara", "Hunterian")  # 'ନମସ୍କର' (best-effort:
 
 #### Phonetic typing
 
-`openodia.roman` needs a release newer than 0.1.14. `roman.type_odia` turns Roman typing into Odia, offline, without an IME.
+`openodia.roman` needs a release newer than 0.1.14. `roman.type_odia` needs a release newer than 0.2.0: it raises `AttributeError` on 0.2.0. `roman.type_odia` turns Roman typing into Odia, offline, without an IME.
 Each ASCII word is the bundled-dictionary word with that folded Hunterian
 spelling, and the more common gloss wins when several words share it.
 Spaces and punctuation are left where they were. `from_roman("namaskara", "Hunterian")`

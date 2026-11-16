@@ -129,9 +129,13 @@ def test_candidates_grow_linearly() -> None:
 
 def test_roman_docs_name_the_release() -> None:
     sentence = "`openodia.roman` needs a release newer than 0.1.14"
+    typing = "`roman.type_odia` needs a release newer than 0.2.0: it raises `AttributeError` on 0.2.0"
     root = Path(__file__).resolve().parent.parent
-    for path in ("docs/index.md", "docs/llms.txt"):
-        assert sentence in (root / path).read_text(encoding="utf-8")
+    for path in ("docs/index.md", "docs/llms.txt", "CHANGELOG.md"):
+        text = " ".join((root / path).read_text(encoding="utf-8").split())
+        assert typing in text
+        if path != "CHANGELOG.md":
+            assert sentence in text
 
 
 def test_typing_again_changes_nothing() -> None:
