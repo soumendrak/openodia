@@ -57,6 +57,12 @@ def test_ortt_converts_the_same_word() -> None:
         ("ORTTSarala", "LÔà", "ର୍କ୍ୟ"),
         ("ORTTSarala", "LÐÔà", "ର୍କ୍ୟା"),
         ("ORTTSarala", "12", "୧୨"),
+        ("ORTTSarala", "ÒLÔ×", "କ୍ୟୌ"),
+        ("ORTTSarala", "ÒLÔß", "କ୍ୟୈ"),
+        ("ORTTSarala", "ÒLÔ", "କ୍ୟେ"),
+        ("ORTTSarala", "L™", "ର୍କଁ"),
+        ("AkrutiOriSarala", "Gø", "ଐ"),
+        ("AkrutiOriSarala", "KGø", "କଐ"),
     ],
 )
 def test_matras_reph_and_conjuncts(font: str, source: str, expected: str) -> None:
@@ -134,6 +140,10 @@ def test_a_font_table_must_have_the_expected_shape(monkeypatch: pytest.MonkeyPat
         _convert._matra({"marker": "m", "default": "d", "forms": ["no"]})
     with pytest.raises(TypeError):
         _convert._matra({"marker": "m", "default": "d", "forms": [["", "x"]]})
+    with pytest.raises(TypeError):
+        _convert._matra({"marker": "m", "default": "d", "forms": [], "joins": "x"})
+    with pytest.raises(TypeError):
+        _convert._matra({"marker": "m", "default": "d", "forms": [], "joins": [""]})
     with pytest.raises(TypeError):
         _convert._rules("no")
     with pytest.raises(TypeError):

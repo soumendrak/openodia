@@ -20,6 +20,7 @@ class _Matra:
     marker: str
     default: str
     forms: tuple[tuple[str, str], ...]
+    joins: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -86,7 +87,10 @@ def _matra(value: object) -> _Matra | None:
             raise TypeError("matra form must be a suffix and a vowel sign")
         parsed.append((suffix, sign))
     parsed.sort(key=lambda item: len(item[0]), reverse=True)
-    return _Matra(marker, default, tuple(parsed))
+    joins = value.get("joins", [])
+    if not isinstance(joins, list) or not all(isinstance(glyph, str) and glyph != "" for glyph in joins):
+        raise TypeError("matra joins must be non-empty strings")
+    return _Matra(marker, default, tuple(parsed), tuple(joins))
 
 
 def _rules(value: object) -> tuple[_Rule, ...]:
@@ -244,6 +248,8 @@ def _apply_matra(text: str, matra: _Matra) -> str:
         if shifted == text:
             break
         text = shifted
+    for glyph in matra.joins:
+        text = text.replace(matra.marker + glyph, glyph + matra.marker)
     out: list[str] = []
     index = 0
     limit = len(text)
