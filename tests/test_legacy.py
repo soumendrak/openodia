@@ -177,7 +177,7 @@ CP1252_BYTES = (
     ("ORTTSarala", 0x9C, "କ୍ଟ"),
 )
 
-RELEASE_SENTENCE = "`openodia.legacy` needs a release newer than 0.1.14"
+RELEASE_SENTENCE = "`openodia.legacy` needs a release newer than 0.2.0: `import openodia.legacy` fails on 0.2.0"
 RELEASE_PAGES = ("README.md", "docs/index.md", "docs/llms.txt", "AGENTS.md")
 
 
@@ -231,7 +231,7 @@ def test_yaphala_moves_past_every_vowel_sign() -> None:
     assert legacy.to_unicode("OãôÔg", font="ORTTSarala") == "ଘ୍ୟୁୃୱ"
 
 
-@pytest.mark.parametrize("text", ("ପ", "ପ ୧।୨", "ଓଡ଼ିଆ ଭାଷା ସୁନ୍ଦର ।", "୧୨୩ ॥"))
+@pytest.mark.parametrize("text", ("ପ", "ପ ୧।୨", "ଓଡ଼ିଆ ଭାଷା ସୁନ୍ଦର ।", "୧୨୩ ॥", "ସତ୍ଯ", "ଯୋଗ୍ଯ କାର୍ଯ୍ଯ ।", " ଙ୍ଗ "))
 def test_unicode_odia_is_not_detected_as_a_legacy_font(text: str) -> None:
     assert legacy.detect_font(text)["font"] is None
     assert legacy.to_unicode_auto(text) == text
@@ -262,3 +262,12 @@ def test_each_font_has_fifty_known_sentences() -> None:
     assert legacy.detect_font(first["legacy"]) == {"font": "AkrutiOriSarala", "confidence": 24 / 39}
     converted = sum(legacy.to_unicode_auto(row["legacy"]) == row["unicode"] for rows in fixture.values() for row in rows)
     assert converted == 83
+
+
+def test_font_evidence_holds_no_odia_or_danda() -> None:
+    target = {chr(code) for code in range(0x0B00, 0x0B80)} | {"\u0964", "\u0965"}
+    for font in _convert._FONTS:
+        assert font.signatures
+        assert not any(set(signature) & target for signature in font.signatures)
+        assert font.alphabet
+        assert not font.alphabet & target

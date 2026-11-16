@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- `openodia.legacy` needs a release newer than 0.1.14. It converts AkrutiOriSarala and ORTTSarala text to Unicode (`decode`, `to_unicode`, `detect_font`, `to_unicode_auto`). `decode` uses cp1252 and keeps bytes 0x81, 0x8D, 0x8F and 0x9D. Output is NFC. A left matra moves to the end of its conjunct, and a nasal typed between that matra and its vowel suffix stays after the finished vowel. ଡ଼ stays consonant plus nukta. ORTT ya-phala is expanded before reph moves, so the reph covers the whole conjunct. Odia letters and dandas are not font evidence. A tie (`confidence` 0.5) or no evidence (`confidence` 0.0) makes `detect_font` return no font and `to_unicode_auto` leave the text unchanged. On the 100 checked sentences, auto mode converts 83.
+- `openodia.legacy` needs a release newer than 0.2.0: `import openodia.legacy` fails on 0.2.0. It converts AkrutiOriSarala and ORTTSarala text to Unicode (`decode`, `to_unicode`, `detect_font`, `to_unicode_auto`). `decode` uses cp1252 and keeps bytes 0x81, 0x8D, 0x8F and 0x9D. Output is NFC. A left matra moves to the end of its conjunct, and a nasal typed between that matra and its vowel suffix stays after the finished vowel. ଡ଼ stays consonant plus nukta. ORTT ya-phala is expanded before reph moves, so the reph covers the whole conjunct. Odia letters and dandas are not font evidence. A tie (`confidence` 0.5) or no evidence (`confidence` 0.0) makes `detect_font` return no font and `to_unicode_auto` leave the text unchanged. On the 100 checked sentences, auto mode converts 83.
 
 ## 0.2.0 (2026-11-13)
 

@@ -34,7 +34,7 @@ def rendered_text(page: Path) -> str:
 
 def test_legacy_api_page_lists_the_public_functions(site: Path) -> None:
     page = (site / "api" / "legacy" / "index.html").read_text(encoding="utf-8")
-    for name in ("to_unicode", "detect_font", "to_unicode_auto"):
+    for name in ("decode", "to_unicode", "detect_font", "to_unicode_auto"):
         assert f'id="openodia.legacy.{name}"' in page
 
 
