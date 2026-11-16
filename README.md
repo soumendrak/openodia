@@ -54,7 +54,7 @@ For usage and further documentation please visit the [Documentation](https://ope
 
 `openodia.morph.stem` reduces one inflected word to a noun stem or a verb root.
 `openodia.morph.lemma` returns the citation form (the infinitive, for a verb)
-plus part of speech and grammatical features. `openodia.morph` needs a release newer than 0.1.14.
+plus part of speech and grammatical features. `openodia.morph` needs a release newer than 0.2.0: `from openodia import morph` fails on 0.2.0.
 Both are offline and idempotent
 on the stem: `stem(stem(word)) == stem(word)`.
 

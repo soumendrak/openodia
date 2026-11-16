@@ -23,13 +23,14 @@ from openodia.morph import (
 import openodia.morph as morph
 
 _DOUBLED_MATRA = re.compile("[ିୀୁୂେୈୋୌା]{2}")
-_MORPH_NOTE = "`openodia.morph` needs a release newer than 0.1.14"
+_MORPH_NOTE = "`openodia.morph` needs a release newer than 0.2.0: `from openodia import morph` fails on 0.2.0."
 _ADVERTISED = (
     "README.md",
     "docs/index.md",
     "AGENTS.md",
     "docs/llms.txt",
     "skills/openodia/SKILL.md",
+    "CHANGELOG.md",
 )
 _PERF_S = FiniteVerb("past", "perfect", 3, "singular")
 _PERF_P = FiniteVerb("past", "perfect", 3, "plural")
@@ -367,7 +368,7 @@ def test_root_exports_morph_beside_phonetic() -> None:
     )
     result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True)
     payload = json.loads(result.stdout.splitlines()[-1])
-    assert payload["version"] == "0.1.14"
+    assert payload["version"] == "0.2.0"
     assert "phonetic" in payload["all"]
     assert "morph" in payload["all"]
     assert payload["loaded"] is True

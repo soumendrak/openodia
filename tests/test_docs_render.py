@@ -62,6 +62,12 @@ def test_morph_api_page_lists_the_endings(site: Path) -> None:
     assert "Endings" in page
     for ending in ("ଗୁଡ଼ାକ", "ଠାରୁ", "ଉଛନ୍ତି", "ମାନଙ୍କୁ", "ଗୁଡ଼ିକୁ", "ିଥିଲା"):
         assert ending in page
+    from openodia.morph import suffixes
+
+    rows = [f"{item.citation} ({item.kind}): {', '.join(item.tails)}" for item in suffixes()]
+    assert len(rows) >= 40
+    for row in rows:
+        assert row in page.splitlines()
     leaks = {
         page.parent.name: match.group(0).strip()
         for page in sorted((site / "api").glob("*/index.html"))
