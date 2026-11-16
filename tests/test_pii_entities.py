@@ -2,6 +2,7 @@ import subprocess
 import sys
 import time
 import unicodedata
+from pathlib import Path
 
 import pytest
 
@@ -337,3 +338,43 @@ def test_pii_is_exported_once_from_the_package_root() -> None:
 
     assert openodia.pii is pii
     assert openodia.__all__.count("pii") == 1
+
+
+def test_a_long_run_of_combining_marks_is_mapped_in_linear_time() -> None:
+    def elapsed(count: int) -> float:
+        text = "a" + "\u0323" * count + "a@b.com"
+        started = time.perf_counter()
+        entities = pii.detect(text)
+        spent = time.perf_counter() - started
+        assert [(entity.type, text[entity.start : entity.end]) for entity in entities] == [("EMAIL", "a@b.com")]
+        return spent
+
+    small = min(elapsed(4000) for _ in range(3))
+    large = min(elapsed(16000) for _ in range(3))
+    assert large < small * 8
+
+
+NEW_PII_RELEASE = (
+    "Dates, amounts, names, addresses, `pseudonymize`, `restore` and `KeyStore` need a release newer than 0.2.0: "
+    "`from openodia.pii import pseudonymize` fails on 0.2.0, and `pii.detect` there finds only phone, email, URL, "
+    "Aadhaar, PAN and PIN code."
+)
+
+
+@pytest.mark.parametrize(
+    "doc",
+    [
+        "README.md",
+        "AGENTS.md",
+        "skills/openodia/SKILL.md",
+        "docs/index.md",
+        "docs/guides/pii.md",
+        "docs/llms.txt",
+        "docs/application.md",
+        "CHANGELOG.md",
+    ],
+)
+def test_docs_name_the_release_that_adds_the_new_pii_types(doc: str) -> None:
+    root = Path(__file__).resolve().parents[1]
+    text = " ".join((root / doc).read_text(encoding="utf-8").split())
+    assert NEW_PII_RELEASE in text

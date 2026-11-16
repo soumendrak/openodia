@@ -2,7 +2,7 @@
 
 `pii` finds phone numbers, emails, URLs, Aadhaar numbers, PAN, PIN codes, dates, currency amounts, dictionary names, and a low-confidence address span. It reads Odia digits and ASCII digits, including text in NFD, and it runs offline. A lone name, a bare amount, and a street with no administrative word within 40 characters of a PIN stay visible, so masked text can still identify a person. `pseudonymize` records `<TYPE:n>` tokens in a `KeyStore` and `restore` puts them back, except a `<TYPE:n>` already in the input is rewritten when that token is in the store.
 
-`pii` needs a release newer than 0.1.14. On PyPI 0.1.14, `import openodia.pii` fails and `openodia pii` exits with code 2. From a source checkout, `uv run python` can import it.
+`pii` needs a release newer than 0.1.14. On PyPI 0.1.14, `import openodia.pii` fails and `openodia pii` exits with code 2. Dates, amounts, names, addresses, `pseudonymize`, `restore` and `KeyStore` need a release newer than 0.2.0: `from openodia.pii import pseudonymize` fails on 0.2.0, and `pii.detect` there finds only phone, email, URL, Aadhaar, PAN and PIN code. From a source checkout, `uv run python` can import it.
 
 Every example on this page is run by the test suite.
 

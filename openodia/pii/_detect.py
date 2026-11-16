@@ -292,6 +292,9 @@ def _nfc_ends(chunk: str, nfc_chunk: str, origin: int) -> list[int]:
     return ends
 
 
+_LONGEST_EXACT_RUN = 32
+
+
 def _nfc_bounds(text: str) -> tuple[str, list[int] | None]:
     if unicodedata.is_normalized("NFC", text):
         return text, None
@@ -300,8 +303,10 @@ def _nfc_bounds(text: str) -> tuple[str, list[int] | None]:
     for start, end in _mark_runs(text):
         nfc_chunk = unicodedata.normalize("NFC", text[start:end])
         parts.append(nfc_chunk)
-        for end in _nfc_ends(text[start:end], nfc_chunk, start):
-            bounds.append(end)
+        if end - start > _LONGEST_EXACT_RUN:
+            bounds.extend([end] * len(nfc_chunk))
+            continue
+        bounds.extend(_nfc_ends(text[start:end], nfc_chunk, start))
     return "".join(parts), bounds
 
 
