@@ -86,7 +86,7 @@ PHONE	7	17	୯୮୭୬୫୪୩୨୧୦
 EMAIL	20	27	a@b.com
 ```
 
-`freq` prints the count, a tab, then the token. `pii` prints the type, the start, the end, and the matched text, separated by tabs. With `--mask` it prints the text with each match replaced by `<TYPE>`. What the patterns miss is in [Find and mask personal identifiers](pii.md). `translate` answers English to Odia from the [offline dictionary](translation.md) when it can and uses Google Translate for everything else, so it needs the network then.
+`freq` prints the count, a tab, then the token. `pii` prints the type, the start, the end, and the matched text, separated by tabs. With `--mask` it prints the text with each match replaced by `<TYPE>`. What the patterns miss is in [Find and mask personal identifiers](pii.md). `translate` answers English to Odia from the [offline dictionary](translation.md) when it can and uses Google Translate for everything else, so it needs the network then. `spell` needs a release newer than 0.2.0: `openodia spell` exits 2 on 0.2.0, and `import openodia.spell` fails on 0.2.0.
 
 ## Errors
 

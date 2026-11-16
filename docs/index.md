@@ -471,7 +471,7 @@ sentences("Hello. World!", keep_terminators=False)
 
 ### :material-spellcheck: Odia spell checker
 
-- `openodia.spell` checks a word, suggests dictionary corrections, and rewrites text. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia spell` exits 2 on 0.1.14 and `import openodia.spell` fails there.
+- `openodia.spell` checks a word, suggests dictionary corrections, and rewrites text. It is offline and adds no dependency. It needs a release newer than 0.2.0: `openodia spell` exits 2 on 0.2.0, and `import openodia.spell` fails on 0.2.0.
 - A suggestion is a dictionary word within akshara edit distance 2, closest first, then the word that appears more often in the offline dictionary. `correct_text` keeps whitespace, punctuation, digits and non-Odia text, and leaves a word unchanged when nothing is within distance 2.
 
 ```python

@@ -10,8 +10,8 @@ each unknown Odia word with its first suggestion and leaves whitespace, punctuat
 digits and non-Odia text as written. It does not join or split words. A word with
 no candidate within distance 2 is left as written.
 
-This module needs a release newer than 0.1.14: ``import openodia.spell`` fails on
-0.1.14.
+This module needs a release newer than 0.2.0: ``import openodia.spell`` fails on
+0.2.0.
 
 Examples:
     >>> from openodia import spell

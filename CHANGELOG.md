@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add `openodia.spell` (`is_correct`, `suggest`, `correct_text`) and `openodia spell` to check an Odia word, suggest dictionary corrections, and correct text in place. Suggestions use akshara edit distance up to 2 against the offline dictionary, ranked by distance then by how often the word appears there. Whitespace, punctuation, digits and non-Odia text stay as written, and a word with no candidate within distance 2 is left as written. It needs a release newer than 0.1.14: `openodia spell` exits 2 on 0.1.14 and `import openodia.spell` fails there.
+- Add `openodia.spell` (`is_correct`, `suggest`, `correct_text`) and `openodia spell` to check an Odia word, suggest dictionary corrections, and correct text in place. Suggestions use akshara edit distance up to 2 against the offline dictionary, ranked by distance then by how often the word appears there. Whitespace, punctuation, digits and non-Odia text stay as written, and a word with no candidate within distance 2 is left as written. It needs a release newer than 0.2.0: `openodia spell` exits 2 on 0.2.0, and `import openodia.spell` fails on 0.2.0.
 
 ## 0.2.0 (2026-11-13)
 
