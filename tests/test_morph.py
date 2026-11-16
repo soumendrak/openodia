@@ -39,6 +39,8 @@ _PROG_P = FiniteVerb("past", "progressive", 3, "plural")
 _PRES_PERF_P = FiniteVerb("present", "perfect", 3, "plural")
 _PRES_PROG_S = FiniteVerb("present", "progressive", 3, "singular")
 _PRES_PROG_P = FiniteVerb("present", "progressive", 3, "plural")
+_PRES_PROG_1P = FiniteVerb("present", "progressive", 1, "plural")
+_PAST_PROG_1S = FiniteVerb("past", "progressive", 1, "singular")
 _SIMPLE_S = FiniteVerb("past", "simple", 3, "singular")
 _SIMPLE_P = FiniteVerb("past", "simple", 3, "plural")
 _FUT_S = FiniteVerb("future", "simple", 3, "singular")
@@ -298,6 +300,36 @@ def test_perfect_verbs_stay_on_the_root() -> None:
         assert got.features == features
         assert stem(got.form) == root
         assert _DOUBLED_MATRA.search(got.form) is None
+
+
+def test_unlisted_verbal_roots_keep_a_final_ra() -> None:
+    cases = {
+        "ବିଚାରିବା": ("ବିଚାର", "ବିଚାରିବା"),
+        "ସ୍ୱୀକାରିବା": ("ସ୍ୱୀକାର", "ସ୍ୱୀକାରିବା"),
+    }
+    for word, (root, form) in cases.items():
+        assert stem(word) == root
+        assert stem(root) == root
+        assert stem(stem(word)) == root
+        got = lemma(word)
+        assert got == Lemma(form, "VERB", NonfiniteVerb("infinitive"))
+        assert stem(got.form) == root
+
+
+def test_vowel_final_roots_use_independent_progressive_endings() -> None:
+    cases = {
+        "ଖାଉଛନ୍ତି": ("ଖା", "ଖାଇବା", _PRES_PROG_P),
+        "ଦେଉଛନ୍ତି": ("ଦେ", "ଦେବା", _PRES_PROG_P),
+        "ଖାଉଥିଲି": ("ଖା", "ଖାଇବା", _PAST_PROG_1S),
+        "ଖାଉଛୁ": ("ଖା", "ଖାଇବା", _PRES_PROG_1P),
+        "ଦେଉଛୁ": ("ଦେ", "ଦେବା", _PRES_PROG_1P),
+    }
+    for word, (root, form, features) in cases.items():
+        assert stem(word) == root
+        assert stem(stem(word)) == root
+        got = lemma(word)
+        assert got == Lemma(form, "VERB", features)
+        assert stem(got.form) == root
 
 
 def test_plural_dative_uses_the_real_endings() -> None:

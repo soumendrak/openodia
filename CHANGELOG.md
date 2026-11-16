@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add `openodia.morph`, exported as `from openodia import morph`: `stem` (noun stem or verb root) and `lemma` (citation form plus part of speech and features) for Odia inflection. `openodia.morph` needs a release newer than 0.2.0: `from openodia import morph` fails on 0.2.0. Offline suffix rules and a small irregular dictionary; no new dependency. Perfect `ଇଥିଲା` forms keep the conjunctive vowel on the suffix, and plural dative uses `ମାନଙ୍କୁ`, `ଙ୍କୁ` and `ଗୁଡ଼ିକୁ`.
+- Add `openodia.morph`, exported as `from openodia import morph`: `stem` (noun stem or verb root) and `lemma` (citation form plus part of speech and features) for Odia inflection. `openodia.morph` needs a release newer than 0.2.0: `from openodia import morph` fails on 0.2.0. Offline suffix rules and a small irregular dictionary; no new dependency. Perfect `ଇଥିଲା` forms keep the conjunctive vowel on the suffix, and plural dative uses `ମାନଙ୍କୁ`, `ଙ୍କୁ` and `ଗୁଡ଼ିକୁ`. Progressive endings for vowel-final roots accept independent `ଉ` as well as dependent `ୁ`. An unlisted verb root that ends in `ାର` stays on a second `stem` call, so `stem("ବିଚାରିବା")` and `stem("ବିଚାର")` are both `ବିଚାର`.
 
 ## 0.2.0 (2026-11-13)
 

@@ -187,10 +187,10 @@ _TAILS: tuple[_Row, ...] = (
     _finite("ଉଥିଲେ", "ଥିଲେ", "past", "progressive", 3, "plural", "verb"),
     *_same("ଉଥିଲା", ("ୁଥିଲା", "ଉଥିଲା"), "past", "progressive", 3, "singular"),
     _finite("ଉଥିଲା", "ଥିଲା", "past", "progressive", 3, "singular", "verb"),
-    _finite("ଉଥିଲି", "ୁଥିଲି", "past", "progressive", 1, "singular"),
+    *_same("ଉଥିଲି", ("ୁଥିଲି", "ଉଥିଲି"), "past", "progressive", 1, "singular"),
     *_same("ଉଛି", ("ୁଛି", "ଉଛି"), "present", "progressive", 3, "singular"),
-    _finite("ଉଛୁ", "ୁଛୁ", "present", "progressive", 1, "plural"),
-    _finite("ଉଛନ୍ତି", "ୁଛନ୍ତି", "present", "progressive", 3, "plural"),
+    *_same("ଉଛୁ", ("ୁଛୁ", "ଉଛୁ"), "present", "progressive", 1, "plural"),
+    *_same("ଉଛନ୍ତି", ("ୁଛନ୍ତି", "ଉଛନ୍ତି"), "present", "progressive", 3, "plural"),
     *_same("ଇଛି", ("ିଛି", "ଇଛି"), "present", "perfect", 3, "singular"),
     *_same("ଇଲା", ("ିଲା", "ଇଲା"), "past", "simple", 3, "singular"),
     *_same("ଇଲେ", ("ିଲେ", "ଇଲେ"), "past", "simple", 3, "plural"),
@@ -312,6 +312,14 @@ def _candidate(word: str, tail: _Row) -> str | None:
     if len(remainder) < 2 or not _shape(remainder) or not _allows(tail.guard, remainder):
         return None
     if isinstance(tail, _Nominal) and _aksharas(remainder) < tail.min_aksharas:
+        return None
+    if (
+        isinstance(tail, _Nominal)
+        and tail.case == "genitive"
+        and tail.text == _nfc("ର")
+        and not _known_nominal(remainder)
+        and remainder.endswith("ା")
+    ):
         return None
     if isinstance(tail, _Verbal) and _known_nominal(remainder) and remainder not in _VERBS:
         return None

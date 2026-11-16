@@ -11,7 +11,8 @@ one fusional tail. Noun plural and case peel from the right, so ଗୁଡ଼ି�
 matra େ; that reading is used only for a listed consonant-final noun, which
 is why ମନ୍ଦିରେ stays ମନ୍ଦିର and କରେ stays the verb କର. Listed nouns that end in
 ର, such as ସରକାର, are not genitives. Unlisted nouns still lose a plain
-genitive ର. Short verbal tails (େ, ଇ, ବା) apply only to listed roots. Longer
+genitive ର, except when the remainder would end in ା, so ବିଚାର stays
+ବିଚାର. Short verbal tails (େ, ଇ, ବା) apply only to listed roots. Longer
 verbal tails apply to any well-formed remainder. Suppletive pasts (କଲା,
 ଗଲା, ଦେଲା, ନେଲା, ହେଲା, ଥିଲା) and the vowel-changing infinitives ଯିବା and
 ଥିବା are a dictionary, not a cut.
@@ -26,7 +27,8 @@ and verbal tables); Sethi 2013, the lightweight Odia stemmer; and
 Chaupattnaik, Nanda and Mohanty 2012, the suffix-stripping Odia stemmer.
 ``suffixes()`` is that list. A perfect ``ଇଥିଲା`` / ``ଇଛି`` ending keeps the
 conjunctive vowel with the suffix, so the stem is the root. Genitive ``ର``
-is stripped only when at least two aksharas remain.
+is stripped only when at least two aksharas remain and the remainder is
+not an unlisted stem ending in ``ା``.
 
 Endings:
 
@@ -56,10 +58,10 @@ Endings:
 ଗୁଡ଼ିକୁ (nominal): ଗୁଡ଼ିକୁ
 ଉଥିଲେ (verbal): ୁଥିଲେ, ଉଥିଲେ, ଥିଲେ
 ଉଥିଲା (verbal): ୁଥିଲା, ଉଥିଲା, ଥିଲା
-ଉଥିଲି (verbal): ୁଥିଲି
+ଉଥିଲି (verbal): ୁଥିଲି, ଉଥିଲି
 ଉଛି (verbal): ୁଛି, ଉଛି
-ଉଛୁ (verbal): ୁଛୁ
-ଉଛନ୍ତି (verbal): ୁଛନ୍ତି
+ଉଛୁ (verbal): ୁଛୁ, ଉଛୁ
+ଉଛନ୍ତି (verbal): ୁଛନ୍ତି, ଉଛନ୍ତି
 ଇଛି (verbal): ିଛି, ଇଛି
 ଇଲା (verbal): ିଲା, ଇଲା
 ଇଲେ (verbal): ିଲେ, ଇଲେ
