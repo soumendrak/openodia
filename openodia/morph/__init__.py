@@ -17,8 +17,9 @@ while ଗାଁର is ଗାଁ plus ର. Short verbal tails (େ, ଇ, ବା) 
 listed roots. Longer verbal tails apply to any well-formed remainder.
 A bare ଥିଲା / ଥିଲେ after a conjunctive is perfect, and ିଁଥିଲା / ୁଁଥିଲା
 keep the root, so ଚାହିଁଥିଲା is ଚାହ. An infinitive the dictionary does not
-list is the root plus ିବା after a consonant, ବା after େ (ଦେବା), and ଇବା
-after any other vowel sign (ଖାଇବା, ପିଇବା, ଶୁଇବା, ଧୋଇବା). A finite ହୋ form
+list is the root plus ିବା after a consonant, ବା after the listed େ roots
+(ଦେବା, ନେବା, ହେବା), and ଇବା after any other vowel sign (ଖାଇବା, ପିଇବା,
+ଶୁଇବା, ଧୋଇବା, ବାଡ଼େଇବା). A finite ହୋ form
 (ହୋଇଥିଲା) is the verb ହେ, with infinitive ହେବା. Suppletive pasts (କଲା,
 ଗଲା, ଦେଲା, ନେଲା, ହେଲା, ଥିଲା, with first person ଲି and ଲୁ such as ଦେଲି and ଥିଲୁ), the infinitives ଯିବା, ଥିବା and ଚାହିଁବା,
 and the future forms ଯିବ, ଯିବି, ଯିବେ, ଥିବ, ଥିବି and ଥିବେ
@@ -77,9 +78,10 @@ Endings:
 ଇବ (verbal): ିବ, ଇବ, ବ
 ଇବି (verbal): ିବି, ଇବି, ବି
 ଇବେ (verbal): ିବେ, ଇବେ, ବେ
-ଥାଏ (verbal): ିଥାଏ, ଥାଏ
+ଥାଏ (verbal): ିଥାଏ, ଇଥାଏ, ଥାଏ
 ଇଥିଲେ (verbal): ିଁଥିଲେ, ିଥିଲେ, ଇଥିଲେ, ଥିଲେ
 ଇଥିଲା (verbal): ିଁଥିଲା, ିଥିଲା, ଇଥିଲା, ଥିଲା
+ଇଥିଲି (verbal): ିଁଥିଲି, ିଥିଲି, ଇଥିଲି, ଥିଲି
 ଇଛନ୍ତି (verbal): ିଛନ୍ତି, ଇଛନ୍ତି
 ନ୍ତି (verbal): ନ୍ତି
 ଏ (verbal): େ, ଏ

@@ -467,6 +467,8 @@ _FUT_1S = FiniteVerb("future", "simple", 1, "singular")
 _INF = NonfiniteVerb("infinitive")
 _PAST_1S = FiniteVerb("past", "simple", 1, "singular")
 _PAST_1P = FiniteVerb("past", "simple", 1, "plural")
+_HAB_S = FiniteVerb("present", "habitual", 3, "singular")
+_PERF_1S = FiniteVerb("past", "perfect", 1, "singular")
 _REJECT_REGRESSIONS: tuple[tuple[str, str, Lemma], ...] = (
     ("ଚାହିଁଥିଲା", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PERF_S)),
     ("ଚାହିଁଥିଲେ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PERF_P)),
@@ -508,6 +510,15 @@ _REJECT_REGRESSIONS: tuple[tuple[str, str, Lemma], ...] = (
     ("ଥିଲୁ", "ଥା", Lemma("ଥିବା", "VERB", _PAST_1P)),
     ("କଲାର", "କଲାର", Lemma("କଲାର", "UNKNOWN", UnknownFeatures())),
     ("ମହିଲାର", "ମହିଲାର", Lemma("ମହିଲାର", "UNKNOWN", UnknownFeatures())),
+    ("ଦେଇଥାଏ", "ଦେ", Lemma("ଦେବା", "VERB", _HAB_S)),
+    ("ଖାଇଥାଏ", "ଖା", Lemma("ଖାଇବା", "VERB", _HAB_S)),
+    ("ପାଇଥାଏ", "ପା", Lemma("ପାଇବା", "VERB", _HAB_S)),
+    ("କରିଥିଲି", "କର", Lemma("କରିବା", "VERB", _PERF_1S)),
+    ("ଖାଇଥିଲି", "ଖା", Lemma("ଖାଇବା", "VERB", _PERF_1S)),
+    ("ଚାହିଁଥିଲି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PERF_1S)),
+    ("ଗାଥିଲି", "ଗା", Lemma("ଗାଇବା", "VERB", _PERF_1S)),
+    ("ବାଡ଼େଇବା", "ବାଡ଼େ", Lemma("ବାଡ଼େଇବା", "VERB", _INF)),
+    ("ଗାଧେଇବା", "ଗାଧେ", Lemma("ଗାଧେଇବା", "VERB", _INF)),
 )
 
 
@@ -530,7 +541,7 @@ def test_no_stem_is_cut_inside_thi(word: str) -> None:
 
 def test_reject_regression_table_is_pinned_and_documented() -> None:
     words = [word for word, _, _ in _REJECT_REGRESSIONS]
-    assert len(words) == len(set(words)) == 40
+    assert len(words) == len(set(words)) == 49
     for required in ("ଚାହିଁଥିଲା", "ପିଇବା", "ଶୁଇବା", "ଧୋଇବା", "ହୋଇଥିଲା", "ଖାଇବି", "ପାଇବି", "ଗାଇବି", "ଗାଁର"):
         assert required in words
     tails = {tail for item in suffixes() for tail in item.tails}

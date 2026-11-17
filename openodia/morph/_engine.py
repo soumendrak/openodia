@@ -196,9 +196,10 @@ _TAILS: tuple[_Row, ...] = (
     *_same("ଇବ", ("ିବ", "ଇବ"), "future", "simple", 3, "singular"),
     *_same("ଇବି", ("ିବି", "ଇବି"), "future", "simple", 1, "singular"),
     *_same("ଇବେ", ("ିବେ", "ଇବେ"), "future", "simple", 3, "plural"),
-    *_same("ଥାଏ", ("ଥାଏ", "ିଥାଏ"), "present", "habitual", 3, "singular"),
+    *_same("ଥାଏ", ("ଥାଏ", "ିଥାଏ", "ଇଥାଏ"), "present", "habitual", 3, "singular"),
     *_same("ଇଥିଲେ", ("ିଥିଲେ", "ଇଥିଲେ", "ିଁଥିଲେ", "ଥିଲେ"), "past", "perfect", 3, "plural"),
     *_same("ଇଥିଲା", ("ିଥିଲା", "ଇଥିଲା", "ିଁଥିଲା", "ଥିଲା"), "past", "perfect", 3, "singular"),
+    *_same("ଇଥିଲି", ("ିଥିଲି", "ଇଥିଲି", "ିଁଥିଲି", "ଥିଲି"), "past", "perfect", 1, "singular"),
     _finite("ଇଛନ୍ତି", "ିଛନ୍ତି", "present", "perfect", 3, "plural"),
     _finite("ଇଛନ୍ତି", "ଇଛନ୍ତି", "present", "perfect", 3, "plural"),
     _finite("ନ୍ତି", "ନ୍ତି", "present", "simple", 3, "plural"),
@@ -367,9 +368,9 @@ def _infinitive(root: str) -> str:
     override = _INFINITIVE_OVERRIDE.get(root)
     if override is not None:
         return override
-    if root.endswith("େ"):
+    if root.endswith("େ") and root in _VERBS:
         return root + "ବା"
-    if root.endswith(("ା", "ି", "ୀ", "ୁ", "ୂ", "ୈ", "ୋ", "ୌ")):
+    if root.endswith(("ା", "ି", "ୀ", "ୁ", "ୂ", "େ", "ୈ", "ୋ", "ୌ")):
         return root + "ଇବା"
     return root + "ିବା"
 
