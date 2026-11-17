@@ -166,6 +166,34 @@ def test_a_surname_run_stops_at_a_comma_and_at_a_given_name() -> None:
     assert pii.mask("ଅଶୋକ ଦାସ ଅଶୋକ") == "<NAME> ଅଶୋକ"
 
 
+@pytest.mark.parametrize("gap", [" ", "  ", "\t", "\u00a0", "\n", " \u00a0\t"])
+def test_name_words_separated_by_any_whitespace_run_are_masked_whole(gap: str) -> None:
+    for words in (["ଅଶୋକ", "ଦାସ"], ["ଶ୍ରୀ", "ଅଶୋକ"], ["ଅଶୋକ", "କୁମାର", "ଦାସ", "ମହାପାତ୍ର"], ["ଗୁନ୍", "ଗୁନ୍", "ସିଂହଦେଓ"]):
+        text = "ମୁଁ " + gap.join(words) + " ଆସିଲି"
+        assert pii.mask(text, types=["NAME"]) == "ମୁଁ <NAME> ଆସିଲି"
+        [entity] = pii.detect(text, types=["NAME"])
+        assert text[entity.start : entity.end] == entity.text == gap.join(words)
+
+
+def test_a_surname_written_with_a_precomposed_nukta_letter_is_masked_to_its_end() -> None:
+    text = "ଅଶୋକ ମହାକୁ\u0b5c"
+    assert pii.mask(text) == "<NAME>"
+    [entity] = pii.detect(text, types=["NAME"])
+    assert (entity.start, entity.end) == (0, len(text))
+
+
+def test_an_ungrouped_amount_before_a_comma_is_masked() -> None:
+    assert pii.mask("paid ₹1500, thanks") == "paid <MONEY>, thanks"
+    assert pii.mask("paid 1500 ଟଙ୍କା, thanks") == "paid <MONEY>, thanks"
+
+
+@pytest.mark.parametrize(("marks", "masked_tail"), [(31, "\u0302" * 31), (32, "")])
+def test_runs_up_to_32_code_points_map_exactly_and_longer_runs_map_to_the_run_end(marks: int, masked_tail: str) -> None:
+    prefix = unicodedata.normalize("NFD", "ଗୋ ")
+    text = prefix + "x@y.com" + "\u0302" * marks
+    assert pii.mask(text) == prefix + "<EMAIL>" + masked_tail
+
+
 def test_an_honorific_includes_three_dictionary_words_and_not_only_two() -> None:
     assert pii.mask("ଶ୍ରୀ ଅଶୋକ କୁମାର ଦାସ") == "<NAME>"
 
@@ -409,3 +437,9 @@ def test_names_above_surname_confidence_skip_the_surname_scan(monkeypatch: pytes
     assert scanned == []
     assert pii.detect(text, types=["NAME"], min_confidence=0.7) != []
     assert scanned != []
+
+
+@pytest.mark.parametrize("doc", ["AGENTS.md", "docs/index.md", "docs/guides/pii.md"])
+def test_docs_state_the_name_whitespace_rule(doc: str) -> None:
+    text = " ".join((Path(__file__).resolve().parents[1] / doc).read_text(encoding="utf-8").split())
+    assert "Name words may be separated by any run of whitespace, including tabs, no-break spaces and line breaks." in text

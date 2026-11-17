@@ -314,12 +314,12 @@ def _nfc_bounds(text: str) -> tuple[str, list[int] | None]:
     return "".join(parts), bounds
 
 
-def _one_space(text: str, left: re.Match[str], right: re.Match[str]) -> bool:
-    return right.start() == left.end() + 1 and text[left.end()] == " "
+def _whitespace_gap(text: str, left: re.Match[str], right: re.Match[str]) -> bool:
+    return text[left.end() : right.start()].isspace()
 
 
 def _piece_end(text: str, words: list[re.Match[str]], index: int, room: int) -> int | None:
-    if room >= 2 and index + 1 < len(words) and _one_space(text, words[index], words[index + 1]):
+    if room >= 2 and index + 1 < len(words) and _whitespace_gap(text, words[index], words[index + 1]):
         if f"{words[index].group()} {words[index + 1].group()}" in _GIVEN:
             return index + 1
     if room >= 1 and words[index].group() in _NAME_WORDS:
@@ -333,7 +333,7 @@ def _honorific_end(text: str, words: list[re.Match[str]], index: int) -> int | N
     end = index
     nxt = index + 1
     used = 0
-    while nxt < len(words) and used < 3 and _one_space(text, words[nxt - 1], words[nxt]):
+    while nxt < len(words) and used < 3 and _whitespace_gap(text, words[nxt - 1], words[nxt]):
         piece = _piece_end(text, words, nxt, 3 - used)
         if piece is None:
             break
@@ -349,7 +349,7 @@ def _honorific_end(text: str, words: list[re.Match[str]], index: int) -> int | N
 
 def _more_surnames(text: str, words: list[re.Match[str]], end: int) -> int:
     nxt = end + 1
-    while nxt < len(words) and _one_space(text, words[end], words[nxt]) and words[nxt].group() in _SURNAMES:
+    while nxt < len(words) and _whitespace_gap(text, words[end], words[nxt]) and words[nxt].group() in _SURNAMES:
         end = nxt
         nxt += 1
     return end
@@ -369,13 +369,13 @@ def _surname_end(text: str, words: list[re.Match[str]], index: int) -> int | Non
     if given is None:
         return None
     nxt = given + 1
-    if nxt >= len(words) or not _one_space(text, words[given], words[nxt]):
+    if nxt >= len(words) or not _whitespace_gap(text, words[given], words[nxt]):
         return None
     if words[nxt].group() in _SURNAMES:
         return _more_surnames(text, words, nxt)
     if (
         nxt + 1 < len(words)
-        and _one_space(text, words[nxt], words[nxt + 1])
+        and _whitespace_gap(text, words[nxt], words[nxt + 1])
         and words[nxt].group() in _GIVEN
         and words[nxt + 1].group() in _SURNAMES
     ):
