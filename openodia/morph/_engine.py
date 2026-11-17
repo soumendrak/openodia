@@ -196,7 +196,7 @@ _TAILS: tuple[_Row, ...] = (
     *_same("ଇବ", ("ିବ", "ଇବ"), "future", "simple", 3, "singular"),
     *_same("ଇବି", ("ିବି", "ଇବି"), "future", "simple", 1, "singular"),
     *_same("ଇବେ", ("ିବେ", "ଇବେ"), "future", "simple", 3, "plural"),
-    *_same("ଥାଏ", ("ଥାଏ", "ିଥାଏ", "ଇଥାଏ"), "present", "habitual", 3, "singular"),
+    *_same("ଥାଏ", ("ଥାଏ", "ିଥାଏ", "ଇଥାଏ", "ିଁଥାଏ"), "present", "habitual", 3, "singular"),
     *_same("ଇଥିଲେ", ("ିଥିଲେ", "ଇଥିଲେ", "ିଁଥିଲେ", "ଥିଲେ", "ିନଥିଲେ", "ଇନଥିଲେ"), "past", "perfect", 3, "plural"),
     *_same("ଇଥିଲା", ("ିଥିଲା", "ଇଥିଲା", "ିଁଥିଲା", "ଥିଲା", "ିନଥିଲା", "ଇନଥିଲା"), "past", "perfect", 3, "singular"),
     *_same("ଇଥିଲି", ("ିଥିଲି", "ଇଥିଲି", "ିଁଥିଲି", "ଥିଲି", "ିନଥିଲି", "ଇନଥିଲି"), "past", "perfect", 1, "singular"),
@@ -215,6 +215,7 @@ _TAILS: tuple[_Row, ...] = (
     _nonfinite("ଇ", "ଇ", "conjunctive", "verb"),
 )
 
+_NOMINAL_TAILS = tuple(tail for tail in _TAILS if isinstance(tail, _Nominal))
 _VERBS = frozenset(_nfc(word) for word in "ଆସ କର ବସ ଶୁଣ ଦେଖ ରହ କହ ଚାହ ପଢ଼ ଖା ପା ଗା ଯା ଥା ଦେ ନେ ହେ ଜଳ".split())
 _NOUNS = frozenset(_nfc(word) for word in "ଘର ଫୁଲ ବହି ପୁରୀ ମନ୍ଦିର ସରକାର ବଜାର ଅଧିକାର ପରିବାର ଗଛ ନଦୀ ଦିନ ରାସ୍ତା କଥା ଜଳ ଫଳ ଓଡ଼ିଶା ପିଲା ଭାଇ ହାତ".split())
 _HUMANS = frozenset(_nfc(word) for word in ("ଲୋକ", "ବାଳକ", "ମଣିଷ", "ଛାତ୍ର"))
@@ -341,7 +342,7 @@ def _candidate(word: str, tail: _Row) -> str | None:
         and tail.text == _nfc("ର")
         and not _known_nominal(remainder)
         and remainder.endswith("ା")
-        and _peel_nominal(remainder) is None
+        and (remainder in _VERBS or _best(remainder, _NOMINAL_TAILS) is None)
         and not _infinitive_surface(remainder)
     ):
         return None
@@ -392,11 +393,10 @@ def _peel_nominal(word: str) -> tuple[str, NounFeatures] | None:
     case: Case | None = None
     definite = False
     peeled = False
-    nominal_tails = tuple(tail for tail in _TAILS if isinstance(tail, _Nominal))
     while True:
         if _known_nominal(current) or current in _VERBS:
             break
-        hit = _best(current, nominal_tails)
+        hit = _best(current, _NOMINAL_TAILS)
         if hit is None:
             break
         current, tail = hit

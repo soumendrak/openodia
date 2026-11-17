@@ -528,6 +528,7 @@ _REJECT_REGRESSIONS: tuple[tuple[str, str, Lemma], ...] = (
     ("ଖାଇନଥିଲେ", "ଖା", Lemma("ଖାଇବା", "VERB", _PERF_P)),
     ("ଖାଇନଥିଲି", "ଖା", Lemma("ଖାଇବା", "VERB", _PERF_1S)),
     ("ହୋଇ", "ହେ", Lemma("ହେବା", "VERB", NonfiniteVerb("conjunctive"))),
+    ("ଚାହିଁଥାଏ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _HAB_S)),
 )
 
 
@@ -550,11 +551,21 @@ def test_no_stem_is_cut_inside_thi(word: str) -> None:
 
 def test_reject_regression_table_is_pinned_and_documented() -> None:
     words = [word for word, _, _ in _REJECT_REGRESSIONS]
-    assert len(words) == len(set(words)) == 58
+    assert len(words) == len(set(words)) == 59
     for required in ("ଚାହିଁଥିଲା", "ପିଇବା", "ଶୁଇବା", "ଧୋଇବା", "ହୋଇଥିଲା", "ଖାଇବି", "ପାଇବି", "ଗାଇବି", "ଗାଁର"):
         assert required in words
     tails = {tail for item in suffixes() for tail in item.tails}
-    assert {_nfc("ଇବି"), _nfc("ିଁଥିଲା"), _nfc("ୁଁଥିଲା"), _nfc("ିଁଥିଲେ"), _nfc("ୁଁଥିଲେ")} <= tails
+    assert {_nfc("ଇବି"), _nfc("ିଁଥାଏ"), _nfc("ିଁଥିଲା"), _nfc("ୁଁଥିଲା"), _nfc("ିଁଥିଲେ"), _nfc("ୁଁଥିଲେ")} <= tails
     documented = morph.__doc__ or ""
     assert "ଇବି (verbal): ିବି, ଇବି, ବି" in documented
     assert "ଗାଁର" in documented
+
+
+def test_repeated_definite_genitive_stack_peels_without_backtracking() -> None:
+    script = (
+        "from openodia.morph import lemma, stem\n"
+        "word = '\u0b18\u0b30' + '\u0b1f\u0b3e\u0b30' * 200\n"
+        "print(stem(word) == '\u0b18\u0b30', lemma(word).features)\n"
+    )
+    result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True, timeout=10)
+    assert result.stdout.strip() == "True NounFeatures(number='singular', case='genitive', definite=True)"
