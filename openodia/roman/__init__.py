@@ -8,8 +8,11 @@ Examples:
     'oria'
     >>> roman.to_roman("ଓଡ଼ିଆ", scheme="ITRANS")
     'o.DiA'
+    >>> roman.type_odia("namaskara")
+    'ନମସ୍କାର'
 """
 
 from openodia.roman._roman import SCHEMES, Scheme, from_roman, to_roman
+from openodia.roman._typing import type_odia
 
-__all__ = ["SCHEMES", "Scheme", "from_roman", "to_roman"]
+__all__ = ["SCHEMES", "Scheme", "from_roman", "to_roman", "type_odia"]
