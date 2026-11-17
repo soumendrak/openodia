@@ -12,10 +12,16 @@ matra େ; that reading is used only for a listed consonant-final noun, which
 is why ମନ୍ଦିରେ stays ମନ୍ଦିର and କରେ stays the verb କର. Listed nouns that end in
 ର, such as ସରକାର, are not genitives. Unlisted nouns still lose a plain
 genitive ର, except when the remainder would end in ା, so ବିଚାର stays
-ବିଚାର. Short verbal tails (େ, ଇ, ବା) apply only to listed roots. Longer
-verbal tails apply to any well-formed remainder. Suppletive pasts (କଲା,
-ଗଲା, ଦେଲା, ନେଲା, ହେଲା, ଥିଲା) and the vowel-changing infinitives ଯିବା and
-ଥିବା are a dictionary, not a cut.
+ବିଚାର, or would be one akshara without candrabindu, so ଫେର stays ଫେର
+while ଗାଁର is ଗାଁ plus ର. Short verbal tails (େ, ଇ, ବା) apply only to
+listed roots. Longer verbal tails apply to any well-formed remainder.
+A bare ଥିଲା / ଥିଲେ after a conjunctive is perfect, and ିଁଥିଲା / ୁଁଥିଲା
+keep the root, so ଚାହିଁଥିଲା is ଚାହ. An infinitive the dictionary does not
+list is the root plus ିବା after a consonant, ବା after େ (ଦେବା), and ଇବା
+after any other vowel sign (ଖାଇବା, ପିଇବା, ଶୁଇବା, ଧୋଇବା). A finite ହୋ form
+(ହୋଇଥିଲା) is the verb ହେ, with infinitive ହେବା. Suppletive pasts (କଲା,
+ଗଲା, ଦେଲା, ନେଲା, ହେଲା, ଥିଲା) and the infinitives ଯିବା, ଥିବା and ଚାହିଁବା
+are a dictionary, not a cut.
 
 Each string has one reading. ଲେ and ଥିଲେ are stored as third person plural,
 which is also the polite form. କୁ is dative and also the accusative marker;
@@ -56,8 +62,8 @@ Endings:
 ମାନଙ୍କୁ (nominal): ମାନଙ୍କୁ
 ଙ୍କୁ (nominal): ଙ୍କୁ
 ଗୁଡ଼ିକୁ (nominal): ଗୁଡ଼ିକୁ
-ଉଥିଲେ (verbal): ୁଥିଲେ, ଉଥିଲେ, ଥିଲେ
-ଉଥିଲା (verbal): ୁଥିଲା, ଉଥିଲା, ଥିଲା
+ଉଥିଲେ (verbal): ୁଁଥିଲେ, ୁଥିଲେ, ଉଥିଲେ
+ଉଥିଲା (verbal): ୁଁଥିଲା, ୁଥିଲା, ଉଥିଲା
 ଉଥିଲି (verbal): ୁଥିଲି, ଉଥିଲି
 ଉଛି (verbal): ୁଛି, ଉଛି
 ଉଛୁ (verbal): ୁଛୁ, ଉଛୁ
@@ -67,11 +73,11 @@ Endings:
 ଇଲେ (verbal): ିଲେ, ଇଲେ
 ଇଲି (verbal): ିଲି, ଇଲି
 ଇବ (verbal): ିବ, ଇବ, ବ
-ଇବି (verbal): ିବି, ବି
+ଇବି (verbal): ିବି, ଇବି, ବି
 ଇବେ (verbal): ିବେ, ଇବେ, ବେ
 ଥାଏ (verbal): ିଥାଏ, ଥାଏ
-ଇଥିଲେ (verbal): ିଥିଲେ, ଇଥିଲେ
-ଇଥିଲା (verbal): ିଥିଲା, ଇଥିଲା
+ଇଥିଲେ (verbal): ିଁଥିଲେ, ିଥିଲେ, ଇଥିଲେ, ଥିଲେ
+ଇଥିଲା (verbal): ିଁଥିଲା, ିଥିଲା, ଇଥିଲା, ଥିଲା
 ଇଛନ୍ତି (verbal): ିଛନ୍ତି, ଇଛନ୍ତି
 ନ୍ତି (verbal): ନ୍ତି
 ଏ (verbal): େ, ଏ

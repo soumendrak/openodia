@@ -183,10 +183,8 @@ _TAILS: tuple[_Row, ...] = (
     _plural_dative("ମାନଙ୍କୁ"),
     _plural_dative("ଙ୍କୁ"),
     _plural_dative("ଗୁଡ଼ିକୁ"),
-    *_same("ଉଥିଲେ", ("ୁଥିଲେ", "ଉଥିଲେ"), "past", "progressive", 3, "plural"),
-    _finite("ଉଥିଲେ", "ଥିଲେ", "past", "progressive", 3, "plural", "verb"),
-    *_same("ଉଥିଲା", ("ୁଥିଲା", "ଉଥିଲା"), "past", "progressive", 3, "singular"),
-    _finite("ଉଥିଲା", "ଥିଲା", "past", "progressive", 3, "singular", "verb"),
+    *_same("ଉଥିଲେ", ("ୁଥିଲେ", "ଉଥିଲେ", "ୁଁଥିଲେ"), "past", "progressive", 3, "plural"),
+    *_same("ଉଥିଲା", ("ୁଥିଲା", "ଉଥିଲା", "ୁଁଥିଲା"), "past", "progressive", 3, "singular"),
     *_same("ଉଥିଲି", ("ୁଥିଲି", "ଉଥିଲି"), "past", "progressive", 1, "singular"),
     *_same("ଉଛି", ("ୁଛି", "ଉଛି"), "present", "progressive", 3, "singular"),
     *_same("ଉଛୁ", ("ୁଛୁ", "ଉଛୁ"), "present", "progressive", 1, "plural"),
@@ -196,13 +194,11 @@ _TAILS: tuple[_Row, ...] = (
     *_same("ଇଲେ", ("ିଲେ", "ଇଲେ"), "past", "simple", 3, "plural"),
     *_same("ଇଲି", ("ିଲି", "ଇଲି"), "past", "simple", 1, "singular"),
     *_same("ଇବ", ("ିବ", "ଇବ"), "future", "simple", 3, "singular"),
-    _finite("ଇବି", "ିବି", "future", "simple", 1, "singular"),
+    *_same("ଇବି", ("ିବି", "ଇବି"), "future", "simple", 1, "singular"),
     *_same("ଇବେ", ("ିବେ", "ଇବେ"), "future", "simple", 3, "plural"),
     *_same("ଥାଏ", ("ଥାଏ", "ିଥାଏ"), "present", "habitual", 3, "singular"),
-    _finite("ଇଥିଲେ", "ିଥିଲେ", "past", "perfect", 3, "plural"),
-    _finite("ଇଥିଲେ", "ଇଥିଲେ", "past", "perfect", 3, "plural"),
-    _finite("ଇଥିଲା", "ିଥିଲା", "past", "perfect", 3, "singular"),
-    _finite("ଇଥିଲା", "ଇଥିଲା", "past", "perfect", 3, "singular"),
+    *_same("ଇଥିଲେ", ("ିଥିଲେ", "ଇଥିଲେ", "ିଁଥିଲେ", "ଥିଲେ"), "past", "perfect", 3, "plural"),
+    *_same("ଇଥିଲା", ("ିଥିଲା", "ଇଥିଲା", "ିଁଥିଲା", "ଥିଲା"), "past", "perfect", 3, "singular"),
     _finite("ଇଛନ୍ତି", "ିଛନ୍ତି", "present", "perfect", 3, "plural"),
     _finite("ଇଛନ୍ତି", "ଇଛନ୍ତି", "present", "perfect", 3, "plural"),
     _finite("ନ୍ତି", "ନ୍ତି", "present", "simple", 3, "plural"),
@@ -221,7 +217,8 @@ _TAILS: tuple[_Row, ...] = (
 _VERBS = frozenset(_nfc(word) for word in "ଆସ କର ବସ ଶୁଣ ଦେଖ ରହ କହ ଚାହ ପଢ଼ ଖା ପା ଗା ଯା ଥା ଦେ ନେ ହେ".split())
 _NOUNS = frozenset(_nfc(word) for word in "ଘର ଫୁଲ ବହି ପୁରୀ ମନ୍ଦିର ସରକାର ବଜାର ଅଧିକାର ପରିବାର ଗଛ ନଦୀ ଦିନ ରାସ୍ତା କଥା ଜଳ ଫଳ ଓଡ଼ିଶା ପିଲା ଭାଇ ହାତ".split())
 _HUMANS = frozenset(_nfc(word) for word in ("ଲୋକ", "ବାଳକ", "ମଣିଷ", "ଛାତ୍ର"))
-_INFINITIVE_OVERRIDE = {_nfc("ଯା"): "ଯିବା", _nfc("ଥା"): "ଥିବା"}
+_INFINITIVE_OVERRIDE = {_nfc("ଯା"): "ଯିବା", _nfc("ଥା"): "ଥିବା", _nfc("ଚାହ"): _nfc("ଚାହିଁବା")}
+_CONJUNCTIVE_ROOTS = {_nfc("ହୋ"): _nfc("ହେ")}
 
 
 def _past(root: str, person: Person, number: Number) -> tuple[str, FiniteVerb]:
@@ -245,6 +242,7 @@ _IRREGULAR: dict[str, tuple[str, FiniteVerb | NonfiniteVerb]] = {
     _nfc("ହେଲେ"): _past("ହେ", 3, "plural"),
     _nfc("ଯିବା"): (_nfc("ଯା"), NonfiniteVerb("infinitive")),
     _nfc("ଥିବା"): (_nfc("ଥା"), NonfiniteVerb("infinitive")),
+    _nfc("ଚାହିଁବା"): (_nfc("ଚାହ"), NonfiniteVerb("infinitive")),
     _nfc("ଥିଲା"): _past("ଥା", 3, "singular"),
     _nfc("ଥିଲେ"): _past("ଥା", 3, "plural"),
     _nfc("ଅଛି"): (_nfc("ଥା"), FiniteVerb("present", "progressive", 3, "singular")),
@@ -311,7 +309,7 @@ def _candidate(word: str, tail: _Row) -> str | None:
     remainder = word[: -len(tail.text)]
     if len(remainder) < 2 or not _shape(remainder) or not _allows(tail.guard, remainder):
         return None
-    if isinstance(tail, _Nominal) and _aksharas(remainder) < tail.min_aksharas:
+    if isinstance(tail, _Nominal) and _aksharas(remainder) < tail.min_aksharas and not remainder.endswith("ଁ"):
         return None
     if (
         isinstance(tail, _Nominal)
@@ -345,11 +343,17 @@ def _infinitive(root: str) -> str:
     override = _INFINITIVE_OVERRIDE.get(root)
     if override is not None:
         return override
-    if root.endswith("ା"):
-        return root + "ଇବା"
-    if root.endswith(("େ", "ୋ", "ି", "ୀ", "ୁ", "ୂ", "ୈ", "ୌ")):
+    if root.endswith("େ"):
         return root + "ବା"
+    if root.endswith(("ା", "ି", "ୀ", "ୁ", "ୂ", "ୈ", "ୋ", "ୌ")):
+        return root + "ଇବା"
     return root + "ିବା"
+
+
+def _verb_root(root: str, tail: _Verbal) -> str:
+    if tail.reading == NonfiniteVerb("infinitive"):
+        return root
+    return _CONJUNCTIVE_ROOTS.get(root, root)
 
 
 def _verb_from(root: str, tail: _Verbal) -> Lemma:
@@ -415,7 +419,8 @@ def _analyze(word: str) -> tuple[str, Lemma]:
     verbal_tails = tuple(tail for tail in _TAILS if isinstance(tail, _Verbal))
     verbal = _best(current, verbal_tails)
     if verbal is not None:
-        return verbal[0], _verb_from(verbal[0], verbal[1])
+        root = _verb_root(verbal[0], verbal[1])
+        return root, _verb_from(root, verbal[1])
     if nominal is not None:
         return nominal[0], Lemma(nominal[0], "NOUN", nominal[1])
     return text, Lemma(text, "UNKNOWN", UnknownFeatures())

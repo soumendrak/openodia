@@ -416,3 +416,62 @@ def test_agent_docs_name_stem_and_lemma() -> None:
         assert "morph" in text
         assert "stem" in text
         assert "lemma" in text
+
+
+_FUT_1S = FiniteVerb("future", "simple", 1, "singular")
+_INF = NonfiniteVerb("infinitive")
+_REJECT_REGRESSIONS: tuple[tuple[str, str, Lemma], ...] = (
+    ("ଚାହିଁଥିଲା", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PERF_S)),
+    ("ଚାହିଁଥିଲେ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PERF_P)),
+    ("ଚାହୁଁଥିଲା", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PROG_S)),
+    ("ଚାହୁଁଥିଲେ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PROG_P)),
+    ("ଚାହିଁବା", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _INF)),
+    ("ଗାଥିଲେ", "ଗା", Lemma("ଗାଇବା", "VERB", _PERF_P)),
+    ("ପିଇବା", "ପି", Lemma("ପିଇବା", "VERB", _INF)),
+    ("ପିଇଥିଲା", "ପି", Lemma("ପିଇବା", "VERB", _PERF_S)),
+    ("ପିଉଥିଲା", "ପି", Lemma("ପିଇବା", "VERB", _PROG_S)),
+    ("ଶୁଇବା", "ଶୁ", Lemma("ଶୁଇବା", "VERB", _INF)),
+    ("ଶୋଇବା", "ଶୋ", Lemma("ଶୋଇବା", "VERB", _INF)),
+    ("ଧୋଇବା", "ଧୋ", Lemma("ଧୋଇବା", "VERB", _INF)),
+    ("ହୋଇଥିଲା", "ହେ", Lemma("ହେବା", "VERB", _PERF_S)),
+    ("ହୋଇଥିଲେ", "ହେ", Lemma("ହେବା", "VERB", _PERF_P)),
+    ("ହୋଇବା", "ହୋ", Lemma("ହୋଇବା", "VERB", _INF)),
+    ("ଦେଇଥିଲା", "ଦେ", Lemma("ଦେବା", "VERB", _PERF_S)),
+    ("ଦେବା", "ଦେ", Lemma("ଦେବା", "VERB", _INF)),
+    ("ଖାଇବି", "ଖା", Lemma("ଖାଇବା", "VERB", _FUT_1S)),
+    ("ପାଇବି", "ପା", Lemma("ପାଇବା", "VERB", _FUT_1S)),
+    ("ଗାଇବି", "ଗା", Lemma("ଗାଇବା", "VERB", _FUT_1S)),
+    ("ଆସିବି", "ଆସ", Lemma("ଆସିବା", "VERB", _FUT_1S)),
+    ("ଗାଁର", "ଗାଁ", Lemma("ଗାଁ", "NOUN", NounFeatures("singular", "genitive", False))),
+    ("ଗାଁକୁ", "ଗାଁ", Lemma("ଗାଁ", "NOUN", NounFeatures("singular", "dative", False))),
+    ("ଫେର", "ଫେର", Lemma("ଫେର", "UNKNOWN", UnknownFeatures())),
+    ("ବିଚାର", "ବିଚାର", Lemma("ବିଚାର", "UNKNOWN", UnknownFeatures())),
+)
+
+
+@pytest.mark.parametrize(("word", "root", "expected"), _REJECT_REGRESSIONS)
+def test_reject_regression_table(word: str, root: str, expected: Lemma) -> None:
+    got = lemma(word)
+    assert (stem(word), got) == (_nfc(root), Lemma(_nfc(expected.form), expected.pos, expected.features))
+    assert stem(stem(word)) == stem(word)
+    assert stem(got.form) == stem(word)
+    assert _DOUBLED_MATRA.search(got.form) is None
+    if got.pos == "VERB" and got.features == _INF:
+        assert got.form == _nfc(word)
+
+
+@pytest.mark.parametrize("word", ("ଚାହିଁଥିଲା", "ଚାହିଁଥିଲେ", "ଚାହୁଁଥିଲା", "କରିନଥିଲେ", "ଗାଥିଲେ", "ହୋଇନଥିଲା"))
+def test_no_stem_is_cut_inside_thi(word: str) -> None:
+    assert not stem(word).endswith("ଥ")
+
+
+def test_reject_regression_table_is_pinned_and_documented() -> None:
+    words = [word for word, _, _ in _REJECT_REGRESSIONS]
+    assert len(words) == len(set(words)) == 25
+    for required in ("ଚାହିଁଥିଲା", "ପିଇବା", "ଶୁଇବା", "ଧୋଇବା", "ହୋଇଥିଲା", "ଖାଇବି", "ପାଇବି", "ଗାଇବି", "ଗାଁର"):
+        assert required in words
+    tails = {tail for item in suffixes() for tail in item.tails}
+    assert {_nfc("ଇବି"), _nfc("ିଁଥିଲା"), _nfc("ୁଁଥିଲା"), _nfc("ିଁଥିଲେ"), _nfc("ୁଁଥିଲେ")} <= tails
+    documented = morph.__doc__ or ""
+    assert "ଇବି (verbal): ିବି, ଇବି, ବି" in documented
+    assert "ଗାଁର" in documented
