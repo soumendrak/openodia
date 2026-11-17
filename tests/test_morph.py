@@ -226,6 +226,30 @@ def test_orthographic_traps() -> None:
     assert lemma("ଦେଇ") == Lemma("ଦେବା", "VERB", NonfiniteVerb("conjunctive"))
 
 
+def test_irregular_future_forms_of_ya_and_tha_resolve_to_the_listed_roots() -> None:
+    cases = (
+        ("ଯିବ", "ଯା", "ଯିବା", _FUT_S),
+        ("ଯିବି", "ଯା", "ଯିବା", _FUT_1S),
+        ("ଯିବେ", "ଯା", "ଯିବା", _FUT_P),
+        ("ଥିବ", "ଥା", "ଥିବା", _FUT_S),
+        ("ଥିବି", "ଥା", "ଥିବା", _FUT_1S),
+        ("ଥିବେ", "ଥା", "ଥିବା", _FUT_P),
+    )
+    for word, root, form, features in cases:
+        assert stem(word) == root, word
+        assert lemma(word) == _verb(form, features), word
+        assert stem(stem(word)) == root, word
+
+
+def test_nasalized_present_progressive_endings_keep_the_listed_root() -> None:
+    assert stem("ଚାହୁଁଛି") == "ଚାହ"
+    assert lemma("ଚାହୁଁଛି") == _verb("ଚାହିଁବା", _PRES_PROG_S)
+    assert stem("ଚାହୁଁଛନ୍ତି") == "ଚାହ"
+    assert lemma("ଚାହୁଁଛନ୍ତି") == _verb("ଚାହିଁବା", _PRES_PROG_P)
+    assert stem(stem("ଚାହୁଁଛି")) == "ଚାହ"
+    assert stem(stem("ଚାହୁଁଛନ୍ତି")) == "ଚାହ"
+
+
 def test_case_on_an_irregular_infinitive_stays_a_verb() -> None:
     assert stem("ଯିବାକୁ") == "ଯା"
     assert stem(stem("ଯିବାକୁ")) == stem("ଯିବାକୁ")

@@ -20,8 +20,10 @@ keep the root, so ଚାହିଁଥିଲା is ଚାହ. An infinitive the di
 list is the root plus ିବା after a consonant, ବା after େ (ଦେବା), and ଇବା
 after any other vowel sign (ଖାଇବା, ପିଇବା, ଶୁଇବା, ଧୋଇବା). A finite ହୋ form
 (ହୋଇଥିଲା) is the verb ହେ, with infinitive ହେବା. Suppletive pasts (କଲା,
-ଗଲା, ଦେଲା, ନେଲା, ହେଲା, ଥିଲା) and the infinitives ଯିବା, ଥିବା and ଚାହିଁବା
-are a dictionary, not a cut.
+ଗଲା, ଦେଲା, ନେଲା, ହେଲା, ଥିଲା), the infinitives ଯିବା, ଥିବା and ଚାହିଁବା,
+and the future forms ଯିବ, ଯିବି, ଯିବେ, ଥିବ, ଥିବି and ଥିବେ
+are a dictionary, not a cut. Nasalized present-progressive endings
+ୁଁଛି, ୁଁଛୁ and ୁଁଛନ୍ତି keep the root, so ଚାହୁଁଛି is ଚାହ.
 
 Each string has one reading. ଲେ and ଥିଲେ are stored as third person plural,
 which is also the polite form. କୁ is dative and also the accusative marker;
@@ -65,9 +67,9 @@ Endings:
 ଉଥିଲେ (verbal): ୁଁଥିଲେ, ୁଥିଲେ, ଉଥିଲେ
 ଉଥିଲା (verbal): ୁଁଥିଲା, ୁଥିଲା, ଉଥିଲା
 ଉଥିଲି (verbal): ୁଥିଲି, ଉଥିଲି
-ଉଛି (verbal): ୁଛି, ଉଛି
-ଉଛୁ (verbal): ୁଛୁ, ଉଛୁ
-ଉଛନ୍ତି (verbal): ୁଛନ୍ତି, ଉଛନ୍ତି
+ଉଛି (verbal): ୁଁଛି, ୁଛି, ଉଛି
+ଉଛୁ (verbal): ୁଁଛୁ, ୁଛୁ, ଉଛୁ
+ଉଛନ୍ତି (verbal): ୁଁଛନ୍ତି, ୁଛନ୍ତି, ଉଛନ୍ତି
 ଇଛି (verbal): ିଛି, ଇଛି
 ଇଲା (verbal): ିଲା, ଇଲା
 ଇଲେ (verbal): ିଲେ, ଇଲେ
