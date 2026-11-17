@@ -856,7 +856,7 @@ wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
 
 ### :material-format-font: Legacy fonts
 
-Text typed in an 8-bit Odia font is decoded with `legacy.decode` (cp1252, keeping bytes 0x81, 0x8D, 0x8F and 0x9D, which that codec leaves undefined). `openodia.legacy` needs a release newer than 0.2.0: `import openodia.legacy` fails on 0.2.0. It maps those keystrokes to Unicode. The result is NFC, so ଡ଼ is consonant plus nukta.
+Text typed in an 8-bit Odia font is decoded with `legacy.decode` (cp1252, keeping bytes 0x81, 0x8D, 0x8F, 0x90 and 0x9D, which that codec leaves undefined). `openodia.legacy` needs a release newer than 0.2.0: `import openodia.legacy` fails on 0.2.0. It maps those keystrokes to Unicode. The result is NFC, so ଡ଼ is consonant plus nukta.
 
 ```python
 from openodia import legacy
@@ -867,7 +867,7 @@ legacy.detect_font("IWÿò@û")
 legacy.to_unicode_auto("JXÏÞA")
 ```
 
-`SUPPORTED_FONTS` is `AkrutiOriSarala` and `ORTTSarala`. `detect_font` returns `font` and `confidence`. A tie leaves `font` as None and `confidence` at 0.5. No legacy-font evidence leaves `font` as None and `confidence` at 0.0. `to_unicode_auto` returns the input unchanged in both cases. Call `detect_font` to tell them apart. Of the 100 checked sentences, auto mode converts 83 and leaves 17 unchanged. A left matra, typed before the consonant, moves to the end of that conjunct.
+`SUPPORTED_FONTS` is `AkrutiOriSarala` and `ORTTSarala`. `detect_font` returns `font` and `confidence`. A tie leaves `font` as None and `confidence` at 0.5. No legacy-font evidence leaves `font` as None and `confidence` at 0.0. Text that contains an Odia code point or a danda is already Unicode, so it has no legacy-font evidence, even next to ASCII signs such as `25%` or `#OpenOdia`. `to_unicode_auto` returns the input unchanged in both cases. Call `detect_font` to tell them apart. Of the 100 checked sentences, auto mode converts 83 and leaves 17 unchanged. A left matra, typed before the consonant, moves to the end of that conjunct.
 
 ## :bug: Known Issues
 

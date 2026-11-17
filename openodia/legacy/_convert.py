@@ -369,8 +369,8 @@ def _convert(text: str, font: _Font) -> str:
 def decode(data: bytes) -> str:
     """Decode legacy font bytes for ``to_unicode``.
 
-    Defined bytes use cp1252. The four bytes that codec leaves undefined,
-    0x81, 0x8D, 0x8F and 0x9D, stay as those code points.
+    Defined bytes use cp1252. The five bytes that codec leaves undefined,
+    0x81, 0x8D, 0x8F, 0x90 and 0x9D, stay as those code points.
     """
     if not isinstance(data, bytes | bytearray):
         raise TypeError("legacy font bytes are required")
@@ -412,9 +412,10 @@ def detect_font(text: str) -> dict[str, str | float | None]:
 
     Returns ``font`` and ``confidence``. ``font`` is None on a tie, where
     ``confidence`` is 0.5, and when the text has no legacy-font evidence,
-    where ``confidence`` is 0.0. Odia letters and dandas are not evidence.
+    where ``confidence`` is 0.0. Text that contains an Odia code point or a
+    danda is already Unicode, so it has no legacy-font evidence.
     """
-    if text == "":
+    if not _legacy_evidence(text):
         return {"font": None, "confidence": 0.0}
     scores = [_score(text, font) for font in _FONTS]
     best = max(scores)

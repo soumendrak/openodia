@@ -195,6 +195,7 @@ def test_auto_mode_passthrough_is_documented() -> None:
     text = (Path(__file__).resolve().parents[1] / "docs/index.md").read_text(encoding="utf-8")
     assert "A tie leaves `font` as None and `confidence` at 0.5." in text
     assert "No legacy-font evidence leaves `font` as None and `confidence` at 0.0." in text
+    assert "Text that contains an Odia code point or a danda is already Unicode, so it has no legacy-font evidence" in text
     assert "`to_unicode_auto` returns the input unchanged in both cases." in text
     assert "Call `detect_font` to tell them apart." in text
     assert "auto mode converts 83 and leaves 17 unchanged." in text
@@ -208,7 +209,7 @@ def test_legacy_pages_name_the_release(page: str) -> None:
 
 @pytest.mark.parametrize(("font", "byte", "expected"), CP1252_BYTES)
 def test_cp1252_only_bytes_convert(font: str, byte: int, expected: str) -> None:
-    assert legacy.to_unicode(bytes([byte]).decode("cp1252"), font=font) == expected
+    assert legacy.to_unicode(legacy.decode(bytes([byte])), font=font) == expected
 
 
 @pytest.mark.parametrize(
@@ -229,8 +230,23 @@ def test_decode_rejects_text() -> None:
 
 
 def test_ellipsis_byte_is_cp1252_not_latin_1() -> None:
-    assert legacy.to_unicode(b"\x85".decode("cp1252"), font="AkrutiOriSarala") == "ଟ୍ଟ"
+    assert legacy.decode(b"\x85") == "\u2026"
+    assert legacy.to_unicode(legacy.decode(b"\x85"), font="AkrutiOriSarala") == "ଟ୍ଟ"
     assert legacy.to_unicode(b"\x85".decode("latin-1"), font="AkrutiOriSarala") == "\u0085"
+
+
+def test_decode_uses_cp1252_for_every_defined_byte() -> None:
+    data = bytes(range(0x80, 0xA0))
+    expected = "".join(
+        chr(byte) if byte in {0x81, 0x8D, 0x8F, 0x90, 0x9D} else bytes([byte]).decode("cp1252") for byte in data
+    )
+    assert legacy.decode(data) == expected
+    assert legacy.decode(bytearray(data)) == expected
+
+
+def test_decode_of_empty_bytes_is_empty() -> None:
+    assert legacy.decode(b"") == ""
+    assert legacy.decode(bytearray()) == ""
 
 
 def test_reph_walks_every_halant_in_the_conjunct() -> None:
@@ -241,9 +257,25 @@ def test_yaphala_moves_past_every_vowel_sign() -> None:
     assert legacy.to_unicode("OãôÔg", font="ORTTSarala") == "ଘ୍ୟୁୃୱ"
 
 
-@pytest.mark.parametrize("text", ("ପ", "ପ ୧।୨", "ଓଡ଼ିଆ ଭାଷା ସୁନ୍ଦର ।", "୧୨୩ ॥", "ସତ୍ଯ", "ଯୋଗ୍ଯ କାର୍ଯ୍ଯ ।", " ଙ୍ଗ "))
+@pytest.mark.parametrize(
+    "text",
+    (
+        "ପ",
+        "ପ ୧।୨",
+        "ଓଡ଼ିଆ ଭାଷା ସୁନ୍ଦର ।",
+        "୧୨୩ ॥",
+        "ସତ୍ଯ",
+        "ଯୋଗ୍ଯ କାର୍ଯ୍ଯ ।",
+        " ଙ୍ଗ ",
+        "ଏହା 25% ଅଧିକ",
+        "ମୂଲ୍ୟ 10% ବଢ଼ିଲା ।",
+        "ଓଡ଼ିଆ #OpenOdia",
+        "2+2=4 > 3 ଠିକ୍",
+        "ପ " + "".join(chr(code) for code in range(0x21, 0x7F)),
+    ),
+)
 def test_unicode_odia_is_not_detected_as_a_legacy_font(text: str) -> None:
-    assert legacy.detect_font(text)["font"] is None
+    assert legacy.detect_font(text) == {"font": None, "confidence": 0.0}
     assert legacy.to_unicode_auto(text) == text
 
 
@@ -281,3 +313,13 @@ def test_font_evidence_holds_no_odia_or_danda() -> None:
         assert not any(set(signature) & target for signature in font.signatures)
         assert font.alphabet
         assert not font.alphabet & target
+
+
+@pytest.mark.parametrize("page", ("CHANGELOG.md", "docs/index.md", "openodia/legacy/_convert.py"))
+def test_docs_name_every_byte_cp1252_leaves_undefined(page: str) -> None:
+    undefined = [byte for byte in range(0x80, 0xA0) if bytes([byte]).decode("cp1252", "ignore") == ""]
+    names = [f"0x{byte:02X}" for byte in undefined]
+    listed = ", ".join(names[:-1]) + " and " + names[-1]
+    text = " ".join((Path(__file__).resolve().parents[1] / page).read_text(encoding="utf-8").split())
+    assert listed == "0x81, 0x8D, 0x8F, 0x90 and 0x9D"
+    assert listed in text
