@@ -11,8 +11,8 @@ one fusional tail. Noun plural and case peel from the right, so ଗୁଡ଼ି�
 matra େ; that reading is used only for a listed consonant-final noun, which
 is why ମନ୍ଦିରେ stays ମନ୍ଦିର and କରେ stays the verb କର. Listed nouns that end in
 ର, such as ସରକାର, are not genitives. Unlisted nouns still lose a plain
-genitive ର, except when the remainder would end in ା and is not itself a peeled nominal, so ବିଚାର stays
-ବିଚାର while ଘରଟାର is ଘର plus definite genitive, or would be one akshara without candrabindu, so ଫେର stays ଫେର
+genitive ର, except when the remainder would end in ା and is neither a peeled nominal nor an infinitive, so ବିଚାର stays
+ବିଚାର while ଘରଟାର is ଘର plus definite genitive and କରିବାର is the infinitive କରିବା, or would be one akshara without candrabindu, so ଫେର stays ଫେର
 while ଗାଁର is ଗାଁ plus ର. Short verbal tails (େ, ଇ, ବା) apply only to
 listed roots. Longer verbal tails apply to any well-formed remainder.
 A bare ଥିଲା / ଥିଲେ after a conjunctive is perfect, and ିଁଥିଲା / ୁଁଥିଲା
@@ -20,7 +20,7 @@ keep the root, so ଚାହିଁଥିଲା is ଚାହ. An infinitive the di
 list is the root plus ିବା after a consonant, ବା after େ (ଦେବା), and ଇବା
 after any other vowel sign (ଖାଇବା, ପିଇବା, ଶୁଇବା, ଧୋଇବା). A finite ହୋ form
 (ହୋଇଥିଲା) is the verb ହେ, with infinitive ହେବା. Suppletive pasts (କଲା,
-ଗଲା, ଦେଲା, ନେଲା, ହେଲା, ଥିଲା), the infinitives ଯିବା, ଥିବା and ଚାହିଁବା,
+ଗଲା, ଦେଲା, ନେଲା, ହେଲା, ଥିଲା, with first person ଲି and ଲୁ such as ଦେଲି and ଥିଲୁ), the infinitives ଯିବା, ଥିବା and ଚାହିଁବା,
 and the future forms ଯିବ, ଯିବି, ଯିବେ, ଥିବ, ଥିବି and ଥିବେ
 are a dictionary, not a cut. Nasalized present-progressive endings
 ୁଁଛି, ୁଁଛୁ and ୁଁଛନ୍ତି keep the root, so ଚାହୁଁଛି is ଚାହ.
@@ -36,7 +36,7 @@ Chaupattnaik, Nanda and Mohanty 2012, the suffix-stripping Odia stemmer.
 ``suffixes()`` is that list. A perfect ``ଇଥିଲା`` / ``ଇଛି`` ending keeps the
 conjunctive vowel with the suffix, so the stem is the root. Genitive ``ର``
 is stripped only when at least two aksharas remain and the remainder is
-not an unlisted stem ending in ``ା``.
+not an unlisted stem ending in ``ା`` other than an infinitive.
 
 Endings:
 

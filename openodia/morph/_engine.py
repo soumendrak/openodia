@@ -234,10 +234,16 @@ _IRREGULAR: dict[str, tuple[str, FiniteVerb | NonfiniteVerb]] = {
     _nfc("ଗଲୁ"): _past("ଯା", 1, "plural"),
     _nfc("ଗଲା"): _past("ଯା", 3, "singular"),
     _nfc("ଗଲେ"): _past("ଯା", 3, "plural"),
+    _nfc("ଦେଲି"): _past("ଦେ", 1, "singular"),
+    _nfc("ଦେଲୁ"): _past("ଦେ", 1, "plural"),
     _nfc("ଦେଲା"): _past("ଦେ", 3, "singular"),
     _nfc("ଦେଲେ"): _past("ଦେ", 3, "plural"),
+    _nfc("ନେଲି"): _past("ନେ", 1, "singular"),
+    _nfc("ନେଲୁ"): _past("ନେ", 1, "plural"),
     _nfc("ନେଲା"): _past("ନେ", 3, "singular"),
     _nfc("ନେଲେ"): _past("ନେ", 3, "plural"),
+    _nfc("ହେଲି"): _past("ହେ", 1, "singular"),
+    _nfc("ହେଲୁ"): _past("ହେ", 1, "plural"),
     _nfc("ହେଲା"): _past("ହେ", 3, "singular"),
     _nfc("ହେଲେ"): _past("ହେ", 3, "plural"),
     _nfc("ଯିବା"): (_nfc("ଯା"), NonfiniteVerb("infinitive")),
@@ -249,6 +255,8 @@ _IRREGULAR: dict[str, tuple[str, FiniteVerb | NonfiniteVerb]] = {
     _nfc("ଥିବି"): (_nfc("ଥା"), FiniteVerb("future", "simple", 1, "singular")),
     _nfc("ଥିବେ"): (_nfc("ଥା"), FiniteVerb("future", "simple", 3, "plural")),
     _nfc("ଚାହିଁବା"): (_nfc("ଚାହ"), NonfiniteVerb("infinitive")),
+    _nfc("ଥିଲି"): _past("ଥା", 1, "singular"),
+    _nfc("ଥିଲୁ"): _past("ଥା", 1, "plural"),
     _nfc("ଥିଲା"): _past("ଥା", 3, "singular"),
     _nfc("ଥିଲେ"): _past("ଥା", 3, "plural"),
     _nfc("ଅଛି"): (_nfc("ଥା"), FiniteVerb("present", "progressive", 3, "singular")),
@@ -309,6 +317,14 @@ def _known_nominal(remainder: str) -> bool:
     return remainder in _NOUNS or remainder in _HUMANS
 
 
+def _infinitive_surface(text: str) -> bool:
+    listed = _IRREGULAR.get(text)
+    if listed is not None:
+        return listed[1] == NonfiniteVerb("infinitive")
+    verbal = _best(text, tuple(tail for tail in _TAILS if isinstance(tail, _Verbal)))
+    return verbal is not None and verbal[1].reading == NonfiniteVerb("infinitive")
+
+
 def _candidate(word: str, tail: _Row) -> str | None:
     if len(tail.text) >= len(word) or not word.endswith(tail.text):
         return None
@@ -324,6 +340,7 @@ def _candidate(word: str, tail: _Row) -> str | None:
         and not _known_nominal(remainder)
         and remainder.endswith("ା")
         and _peel_nominal(remainder) is None
+        and not _infinitive_surface(remainder)
     ):
         return None
     if isinstance(tail, _Verbal) and _known_nominal(remainder) and remainder not in _VERBS:
@@ -418,8 +435,6 @@ def _analyze(word: str) -> tuple[str, Lemma]:
         return text, Lemma(_infinitive(text), "VERB", NonfiniteVerb("infinitive"))
     if _known_nominal(text):
         return text, Lemma(text, "NOUN", NounFeatures("singular", "nominative", False))
-    if text in _VERBS:
-        return text, Lemma(_infinitive(text), "VERB", NonfiniteVerb("infinitive"))
     nominal = _peel_nominal(text)
     current = text if nominal is None else nominal[0]
     peeled = _irregular(current)

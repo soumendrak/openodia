@@ -465,6 +465,8 @@ def test_agent_docs_name_stem_and_lemma() -> None:
 
 _FUT_1S = FiniteVerb("future", "simple", 1, "singular")
 _INF = NonfiniteVerb("infinitive")
+_PAST_1S = FiniteVerb("past", "simple", 1, "singular")
+_PAST_1P = FiniteVerb("past", "simple", 1, "plural")
 _REJECT_REGRESSIONS: tuple[tuple[str, str, Lemma], ...] = (
     ("ଚାହିଁଥିଲା", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PERF_S)),
     ("ଚାହିଁଥିଲେ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PERF_P)),
@@ -491,6 +493,21 @@ _REJECT_REGRESSIONS: tuple[tuple[str, str, Lemma], ...] = (
     ("ଗାଁକୁ", "ଗାଁ", Lemma("ଗାଁ", "NOUN", NounFeatures("singular", "dative", False))),
     ("ଫେର", "ଫେର", Lemma("ଫେର", "UNKNOWN", UnknownFeatures())),
     ("ବିଚାର", "ବିଚାର", Lemma("ବିଚାର", "UNKNOWN", UnknownFeatures())),
+    ("କରିବାର", "କର", Lemma("କରିବା", "VERB", _INF)),
+    ("ଖାଇବାର", "ଖା", Lemma("ଖାଇବା", "VERB", _INF)),
+    ("ଯିବାର", "ଯା", Lemma("ଯିବା", "VERB", _INF)),
+    ("ଦେବାର", "ଦେ", Lemma("ଦେବା", "VERB", _INF)),
+    ("ଚାହିଁବାର", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _INF)),
+    ("ଦେଲି", "ଦେ", Lemma("ଦେବା", "VERB", _PAST_1S)),
+    ("ଦେଲୁ", "ଦେ", Lemma("ଦେବା", "VERB", _PAST_1P)),
+    ("ନେଲି", "ନେ", Lemma("ନେବା", "VERB", _PAST_1S)),
+    ("ନେଲୁ", "ନେ", Lemma("ନେବା", "VERB", _PAST_1P)),
+    ("ହେଲି", "ହେ", Lemma("ହେବା", "VERB", _PAST_1S)),
+    ("ହେଲୁ", "ହେ", Lemma("ହେବା", "VERB", _PAST_1P)),
+    ("ଥିଲି", "ଥା", Lemma("ଥିବା", "VERB", _PAST_1S)),
+    ("ଥିଲୁ", "ଥା", Lemma("ଥିବା", "VERB", _PAST_1P)),
+    ("କଲାର", "କଲାର", Lemma("କଲାର", "UNKNOWN", UnknownFeatures())),
+    ("ମହିଲାର", "ମହିଲାର", Lemma("ମହିଲାର", "UNKNOWN", UnknownFeatures())),
 )
 
 
@@ -502,7 +519,8 @@ def test_reject_regression_table(word: str, root: str, expected: Lemma) -> None:
     assert stem(got.form) == stem(word)
     assert _DOUBLED_MATRA.search(got.form) is None
     if got.pos == "VERB" and got.features == _INF:
-        assert got.form == _nfc(word)
+        assert _nfc(word) in (got.form, got.form + _nfc("ର"))
+        assert lemma(got.form) == got
 
 
 @pytest.mark.parametrize("word", ("ଚାହିଁଥିଲା", "ଚାହିଁଥିଲେ", "ଚାହୁଁଥିଲା", "କରିନଥିଲେ", "ଗାଥିଲେ", "ହୋଇନଥିଲା"))
@@ -512,7 +530,7 @@ def test_no_stem_is_cut_inside_thi(word: str) -> None:
 
 def test_reject_regression_table_is_pinned_and_documented() -> None:
     words = [word for word, _, _ in _REJECT_REGRESSIONS]
-    assert len(words) == len(set(words)) == 25
+    assert len(words) == len(set(words)) == 40
     for required in ("ଚାହିଁଥିଲା", "ପିଇବା", "ଶୁଇବା", "ଧୋଇବା", "ହୋଇଥିଲା", "ଖାଇବି", "ପାଇବି", "ଗାଇବି", "ଗାଁର"):
         assert required in words
     tails = {tail for item in suffixes() for tail in item.tails}
