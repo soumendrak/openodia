@@ -250,6 +250,27 @@ def test_nasalized_present_progressive_endings_keep_the_listed_root() -> None:
     assert stem(stem("ଚାହୁଁଛନ୍ତି")) == "ଚାହ"
 
 
+def test_genitive_peels_after_a_definite_or_plural_aa_suffix() -> None:
+    assert stem("ଘରଟାର") == "ଘର"
+    assert lemma("ଘରଟାର") == _noun("ଘର", definite=True, case="genitive")
+    assert stem("ଘରଗୁଡ଼ାର") == "ଘର"
+    assert lemma("ଘରଗୁଡ଼ାର") == _noun("ଘର", number="plural", case="genitive")
+    assert stem("ବିଚାର") == "ବିଚାର"
+    assert stem(stem("ଘରଟାର")) == "ଘର"
+
+
+def test_a_noun_listed_root_still_takes_verbal_endings() -> None:
+    assert stem("ଜଳ") == "ଜଳ"
+    assert lemma("ଜଳ") == _noun("ଜଳ")
+    assert stem("ଜଳିବା") == "ଜଳ"
+    assert lemma("ଜଳିବା") == _verb("ଜଳିବା", _INF)
+    assert stem("ଜଳୁଛି") == "ଜଳ"
+    assert lemma("ଜଳୁଛି") == _verb("ଜଳିବା", _PRES_PROG_S)
+    assert stem("ଜଳିଲା") == "ଜଳ"
+    assert lemma("ଜଳିଲା") == _verb("ଜଳିବା", _SIMPLE_S)
+    assert stem(stem("ଜଳିବା")) == "ଜଳ"
+
+
 def test_case_on_an_irregular_infinitive_stays_a_verb() -> None:
     assert stem("ଯିବାକୁ") == "ଯା"
     assert stem(stem("ଯିବାକୁ")) == stem("ଯିବାକୁ")

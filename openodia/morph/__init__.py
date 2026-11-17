@@ -11,8 +11,8 @@ one fusional tail. Noun plural and case peel from the right, so ଗୁଡ଼ି�
 matra େ; that reading is used only for a listed consonant-final noun, which
 is why ମନ୍ଦିରେ stays ମନ୍ଦିର and କରେ stays the verb କର. Listed nouns that end in
 ର, such as ସରକାର, are not genitives. Unlisted nouns still lose a plain
-genitive ର, except when the remainder would end in ା, so ବିଚାର stays
-ବିଚାର, or would be one akshara without candrabindu, so ଫେର stays ଫେର
+genitive ର, except when the remainder would end in ା and is not itself a peeled nominal, so ବିଚାର stays
+ବିଚାର while ଘରଟାର is ଘର plus definite genitive, or would be one akshara without candrabindu, so ଫେର stays ଫେର
 while ଗାଁର is ଗାଁ plus ର. Short verbal tails (େ, ଇ, ବା) apply only to
 listed roots. Longer verbal tails apply to any well-formed remainder.
 A bare ଥିଲା / ଥିଲେ after a conjunctive is perfect, and ିଁଥିଲା / ୁଁଥିଲା

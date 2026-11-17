@@ -214,7 +214,7 @@ _TAILS: tuple[_Row, ...] = (
     _nonfinite("ଇ", "ଇ", "conjunctive", "verb"),
 )
 
-_VERBS = frozenset(_nfc(word) for word in "ଆସ କର ବସ ଶୁଣ ଦେଖ ରହ କହ ଚାହ ପଢ଼ ଖା ପା ଗା ଯା ଥା ଦେ ନେ ହେ".split())
+_VERBS = frozenset(_nfc(word) for word in "ଆସ କର ବସ ଶୁଣ ଦେଖ ରହ କହ ଚାହ ପଢ଼ ଖା ପା ଗା ଯା ଥା ଦେ ନେ ହେ ଜଳ".split())
 _NOUNS = frozenset(_nfc(word) for word in "ଘର ଫୁଲ ବହି ପୁରୀ ମନ୍ଦିର ସରକାର ବଜାର ଅଧିକାର ପରିବାର ଗଛ ନଦୀ ଦିନ ରାସ୍ତା କଥା ଜଳ ଫଳ ଓଡ଼ିଶା ପିଲା ଭାଇ ହାତ".split())
 _HUMANS = frozenset(_nfc(word) for word in ("ଲୋକ", "ବାଳକ", "ମଣିଷ", "ଛାତ୍ର"))
 _INFINITIVE_OVERRIDE = {_nfc("ଯା"): "ଯିବା", _nfc("ଥା"): "ଥିବା", _nfc("ଚାହ"): _nfc("ଚାହିଁବା")}
@@ -323,6 +323,7 @@ def _candidate(word: str, tail: _Row) -> str | None:
         and tail.text == _nfc("ର")
         and not _known_nominal(remainder)
         and remainder.endswith("ା")
+        and _peel_nominal(remainder) is None
     ):
         return None
     if isinstance(tail, _Verbal) and _known_nominal(remainder) and remainder not in _VERBS:
@@ -413,10 +414,12 @@ def _analyze(word: str) -> tuple[str, Lemma]:
     irregular = _irregular(text)
     if irregular is not None:
         return irregular
-    if text in _VERBS:
+    if text in _VERBS and not _known_nominal(text):
         return text, Lemma(_infinitive(text), "VERB", NonfiniteVerb("infinitive"))
     if _known_nominal(text):
         return text, Lemma(text, "NOUN", NounFeatures("singular", "nominative", False))
+    if text in _VERBS:
+        return text, Lemma(_infinitive(text), "VERB", NonfiniteVerb("infinitive"))
     nominal = _peel_nominal(text)
     current = text if nominal is None else nominal[0]
     peeled = _irregular(current)
