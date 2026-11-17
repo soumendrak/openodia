@@ -258,6 +258,20 @@ def test_yaphala_moves_past_every_vowel_sign() -> None:
 
 
 @pytest.mark.parametrize(
+    ("text", "expected"),
+    (
+        ("ÒLÕÔ", "କ୍ୟେଂ"),
+        ("ÒLÔÕ", "କ୍ୟେଂ"),
+        ("LÕÔ", "କ୍ୟଂ"),
+        ("LÜÔ", "କ୍ୟଁ"),
+        ("LÔÜ", "କ୍ୟଁ"),
+    ),
+)
+def test_yaphala_moves_past_a_nasal_typed_before_it(text: str, expected: str) -> None:
+    assert legacy.to_unicode(text, font="ORTTSarala") == expected
+
+
+@pytest.mark.parametrize(
     "text",
     (
         "ପ",
