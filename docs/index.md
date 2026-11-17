@@ -867,7 +867,7 @@ legacy.detect_font("IWÿò@û")
 legacy.to_unicode_auto("JXÏÞA")
 ```
 
-`SUPPORTED_FONTS` is `AkrutiOriSarala` and `ORTTSarala`. `detect_font` returns `font` and `confidence`. A tie leaves `font` as None and `confidence` at 0.5. No legacy-font evidence leaves `font` as None and `confidence` at 0.0. Text that contains an Odia code point or a danda is already Unicode, so it has no legacy-font evidence, even next to ASCII signs such as `25%` or `#OpenOdia`. `to_unicode_auto` returns the input unchanged in both cases. Call `detect_font` to tell them apart. Of the 100 checked sentences, auto mode converts 83 and leaves 17 unchanged. A left matra, typed before the consonant, moves to the end of that conjunct.
+`SUPPORTED_FONTS` is `AkrutiOriSarala` and `ORTTSarala`. `detect_font` returns `font` and `confidence`. A tie leaves `font` as None and `confidence` at 0.5. No legacy-font evidence leaves `font` as None and `confidence` at 0.0. Text that contains an Odia code point or a danda is already Unicode, so it has no legacy-font evidence, even next to ASCII signs such as `25%` or `#OpenOdia`. `to_unicode_auto` returns the input unchanged in both cases. Call `detect_font` to tell them apart. Of the 100 checked sentences, auto mode converts 83 and leaves 17 unchanged. A left matra, typed before the consonant, moves to the end of that conjunct, including across a halant that carries a zero-width joiner. ORTT ya-phala moves ahead of a vowel sign or nasal typed before it, including before a composite matra such as ୈ or ୌ. A run of ORTT numeric separators all convert.
 
 ## :bug: Known Issues
 

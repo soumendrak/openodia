@@ -212,19 +212,25 @@ def _shift_consonant(text: str, marker: str) -> str:
     return "".join(out)
 
 
+_JOINERS = frozenset("\u200c\u200d")
+
+
 def _shift_halant(text: str, marker: str) -> str:
     out: list[str] = []
     index = 0
     limit = len(text)
     while index < limit:
-        follows = index + 2 < limit and text[index + 1] == _HALANT and text[index + 2] in _CONSONANTS
-        if text[index] == marker and follows:
-            end = _with_nukta(text, index + 2)
-            out.append(_HALANT)
-            out.append(text[index + 2 : end])
-            out.append(marker)
-            index = end
-            continue
+        if text[index] == marker and index + 1 < limit and text[index + 1] == _HALANT:
+            cursor = index + 2
+            while cursor < limit and text[cursor] in _JOINERS:
+                cursor += 1
+            if cursor < limit and text[cursor] in _CONSONANTS:
+                end = _with_nukta(text, cursor)
+                out.append(_HALANT)
+                out.append(text[index + 2 : end])
+                out.append(marker)
+                index = end
+                continue
         out.append(text[index])
         index += 1
     return "".join(out)
@@ -241,6 +247,30 @@ def _form_at(text: str, index: int, matra: _Matra) -> tuple[str, int] | None:
     return None
 
 
+def _shift_join_across_nasals(text: str, matra: _Matra) -> str:
+    if not matra.joins:
+        return text
+    out: list[str] = []
+    index = 0
+    limit = len(text)
+    while index < limit:
+        if text[index] == matra.marker:
+            end = index + 1
+            while end < limit and text[end] in _ANUSVARA:
+                end += 1
+            if end > index + 1:
+                matched = next((glyph for glyph in matra.joins if text.startswith(glyph, end)), None)
+                if matched is not None:
+                    out.append(matra.marker)
+                    out.append(matched)
+                    out.append(text[index + 1 : end])
+                    index = end + len(matched)
+                    continue
+        out.append(text[index])
+        index += 1
+    return "".join(out)
+
+
 def _apply_matra(text: str, matra: _Matra) -> str:
     text = _shift_consonant(text, matra.marker)
     while True:
@@ -248,6 +278,7 @@ def _apply_matra(text: str, matra: _Matra) -> str:
         if shifted == text:
             break
         text = shifted
+    text = _shift_join_across_nasals(text, matra)
     for glyph in matra.joins:
         text = text.replace(matra.marker + glyph, glyph + matra.marker)
     out: list[str] = []

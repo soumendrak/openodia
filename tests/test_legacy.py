@@ -271,6 +271,29 @@ def test_yaphala_moves_past_a_nasal_typed_before_it(text: str, expected: str) ->
     assert legacy.to_unicode(text, font="ORTTSarala") == expected
 
 
+
+def test_matra_moves_across_a_halant_that_carries_a_joiner() -> None:
+    assert legacy.to_unicode("ÒLçL", font="ORTTSarala") == "କ୍‍କେ"
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    (
+        ("ÒLÕÔß", "କ୍ୟୈଂ"),
+        ("ÒLÔÕß", "କ୍ୟୈଂ"),
+        ("ÒLÕÔ×", "କ୍ୟୌଂ"),
+        ("ÒLÔÕ×", "କ୍ୟୌଂ"),
+    ),
+)
+def test_yaphala_reorders_across_a_nasal_before_a_composite_matra(text: str, expected: str) -> None:
+    assert legacy.to_unicode(text, font="ORTTSarala") == expected
+
+
+def test_every_numeric_separator_in_a_run_converts() -> None:
+    assert legacy.to_unicode("1Ð2Ð3", font="ORTTSarala") == "୧|୨|୩"
+    assert legacy.to_unicode("1Ð2", font="ORTTSarala") == "୧|୨"
+
+
 @pytest.mark.parametrize(
     "text",
     (
