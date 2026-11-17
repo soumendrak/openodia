@@ -271,10 +271,8 @@ def test_yaphala_moves_past_a_nasal_typed_before_it(text: str, expected: str) ->
     assert legacy.to_unicode(text, font="ORTTSarala") == expected
 
 
-
 def test_matra_moves_across_a_halant_that_carries_a_joiner() -> None:
     assert legacy.to_unicode("ÒLçL", font="ORTTSarala") == "କ୍‍କେ"
-
 
 
 def test_reph_moves_across_a_halant_that_carries_a_joiner() -> None:
