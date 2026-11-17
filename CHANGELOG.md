@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `roman.type_odia` types Roman Odia into Odia script offline (`namaskara` gives `ନମସ୍କାର`). Whitespace and punctuation stay put. `candidates=True` returns up to eight full strings, best first, ranked by how often each glossary word occurs. Letters with no Hunterian spelling (`c`, `f`, `q`, `x`, `z`) are read as Odia consonants, and a glossary token that is not a well-formed syllable is not offered. This is typing, separate from `openodia.phonetic` matching. `roman.type_odia` needs a release newer than 0.2.0: it raises `AttributeError` on 0.2.0.
+
 ## 0.2.0 (2026-11-13)
 
 ### Added
