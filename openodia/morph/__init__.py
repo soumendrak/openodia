@@ -16,11 +16,12 @@ genitive ର, except when the remainder would end in ା and is neither a peeled
 while ଗାଁର is ଗାଁ plus ର. Short verbal tails (େ, ଇ, ବା) apply only to
 listed roots. Longer verbal tails apply to any well-formed remainder.
 A bare ଥିଲା / ଥିଲେ after a conjunctive is perfect, and ିଁଥିଲା / ୁଁଥିଲା
-keep the root, so ଚାହିଁଥିଲା is ଚାହ. An infinitive the dictionary does not
+keep the root, so ଚାହିଁଥିଲା is ଚାହ. A negative perfect (କରିନଥିଲେ) is the
+same perfect reading with the root କର; the features do not mark negation. An infinitive the dictionary does not
 list is the root plus ିବା after a consonant, ବା after the listed େ roots
 (ଦେବା, ନେବା, ହେବା), and ଇବା after any other vowel sign (ଖାଇବା, ପିଇବା,
 ଶୁଇବା, ଧୋଇବା, ବାଡ଼େଇବା). A finite ହୋ form
-(ହୋଇଥିଲା) is the verb ହେ, with infinitive ହେବା. Suppletive pasts (କଲା,
+(ହୋଇଥିଲା) and the conjunctive ହୋଇ are the verb ହେ, with infinitive ହେବା. Suppletive pasts (କଲା,
 ଗଲା, ଦେଲା, ନେଲା, ହେଲା, ଥିଲା, with first person ଲି and ଲୁ such as ଦେଲି and ଥିଲୁ), the infinitives ଯିବା, ଥିବା and ଚାହିଁବା,
 and the future forms ଯିବ, ଯିବି, ଯିବେ, ଥିବ, ଥିବି and ଥିବେ
 are a dictionary, not a cut. Nasalized present-progressive endings
@@ -67,7 +68,7 @@ Endings:
 ଗୁଡ଼ିକୁ (nominal): ଗୁଡ଼ିକୁ
 ଉଥିଲେ (verbal): ୁଁଥିଲେ, ୁଥିଲେ, ଉଥିଲେ
 ଉଥିଲା (verbal): ୁଁଥିଲା, ୁଥିଲା, ଉଥିଲା
-ଉଥିଲି (verbal): ୁଥିଲି, ଉଥିଲି
+ଉଥିଲି (verbal): ୁଁଥିଲି, ୁଥିଲି, ଉଥିଲି
 ଉଛି (verbal): ୁଁଛି, ୁଛି, ଉଛି
 ଉଛୁ (verbal): ୁଁଛୁ, ୁଛୁ, ଉଛୁ
 ଉଛନ୍ତି (verbal): ୁଁଛନ୍ତି, ୁଛନ୍ତି, ଉଛନ୍ତି
@@ -79,9 +80,9 @@ Endings:
 ଇବି (verbal): ିବି, ଇବି, ବି
 ଇବେ (verbal): ିବେ, ଇବେ, ବେ
 ଥାଏ (verbal): ିଥାଏ, ଇଥାଏ, ଥାଏ
-ଇଥିଲେ (verbal): ିଁଥିଲେ, ିଥିଲେ, ଇଥିଲେ, ଥିଲେ
-ଇଥିଲା (verbal): ିଁଥିଲା, ିଥିଲା, ଇଥିଲା, ଥିଲା
-ଇଥିଲି (verbal): ିଁଥିଲି, ିଥିଲି, ଇଥିଲି, ଥିଲି
+ଇଥିଲେ (verbal): ିଁଥିଲେ, ିନଥିଲେ, ଇନଥିଲେ, ିଥିଲେ, ଇଥିଲେ, ଥିଲେ
+ଇଥିଲା (verbal): ିଁଥିଲା, ିନଥିଲା, ଇନଥିଲା, ିଥିଲା, ଇଥିଲା, ଥିଲା
+ଇଥିଲି (verbal): ିଁଥିଲି, ିନଥିଲି, ଇନଥିଲି, ିଥିଲି, ଇଥିଲି, ଥିଲି
 ଇଛନ୍ତି (verbal): ିଛନ୍ତି, ଇଛନ୍ତି
 ନ୍ତି (verbal): ନ୍ତି
 ଏ (verbal): େ, ଏ

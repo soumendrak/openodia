@@ -185,7 +185,7 @@ _TAILS: tuple[_Row, ...] = (
     _plural_dative("ଗୁଡ଼ିକୁ"),
     *_same("ଉଥିଲେ", ("ୁଥିଲେ", "ଉଥିଲେ", "ୁଁଥିଲେ"), "past", "progressive", 3, "plural"),
     *_same("ଉଥିଲା", ("ୁଥିଲା", "ଉଥିଲା", "ୁଁଥିଲା"), "past", "progressive", 3, "singular"),
-    *_same("ଉଥିଲି", ("ୁଥିଲି", "ଉଥିଲି"), "past", "progressive", 1, "singular"),
+    *_same("ଉଥିଲି", ("ୁଥିଲି", "ଉଥିଲି", "ୁଁଥିଲି"), "past", "progressive", 1, "singular"),
     *_same("ଉଛି", ("ୁଛି", "ଉଛି", "ୁଁଛି"), "present", "progressive", 3, "singular"),
     *_same("ଉଛୁ", ("ୁଛୁ", "ଉଛୁ", "ୁଁଛୁ"), "present", "progressive", 1, "plural"),
     *_same("ଉଛନ୍ତି", ("ୁଛନ୍ତି", "ଉଛନ୍ତି", "ୁଁଛନ୍ତି"), "present", "progressive", 3, "plural"),
@@ -197,9 +197,9 @@ _TAILS: tuple[_Row, ...] = (
     *_same("ଇବି", ("ିବି", "ଇବି"), "future", "simple", 1, "singular"),
     *_same("ଇବେ", ("ିବେ", "ଇବେ"), "future", "simple", 3, "plural"),
     *_same("ଥାଏ", ("ଥାଏ", "ିଥାଏ", "ଇଥାଏ"), "present", "habitual", 3, "singular"),
-    *_same("ଇଥିଲେ", ("ିଥିଲେ", "ଇଥିଲେ", "ିଁଥିଲେ", "ଥିଲେ"), "past", "perfect", 3, "plural"),
-    *_same("ଇଥିଲା", ("ିଥିଲା", "ଇଥିଲା", "ିଁଥିଲା", "ଥିଲା"), "past", "perfect", 3, "singular"),
-    *_same("ଇଥିଲି", ("ିଥିଲି", "ଇଥିଲି", "ିଁଥିଲି", "ଥିଲି"), "past", "perfect", 1, "singular"),
+    *_same("ଇଥିଲେ", ("ିଥିଲେ", "ଇଥିଲେ", "ିଁଥିଲେ", "ଥିଲେ", "ିନଥିଲେ", "ଇନଥିଲେ"), "past", "perfect", 3, "plural"),
+    *_same("ଇଥିଲା", ("ିଥିଲା", "ଇଥିଲା", "ିଁଥିଲା", "ଥିଲା", "ିନଥିଲା", "ଇନଥିଲା"), "past", "perfect", 3, "singular"),
+    *_same("ଇଥିଲି", ("ିଥିଲି", "ଇଥିଲି", "ିଁଥିଲି", "ଥିଲି", "ିନଥିଲି", "ଇନଥିଲି"), "past", "perfect", 1, "singular"),
     _finite("ଇଛନ୍ତି", "ିଛନ୍ତି", "present", "perfect", 3, "plural"),
     _finite("ଇଛନ୍ତି", "ଇଛନ୍ତି", "present", "perfect", 3, "plural"),
     _finite("ନ୍ତି", "ନ୍ତି", "present", "simple", 3, "plural"),
@@ -261,6 +261,7 @@ _IRREGULAR: dict[str, tuple[str, FiniteVerb | NonfiniteVerb]] = {
     _nfc("ଥିଲା"): _past("ଥା", 3, "singular"),
     _nfc("ଥିଲେ"): _past("ଥା", 3, "plural"),
     _nfc("ଅଛି"): (_nfc("ଥା"), FiniteVerb("present", "progressive", 3, "singular")),
+    _nfc("ହୋଇ"): (_nfc("ହେ"), NonfiniteVerb("conjunctive")),
 }
 
 
