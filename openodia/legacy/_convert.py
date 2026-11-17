@@ -325,13 +325,17 @@ def _shift_reph_halant(text: str, marker: str) -> str:
     while index < limit:
         if text[index] in _CONSONANTS:
             base = _with_nukta(text, index)
-            follows = base + 1 < limit and text[base] == _HALANT and text[base + 1] == marker
-            if follows:
-                out.append(marker)
-                out.append(text[index:base])
-                out.append(_HALANT)
-                index = base + 2
-                continue
+            if base < limit and text[base] == _HALANT:
+                cursor = base + 1
+                while cursor < limit and text[cursor] in _JOINERS:
+                    cursor += 1
+                if cursor < limit and text[cursor] == marker:
+                    out.append(marker)
+                    out.append(text[index:base])
+                    out.append(_HALANT)
+                    out.append(text[base + 1 : cursor])
+                    index = cursor + 1
+                    continue
         out.append(text[index])
         index += 1
     return "".join(out)

@@ -276,6 +276,12 @@ def test_matra_moves_across_a_halant_that_carries_a_joiner() -> None:
     assert legacy.to_unicode("ÒLçL", font="ORTTSarala") == "କ୍‍କେ"
 
 
+
+def test_reph_moves_across_a_halant_that_carries_a_joiner() -> None:
+    assert legacy.to_unicode("LçLà", font="ORTTSarala") == "ର୍କ୍‍କ"
+    assert legacy.to_unicode("LàçL", font="ORTTSarala") == "ର୍କ୍‍କ"
+
+
 @pytest.mark.parametrize(
     ("text", "expected"),
     (
