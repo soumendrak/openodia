@@ -383,6 +383,21 @@ def test_a_long_run_of_combining_marks_is_mapped_in_linear_time() -> None:
     assert large < small * 8
 
 
+def test_nfc_is_not_invoked_on_a_combining_run_longer_than_32_code_points(monkeypatch: pytest.MonkeyPatch) -> None:
+    oversized: list[int] = []
+    real = _detect.unicodedata.normalize
+
+    def bounded(form: str, value: str) -> str:
+        if len(value) > 32:
+            oversized.append(len(value))
+        return real(form, value)
+
+    monkeypatch.setattr(_detect.unicodedata, "normalize", bounded)
+    text = "a" + "\u0301" * 40 + "\u0323" * 40 + " 9876543210"
+    assert pii.mask(text) == text[:-10] + "<PHONE>"
+    assert oversized == []
+
+
 NEW_PII_RELEASE = (
     "Dates, amounts, names, addresses, `pseudonymize`, `restore` and `KeyStore` need a release newer than 0.2.0: "
     "`from openodia.pii import pseudonymize` fails on 0.2.0, and `pii.detect` there finds only phone, email, URL, "
