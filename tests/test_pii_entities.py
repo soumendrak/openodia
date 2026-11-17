@@ -452,3 +452,13 @@ def test_an_ascii_email_before_a_combining_accent_is_masked(text: str) -> None:
     assert masked.endswith("<EMAIL>\u0301")
     for entity in pii.detect(text):
         assert text[entity.start : entity.end] == entity.text
+
+
+def test_odia_digits_keep_numeric_boundaries_when_the_text_is_not_nfc() -> None:
+    text = "a\u0301 ୧9876543210"
+    assert pii.detect(text, types=["PHONE"]) == []
+    assert pii.mask(text, types=["PHONE"]) == text
+    phone = "a\u0301 9876543210"
+    masked = pii.mask(phone, types=["PHONE"])
+    assert "9876543210" not in masked
+    assert pii.detect(phone, types=["PHONE"])[0].text == "9876543210"
