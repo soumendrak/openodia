@@ -277,3 +277,24 @@ def test_cli_rejects_bad_spell_usage() -> None:
     with pytest.raises(SystemExit) as negative:
         cli.main(["spell", "--suggest", "--top", "-1", "ନମସ୍କର"])
     assert negative.value.code == 2
+
+
+@pytest.mark.parametrize("ending", ["", "\n", "\r\n"])
+def test_cli_check_file_ignores_a_leading_bom(ending: str, tmp_path, capsys: pytest.CaptureFixture[str]) -> None:
+    from openodia import cli
+
+    path = tmp_path / "bom.txt"
+    path.write_bytes(b"\xef\xbb\xbf" + ("ନମସ୍କାର" + ending).encode("utf-8"))
+    assert cli.main(["spell", "--check", "--json", "--file", str(path)]) == 0
+    assert json.loads(capsys.readouterr().out) == {"correct": True}
+
+
+def test_cli_file_correction_translates_crlf(tmp_path, capsys: pytest.CaptureFixture[str]) -> None:
+    from openodia import cli
+
+    path = tmp_path / "crlf.txt"
+    path.write_bytes("ନମସ୍କର ।\r\nଆସୁଛନ୍ତ\r\n".encode())
+    assert cli.main(["spell", "--file", str(path)]) == 0
+    out = capsys.readouterr().out
+    assert "\r" not in out
+    assert out == "ନମସ୍କାର ।\nଆସୁଛନ୍ତି\n\n"

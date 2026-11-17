@@ -234,6 +234,8 @@ def test_pii_index_says_a_closing_apostrophe_is_swallowed_when_a_url_character_f
 
 SPELL_DOCS = [
     "AGENTS.md",
+    "CHANGELOG.md",
+    "docs/llms.txt",
     "skills/openodia/SKILL.md",
     "docs/index.md",
     "docs/guides/text-processing.md",
