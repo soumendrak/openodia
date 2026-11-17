@@ -443,3 +443,12 @@ def test_names_above_surname_confidence_skip_the_surname_scan(monkeypatch: pytes
 def test_docs_state_the_name_whitespace_rule(doc: str) -> None:
     text = " ".join((Path(__file__).resolve().parents[1] / doc).read_text(encoding="utf-8").split())
     assert "Name words may be separated by any run of whitespace, including tabs, no-break spaces and line breaks." in text
+
+
+@pytest.mark.parametrize("text", ["a@b.co\u0301", "foo@example.com\u0301", "ଗୋ\u0301 a@b.co\u0301"])
+def test_an_ascii_email_before_a_combining_accent_is_masked(text: str) -> None:
+    masked = pii.mask(text, types=["EMAIL"])
+    assert "@" not in masked
+    assert masked.endswith("<EMAIL>\u0301")
+    for entity in pii.detect(text):
+        assert text[entity.start : entity.end] == entity.text

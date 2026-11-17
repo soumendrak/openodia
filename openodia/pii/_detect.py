@@ -453,10 +453,10 @@ def detect(text: str, types: Iterable[str] | None = None, min_confidence: float 
     candidates.extend(_date_candidates(ascii_text, wanted, min_confidence))
     candidates.extend(_name_candidates(ascii_text, wanted, min_confidence))
     candidates.extend(_address_candidates(ascii_text, wanted, min_confidence))
-    entities = []
-    for candidate in _merge(candidates):
-        start, end = candidate.start, candidate.end
-        if bounds is not None:
-            start, end = bounds[start], bounds[end]
-        entities.append(PIIEntity(candidate.kind, text[start:end], start, end, candidate.confidence))
-    return entities
+    if bounds is not None:
+        candidates = [found._replace(start=bounds[found.start], end=bounds[found.end]) for found in candidates]
+        candidates.extend(_regex_candidates(odia_to_ascii(text), wanted, min_confidence))
+    return [
+        PIIEntity(found.kind, text[found.start : found.end], found.start, found.end, found.confidence)
+        for found in _merge(candidates)
+    ]
