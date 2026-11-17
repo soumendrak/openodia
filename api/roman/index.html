@@ -1245,6 +1245,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#openodia.roman.type_odia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        type_odia
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1449,6 +1460,8 @@
 <span class="go">&#39;oria&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">roman</span><span class="o">.</span><span class="n">to_roman</span><span class="p">(</span><span class="s2">&quot;ଓଡ଼ିଆ&quot;</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="s2">&quot;ITRANS&quot;</span><span class="p">)</span>
 <span class="go">&#39;o.DiA&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">roman</span><span class="o">.</span><span class="n">type_odia</span><span class="p">(</span><span class="s2">&quot;namaskara&quot;</span><span class="p">)</span>
+<span class="go">&#39;ନମସ୍କାର&#39;</span>
 </code></pre></div>
 
 
@@ -1800,6 +1813,150 @@ or a backtick (ITRANS) right after the consonant; <code>Hunterian</code> drops i
 
 </div>
 
+<div class="doc doc-object doc-function">
+
+
+<h3 id="openodia.roman.type_odia" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">type_odia</span>
+
+
+<a href="#openodia.roman.type_odia" class="headerlink" title="Permanent link">&para;</a></h3>
+          <div class="doc-overloads">
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">type_odia</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">candidates</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div><div class="doc-signature highlight"><pre><span></span><code><span class="nf">type_odia</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">candidates</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">True</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</code></pre></div>          </div>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">type_odia</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">candidates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Type Roman Odia into Odia script.</p>
+<p>Each run of ASCII letters becomes the bundled-dictionary word whose
+folded Hunterian spelling matches, most frequent gloss first. A run
+with no such word is lowercased, <code>ch</code> and <code>chh</code> are kept, and
+<code>c</code>, <code>f</code>, <code>q</code>, <code>x</code> and <code>z</code> are read as <code>k</code>, <code>ph</code>, <code>k</code>,
+<code>ks</code> and <code>j</code>. That spelling is passed to Hunterian <code>from_roman</code>.
+Every other character is copied, so whitespace and punctuation stay put.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>text</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Roman typing, or text that mixes it with Odia and punctuation.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>candidates</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>When true, return at most eight full strings, best
+first. The first of those equals <code>type_odia(text)</code> whenever
+<code>text</code> is not empty. <code>type_odia("")</code> is <code>""</code> and
+<code>type_odia("", candidates=True)</code> is <code>[]</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="str">str</span> | <span title="list">list</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The typed string, or the ranked strings when <code>candidates</code> is true.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="TypeError">TypeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>text</code> is not a <code>str</code> or <code>candidates</code> is not a <code>bool</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Examples:</span></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">type_odia</span><span class="p">(</span><span class="s2">&quot;namaskara&quot;</span><span class="p">)</span>
+<span class="go">&#39;ନମସ୍କାର&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">type_odia</span><span class="p">(</span><span class="s2">&quot;odisha bhasha&quot;</span><span class="p">)</span>
+<span class="go">&#39;ଓଡ଼ିଶା ଭାଷା&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">type_odia</span><span class="p">(</span><span class="s2">&quot;ki bhabare achanti&quot;</span><span class="p">)</span>
+<span class="go">&#39;କି ଭାବରେ ଅଛନ୍ତି&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">type_odia</span><span class="p">(</span><span class="s2">&quot;ki&quot;</span><span class="p">,</span> <span class="n">candidates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">[&#39;କି&#39;, &#39;କୀ&#39;]</span>
+</code></pre></div>
+
+
+    </div>
+
+</div>
+
 
 
   </div>
@@ -1827,7 +1984,7 @@ or a backtick (ITRANS) right after the consonant; <code>Hunterian</code> drops i
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 12, 2026 22:00:45 UTC"><span class="timeago" datetime="2026-11-12T22:00:45+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 12, 2026 22:00:45 UTC">2026-11-12</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 17, 2026 06:28:43 UTC"><span class="timeago" datetime="2026-11-17T06:28:43+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 17, 2026 06:28:43 UTC">2026-11-17</span>
   </span>
 
     

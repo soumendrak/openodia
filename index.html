@@ -656,6 +656,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Romanisation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phonetic-typing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phonetic typing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1830,6 +1847,7 @@ uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># or: pi
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#sandhi-and-compounds">Sandhi and compounds</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#indic-transliteration">Indic-to-Indic transliteration</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#romanisation">Romanisation</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#phonetic-typing">Phonetic typing</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#command-line-interface">Command-line interface</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#translation-cache">Translation cache configuration</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#numbers-and-words">Numbers, dates, and currency in words</a></li>
@@ -2012,6 +2030,17 @@ chillus become consonant + virama, and shared marks such as the danda
 <span class="n">roman</span><span class="o">.</span><span class="n">to_roman</span><span class="p">(</span><span class="s2">&quot;ଓଡ଼ିଆ&quot;</span><span class="p">,</span> <span class="s2">&quot;ITRANS&quot;</span><span class="p">)</span>     <span class="c1"># &#39;o.DiA&#39;</span>
 
 <span class="n">roman</span><span class="o">.</span><span class="n">from_roman</span><span class="p">(</span><span class="s2">&quot;namaskara&quot;</span><span class="p">,</span> <span class="s2">&quot;Hunterian&quot;</span><span class="p">)</span>  <span class="c1"># &#39;ନମସ୍କର&#39; (best-effort: Hunterian drops ā)</span>
+</code></pre></div>
+<h4 id="phonetic-typing">Phonetic typing<a class="headerlink" href="#phonetic-typing" title="Permanent link">&para;</a></h4>
+<p><code>openodia.roman</code> needs a release newer than 0.1.14. <code>roman.type_odia</code> needs a release newer than 0.2.0: it raises <code>AttributeError</code> on 0.2.0. <code>roman.type_odia</code> turns Roman typing into Odia, offline, without an IME.
+Each ASCII word is the bundled-dictionary word with that folded Hunterian
+spelling, and the more common gloss wins when several words share it.
+Spaces and punctuation are left where they were. <code>from_roman("namaskara", "Hunterian")</code>
+is still <code>ନମସ୍କର</code>; typing is a different call, and it is not <code>openodia.phonetic</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">roman</span><span class="o">.</span><span class="n">type_odia</span><span class="p">(</span><span class="s2">&quot;namaskara&quot;</span><span class="p">)</span>                 <span class="c1"># &#39;ନମସ୍କାର&#39;</span>
+<span class="n">roman</span><span class="o">.</span><span class="n">type_odia</span><span class="p">(</span><span class="s2">&quot;odisha bhasha&quot;</span><span class="p">)</span>             <span class="c1"># &#39;ଓଡ଼ିଶା ଭାଷା&#39;</span>
+<span class="n">roman</span><span class="o">.</span><span class="n">type_odia</span><span class="p">(</span><span class="s2">&quot;ki bhabare achanti&quot;</span><span class="p">)</span>        <span class="c1"># &#39;କି ଭାବରେ ଅଛନ୍ତି&#39;</span>
+<span class="n">roman</span><span class="o">.</span><span class="n">type_odia</span><span class="p">(</span><span class="s2">&quot;ki&quot;</span><span class="p">,</span> <span class="n">candidates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>       <span class="c1"># [&#39;କି&#39;, &#39;କୀ&#39;]</span>
 </code></pre></div>
 <details class="note">
 <summary>Round-trip</summary>
@@ -2646,7 +2675,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 12, 2026 22:00:45 UTC"><span class="timeago" datetime="2026-11-12T22:00:45+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 12, 2026 22:00:45 UTC">2026-11-12</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 17, 2026 06:28:43 UTC"><span class="timeago" datetime="2026-11-17T06:28:43+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 17, 2026 06:28:43 UTC">2026-11-17</span>
   </span>
 
     
