@@ -158,6 +158,7 @@ nav:
       - api/legacy.md
       - api/indic.md
       - api/pii.md
+      - api/spell.md
   - Application: application.md
   - Contributing: contributing.md
   - Changelog: changelog.md
