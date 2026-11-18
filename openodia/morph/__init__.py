@@ -37,8 +37,9 @@ and verbal tables); Sethi 2013, the lightweight Odia stemmer; and
 Chaupattnaik, Nanda and Mohanty 2012, the suffix-stripping Odia stemmer.
 ``suffixes()`` is that list. A perfect ``ଇଥିଲା`` / ``ଇଛି`` ending keeps the
 conjunctive vowel with the suffix, so the stem is the root. Genitive ``ର``
-is stripped only when at least two aksharas remain and the remainder is
-not an unlisted stem ending in ``ା`` other than an infinitive.
+is stripped only when the remainder has at least two aksharas or ends in
+candrabindu (ଗାଁର is ଗାଁ), and is not an unlisted stem ending in ``ା``
+other than an infinitive.
 
 Endings:
 

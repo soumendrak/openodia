@@ -561,6 +561,18 @@ def test_reject_regression_table_is_pinned_and_documented() -> None:
     assert "ଗାଁର" in documented
 
 
+def test_every_akshara_statement_of_the_genitive_rule_names_the_candrabindu_exception() -> None:
+    documented = " ".join((morph.__doc__ or "").split())
+    sentences = [sentence for sentence in documented.split(". ") if "akshara" in sentence]
+    assert len(sentences) >= 2
+    for sentence in sentences:
+        assert "candrabindu" in sentence
+        assert "ଗାଁର" in sentence or "ଫେର" in sentence
+    assert stem("ଗାଁର") == "ଗାଁ"
+    assert lemma("ଗାଁର").features == NounFeatures("singular", "genitive", False)
+    assert stem("ଫେର") == "ଫେର"
+
+
 def test_repeated_definite_genitive_stack_peels_without_backtracking() -> None:
     script = (
         "from openodia.morph import lemma, stem\n"
