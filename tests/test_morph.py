@@ -529,6 +529,17 @@ _REJECT_REGRESSIONS: tuple[tuple[str, str, Lemma], ...] = (
     ("ଖାଇନଥିଲି", "ଖା", Lemma("ଖାଇବା", "VERB", _PERF_1S)),
     ("ହୋଇ", "ହେ", Lemma("ହେବା", "VERB", NonfiniteVerb("conjunctive"))),
     ("ଚାହିଁଥାଏ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _HAB_S)),
+    ("ଚାହିଁବ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _FUT_S)),
+    ("ଚାହିଁବି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _FUT_1S)),
+    ("ଚାହିଁବେ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _FUT_P)),
+    ("ଚାହିଁଲା", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _SIMPLE_S)),
+    ("ଚାହିଁଲେ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _SIMPLE_P)),
+    ("ଚାହିଁଲି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PAST_1S)),
+    ("ଚାହିଁଛି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", FiniteVerb("present", "perfect", 3, "singular"))),
+    ("ଚାହିଁଛନ୍ତି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PRES_PERF_P)),
+    ("ଚାହିଁ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", NonfiniteVerb("conjunctive"))),
+    ("ଚାହାଁନ୍ତି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", FiniteVerb("present", "simple", 3, "plural"))),
+    ("ଧୋଆନ୍ତି", "ଧୋ", Lemma("ଧୋଇବା", "VERB", FiniteVerb("present", "simple", 3, "plural"))),
 )
 
 
@@ -551,11 +562,12 @@ def test_no_stem_is_cut_inside_thi(word: str) -> None:
 
 def test_reject_regression_table_is_pinned_and_documented() -> None:
     words = [word for word, _, _ in _REJECT_REGRESSIONS]
-    assert len(words) == len(set(words)) == 59
+    assert len(words) == len(set(words)) == 70
     for required in ("ଚାହିଁଥିଲା", "ପିଇବା", "ଶୁଇବା", "ଧୋଇବା", "ହୋଇଥିଲା", "ଖାଇବି", "ପାଇବି", "ଗାଇବି", "ଗାଁର"):
         assert required in words
     tails = {tail for item in suffixes() for tail in item.tails}
-    assert {_nfc("ଇବି"), _nfc("ିଁଥାଏ"), _nfc("ିଁଥିଲା"), _nfc("ୁଁଥିଲା"), _nfc("ିଁଥିଲେ"), _nfc("ୁଁଥିଲେ")} <= tails
+    assert {_nfc("ଇବି"), _nfc("ଆନ୍ତି")} <= tails
+    assert not any("ଁ" in tail for tail in tails)
     documented = morph.__doc__ or ""
     assert "ଇବି (verbal): ିବି, ଇବି, ବି" in documented
     assert "ଗାଁର" in documented

@@ -183,12 +183,12 @@ _TAILS: tuple[_Row, ...] = (
     _plural_dative("ମାନଙ୍କୁ"),
     _plural_dative("ଙ୍କୁ"),
     _plural_dative("ଗୁଡ଼ିକୁ"),
-    *_same("ଉଥିଲେ", ("ୁଥିଲେ", "ଉଥିଲେ", "ୁଁଥିଲେ"), "past", "progressive", 3, "plural"),
-    *_same("ଉଥିଲା", ("ୁଥିଲା", "ଉଥିଲା", "ୁଁଥିଲା"), "past", "progressive", 3, "singular"),
-    *_same("ଉଥିଲି", ("ୁଥିଲି", "ଉଥିଲି", "ୁଁଥିଲି"), "past", "progressive", 1, "singular"),
-    *_same("ଉଛି", ("ୁଛି", "ଉଛି", "ୁଁଛି"), "present", "progressive", 3, "singular"),
-    *_same("ଉଛୁ", ("ୁଛୁ", "ଉଛୁ", "ୁଁଛୁ"), "present", "progressive", 1, "plural"),
-    *_same("ଉଛନ୍ତି", ("ୁଛନ୍ତି", "ଉଛନ୍ତି", "ୁଁଛନ୍ତି"), "present", "progressive", 3, "plural"),
+    *_same("ଉଥିଲେ", ("ୁଥିଲେ", "ଉଥିଲେ"), "past", "progressive", 3, "plural"),
+    *_same("ଉଥିଲା", ("ୁଥିଲା", "ଉଥିଲା"), "past", "progressive", 3, "singular"),
+    *_same("ଉଥିଲି", ("ୁଥିଲି", "ଉଥିଲି"), "past", "progressive", 1, "singular"),
+    *_same("ଉଛି", ("ୁଛି", "ଉଛି"), "present", "progressive", 3, "singular"),
+    *_same("ଉଛୁ", ("ୁଛୁ", "ଉଛୁ"), "present", "progressive", 1, "plural"),
+    *_same("ଉଛନ୍ତି", ("ୁଛନ୍ତି", "ଉଛନ୍ତି"), "present", "progressive", 3, "plural"),
     *_same("ଇଛି", ("ିଛି", "ଇଛି"), "present", "perfect", 3, "singular"),
     *_same("ଇଲା", ("ିଲା", "ଇଲା"), "past", "simple", 3, "singular"),
     *_same("ଇଲେ", ("ିଲେ", "ଇଲେ"), "past", "simple", 3, "plural"),
@@ -196,13 +196,14 @@ _TAILS: tuple[_Row, ...] = (
     *_same("ଇବ", ("ିବ", "ଇବ"), "future", "simple", 3, "singular"),
     *_same("ଇବି", ("ିବି", "ଇବି"), "future", "simple", 1, "singular"),
     *_same("ଇବେ", ("ିବେ", "ଇବେ"), "future", "simple", 3, "plural"),
-    *_same("ଥାଏ", ("ଥାଏ", "ିଥାଏ", "ଇଥାଏ", "ିଁଥାଏ"), "present", "habitual", 3, "singular"),
-    *_same("ଇଥିଲେ", ("ିଥିଲେ", "ଇଥିଲେ", "ିଁଥିଲେ", "ଥିଲେ", "ିନଥିଲେ", "ଇନଥିଲେ"), "past", "perfect", 3, "plural"),
-    *_same("ଇଥିଲା", ("ିଥିଲା", "ଇଥିଲା", "ିଁଥିଲା", "ଥିଲା", "ିନଥିଲା", "ଇନଥିଲା"), "past", "perfect", 3, "singular"),
-    *_same("ଇଥିଲି", ("ିଥିଲି", "ଇଥିଲି", "ିଁଥିଲି", "ଥିଲି", "ିନଥିଲି", "ଇନଥିଲି"), "past", "perfect", 1, "singular"),
+    *_same("ଥାଏ", ("ଥାଏ", "ିଥାଏ", "ଇଥାଏ"), "present", "habitual", 3, "singular"),
+    *_same("ଇଥିଲେ", ("ିଥିଲେ", "ଇଥିଲେ", "ଥିଲେ", "ିନଥିଲେ", "ଇନଥିଲେ"), "past", "perfect", 3, "plural"),
+    *_same("ଇଥିଲା", ("ିଥିଲା", "ଇଥିଲା", "ଥିଲା", "ିନଥିଲା", "ଇନଥିଲା"), "past", "perfect", 3, "singular"),
+    *_same("ଇଥିଲି", ("ିଥିଲି", "ଇଥିଲି", "ଥିଲି", "ିନଥିଲି", "ଇନଥିଲି"), "past", "perfect", 1, "singular"),
     _finite("ଇଛନ୍ତି", "ିଛନ୍ତି", "present", "perfect", 3, "plural"),
     _finite("ଇଛନ୍ତି", "ଇଛନ୍ତି", "present", "perfect", 3, "plural"),
     _finite("ନ୍ତି", "ନ୍ତି", "present", "simple", 3, "plural"),
+    _finite("ନ୍ତି", "ଆନ୍ତି", "present", "simple", 3, "plural"),
     _finite("ଏ", "େ", "present", "simple", 3, "singular", "verb"),
     _finite("ଏ", "ଏ", "present", "simple", 3, "singular", "verb"),
     _nonfinite("ଇବା", "ିବା", "infinitive"),
@@ -221,6 +222,7 @@ _NOUNS = frozenset(_nfc(word) for word in "ଘର ଫୁଲ ବହି ପୁର�
 _HUMANS = frozenset(_nfc(word) for word in ("ଲୋକ", "ବାଳକ", "ମଣିଷ", "ଛାତ୍ର"))
 _INFINITIVE_OVERRIDE = {_nfc("ଯା"): "ଯିବା", _nfc("ଥା"): "ଥିବା", _nfc("ଚାହ"): _nfc("ଚାହିଁବା")}
 _CONJUNCTIVE_ROOTS = {_nfc("ହୋ"): _nfc("ହେ")}
+_NASAL_ROOTS = tuple(root for root, form in _INFINITIVE_OVERRIDE.items() if form.startswith(root + "ିଁ"))
 
 
 def _past(root: str, person: Person, number: Number) -> tuple[str, FiniteVerb]:
@@ -262,6 +264,13 @@ _IRREGULAR: dict[str, tuple[str, FiniteVerb | NonfiniteVerb]] = {
     _nfc("ଥିଲା"): _past("ଥା", 3, "singular"),
     _nfc("ଥିଲେ"): _past("ଥା", 3, "plural"),
     _nfc("ଅଛି"): (_nfc("ଥା"), FiniteVerb("present", "progressive", 3, "singular")),
+    _nfc("ଚାହାନ୍ତି"): (_nfc("ଚାହ"), FiniteVerb("present", "simple", 3, "plural")),
+    _nfc("ଦିଏ"): (_nfc("ଦେ"), FiniteVerb("present", "simple", 3, "singular")),
+    _nfc("ଦିଅନ୍ତି"): (_nfc("ଦେ"), FiniteVerb("present", "simple", 3, "plural")),
+    _nfc("ନିଏ"): (_nfc("ନେ"), FiniteVerb("present", "simple", 3, "singular")),
+    _nfc("ନିଅନ୍ତି"): (_nfc("ନେ"), FiniteVerb("present", "simple", 3, "plural")),
+    _nfc("ହୁଏ"): (_nfc("ହେ"), FiniteVerb("present", "simple", 3, "singular")),
+    _nfc("ହୁଅନ୍ତି"): (_nfc("ହେ"), FiniteVerb("present", "simple", 3, "plural")),
     _nfc("ହୋଇ"): (_nfc("ହେ"), NonfiniteVerb("conjunctive")),
 }
 
@@ -426,6 +435,14 @@ def _irregular(surface: str) -> tuple[str, Lemma] | None:
     return root, Lemma(_infinitive(root), "VERB", features)
 
 
+def _denasal(text: str) -> str:
+    for root in _NASAL_ROOTS:
+        end = len(root)
+        if text.startswith(root) and text[end : end + 1] in _MATRA and text[end + 1 : end + 2] == "ଁ":
+            return text[: end + 1] + text[end + 2 :]
+    return text
+
+
 def _analyze(word: str) -> tuple[str, Lemma]:
     text = _prepare(word)
     if text == "":
@@ -438,7 +455,7 @@ def _analyze(word: str) -> tuple[str, Lemma]:
     if _known_nominal(text):
         return text, Lemma(text, "NOUN", NounFeatures("singular", "nominative", False))
     nominal = _peel_nominal(text)
-    current = text if nominal is None else nominal[0]
+    current = _denasal(text if nominal is None else nominal[0])
     peeled = _irregular(current)
     if peeled is not None:
         return peeled
