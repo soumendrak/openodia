@@ -37,6 +37,14 @@ def _read_input(value: str, *, file: bool = False) -> str:
     return value
 
 
+def _without_trailing_break(text: str) -> str:
+    if text.endswith("\r\n"):
+        return text[:-2]
+    if text.endswith("\n"):
+        return text[:-1]
+    return text
+
+
 def _int_at_least(minimum: int) -> Callable[[str], int]:
     """argparse ``type`` for integers >= ``minimum``."""
 
@@ -281,6 +289,37 @@ def _cmd_freq(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_spell(args: argparse.Namespace) -> int:
+    from openodia import spell
+
+    if args.check and args.file:
+        with Path(args.text).open(encoding="utf-8-sig", newline="") as handle:
+            text = handle.read()
+    else:
+        text = _read_input(args.text, file=args.file)
+    if args.check:
+        correct = spell.is_correct(_without_trailing_break(text))
+        if args.json:
+            _emit_json({"correct": correct})
+        else:
+            print("true" if correct else "false")
+        return 0
+    if args.suggest:
+        choices = spell.suggest(text, args.top)
+        if args.json:
+            _emit_json({"suggestions": choices})
+        else:
+            for choice in choices:
+                print(choice)
+        return 0
+    corrected = spell.correct_text(text)
+    if args.json:
+        _emit_json({"text": corrected})
+    else:
+        print(corrected)
+    return 0
+
+
 def _cmd_pii(args: argparse.Namespace) -> int:
     from openodia import pii
 
@@ -440,6 +479,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="How many top tokens to emit (default: 20)",
     )
     p.set_defaults(func=_cmd_freq)
+
+    p = sub.add_parser("spell", help="Check or correct Odia spelling")
+    p.add_argument("text", help="Inline text, or '-' for stdin; a path with --file")
+    p.add_argument("--file", action="store_true", help="Read the text argument as a UTF-8 file path")
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument("--suggest", action="store_true", help="Suggest corrections for one word")
+    mode.add_argument("--check", action="store_true", help="Report whether one word is spelled correctly")
+    p.add_argument("--top", type=_int_at_least(0), default=5, help="Suggestions to return with --suggest (default: 5)")
+    p.set_defaults(func=_cmd_spell)
 
     from openodia.pii import PII_TYPES
 
