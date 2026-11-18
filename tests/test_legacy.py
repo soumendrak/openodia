@@ -106,6 +106,19 @@ def test_a_left_matra_lands_after_every_subjoined_form_past_a_ya_phala(source: s
     assert legacy.to_unicode(source, font="ORTTSarala") == expected
 
 
+@pytest.mark.parametrize(
+    ("after", "before", "expected"),
+    [
+        ("ÒL™Ô", "ÒLÔ™", "ର୍କ୍ୟେଁ"),
+        ("LÙÔ", "LÔÙ", "ର୍କ୍ୟି"),
+        ("L™Ô", "LÔ™", "ର୍କ୍ୟଁ"),
+    ],
+)
+def test_ya_phala_after_a_combined_reph_glyph_matches_the_other_key_order(after: str, before: str, expected: str) -> None:
+    assert legacy.to_unicode(after, font="ORTTSarala") == expected
+    assert legacy.to_unicode(before, font="ORTTSarala") == expected
+
+
 def test_unmapped_ascii_punctuation_passes_through() -> None:
     assert legacy.to_unicode("K, M.", font="AkrutiOriSarala") == "କ, ଗ."
 
