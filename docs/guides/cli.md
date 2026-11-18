@@ -62,6 +62,7 @@ $ openodia detect-language "ନମସ୍କାର" --json
 | `remove-stopwords` | `ud.remove_stopwords` | `--get-str` |
 | `ngrams` | `ngrams` | `-n` |
 | `freq` | `FreqDist` | `--top` |
+| `spell` | `spell.is_correct`, `spell.suggest`, `spell.correct_text` | `--check`, `--suggest`, `--top` |
 | `pii` | `pii.detect`, `pii.mask` | `--mask`, `--type`, `--min-confidence` |
 
 ```console
@@ -74,6 +75,8 @@ $ openodia ngrams "ରାମ ସୀତା ଲକ୍ଷ୍ମଣ" -n 2
 ସୀତା ଲକ୍ଷ୍ମଣ
 $ openodia freq "ରାମ ସୀତା ରାମ" --top 1
 2	ରାମ
+$ openodia spell "ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତ"
+ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତି
 $ openodia translate "good morning"
 ଶୁଭ ସକାଳ
 $ openodia pii "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ଓ a@b.com" --mask
@@ -83,7 +86,7 @@ PHONE	7	17	୯୮୭୬୫୪୩୨୧୦
 EMAIL	20	27	a@b.com
 ```
 
-`freq` prints the count, a tab, then the token. `pii` prints the type, the start, the end, and the matched text, separated by tabs. With `--mask` it prints the text with each match replaced by `<TYPE>`. What the patterns miss is in [Find and mask personal identifiers](pii.md). `translate` answers English to Odia from the [offline dictionary](translation.md) when it can and uses Google Translate for everything else, so it needs the network then.
+`freq` prints the count, a tab, then the token. `pii` prints the type, the start, the end, and the matched text, separated by tabs. With `--mask` it prints the text with each match replaced by `<TYPE>`. What the patterns miss is in [Find and mask personal identifiers](pii.md). `translate` answers English to Odia from the [offline dictionary](translation.md) when it can and uses Google Translate for everything else, so it needs the network then. `spell` needs a release newer than 0.2.0: `openodia spell` exits 2 on 0.2.0, and `import openodia.spell` fails on 0.2.0.
 
 ## Errors
 

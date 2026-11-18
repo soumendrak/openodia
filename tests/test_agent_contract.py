@@ -27,6 +27,11 @@ SAMPLES = {
     "ngrams": [["ngrams", "-n", "2", "ରାମ ସୀତା ଘରକୁ"]],
     "freq": [["freq", "ରାମ ସୀତା ରାମ"]],
     "pii": [["pii", "a@b.com"], ["pii", "--mask", "a@b.com"]],
+    "spell": [
+        ["spell", "ନମସ୍କର"],
+        ["spell", "--suggest", "ନମସ୍କର"],
+        ["spell", "--check", "ନମସ୍କାର"],
+    ],
 }
 
 
@@ -225,3 +230,24 @@ def test_pii_index_says_a_closing_apostrophe_is_swallowed_when_a_url_character_f
     assert "`'https://a.com/x'9876543210`" in text
     assert "one that closes a quoted URL, ends it" not in text
     assert "trailing `. , ; : ! ? ) ]` and `।` are left out" in text
+
+
+SPELL_DOCS = [
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "docs/llms.txt",
+    "skills/openodia/SKILL.md",
+    "docs/index.md",
+    "docs/guides/text-processing.md",
+    "docs/guides/cli.md",
+    "openodia/spell.py",
+]
+
+
+@pytest.mark.parametrize("doc", SPELL_DOCS)
+def test_doc_that_documents_spell_names_the_first_release_without_it(doc: str) -> None:
+    text = " ".join((ROOT / doc).read_text(encoding="utf-8").split())
+    assert "spell" in text
+    assert "`import openodia.spell` fails on 0.2.0" in text.replace("``", "`")
+    assert "openodia.spell` fails on 0.1.14" not in text.replace("``", "`")
+    assert "spell` exits 2 on 0.1.14" not in text

@@ -20,6 +20,7 @@ from . import roman
 from . import numbers
 from . import morph
 from . import phonetic
+from . import spell
 from . import syllable
 from . import sandhi
 from .segment import sentences
@@ -48,6 +49,7 @@ __all__ = [
     "roman",
     "sandhi",
     "sentences",
+    "spell",
     "STOPWORDS",
     "Stopwords",
     "syllable",
