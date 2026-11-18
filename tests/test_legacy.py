@@ -69,6 +69,28 @@ def test_matras_reph_and_conjuncts(font: str, source: str, expected: str) -> Non
     assert legacy.to_unicode(source, font=font) == expected
 
 
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        ("LÐÔ", "କ୍ୟା"),
+        ("LÞÔ", "କ୍ୟି"),
+        ("LÑÔ", "କ୍ୟୀ"),
+        ("LÊÔ", "କ୍ୟୁ"),
+        ("LËÔ", "କ୍ୟୂ"),
+        ("LÌÔ", "କ୍ୟୃ"),
+        ("ÒLÊÔ", "କ୍ୟେୁ"),
+        ("ÒLßÔ", "କ୍ୟୈ"),
+        ("ÒLÐÔ", "କ୍ୟୋ"),
+        ("ÒL×Ô", "କ୍ୟୌ"),
+        ("LÜÔ", "କ୍ୟଁ"),
+        ("LÕÔ", "କ୍ୟଂ"),
+        ("LÚÔ", "କ୍ୟିଁ"),
+    ],
+)
+def test_ortt_ya_phala_moves_ahead_of_each_sign_typed_before_it(source: str, expected: str) -> None:
+    assert legacy.to_unicode(source, font="ORTTSarala") == expected
+
+
 def test_unmapped_ascii_punctuation_passes_through() -> None:
     assert legacy.to_unicode("K, M.", font="AkrutiOriSarala") == "କ, ଗ."
 
