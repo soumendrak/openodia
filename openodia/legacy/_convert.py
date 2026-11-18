@@ -271,16 +271,20 @@ def _shift_join_across_nasals(text: str, matra: _Matra) -> str:
     return "".join(out)
 
 
-def _apply_matra(text: str, matra: _Matra) -> str:
-    text = _shift_consonant(text, matra.marker)
-    while True:
-        shifted = _shift_halant(text, matra.marker)
-        if shifted == text:
-            break
-        text = shifted
+def _shift_join(text: str, matra: _Matra) -> str:
     text = _shift_join_across_nasals(text, matra)
     for glyph in matra.joins:
         text = text.replace(matra.marker + glyph, glyph + matra.marker)
+    return text
+
+
+def _apply_matra(text: str, matra: _Matra) -> str:
+    text = _shift_consonant(text, matra.marker)
+    while True:
+        shifted = _shift_join(_shift_halant(text, matra.marker), matra)
+        if shifted == text:
+            break
+        text = shifted
     out: list[str] = []
     index = 0
     limit = len(text)

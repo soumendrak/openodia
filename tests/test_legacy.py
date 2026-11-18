@@ -91,6 +91,21 @@ def test_ortt_ya_phala_moves_ahead_of_each_sign_typed_before_it(source: str, exp
     assert legacy.to_unicode(source, font="ORTTSarala") == expected
 
 
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        ("ÒLÔçL", "କ୍ୟ୍\u200dକେ"),
+        ("ÒLÔÍ", "କ୍ୟ୍ରେ"),
+        ("ÒLÔÍß", "କ୍ୟ୍ରୈ"),
+        ("ÒLÔÍ×", "କ୍ୟ୍ରୌ"),
+        ("ÒLçLÔ", "କ୍\u200dକ୍ୟେ"),
+        ("ÒLÍÔ", "କ୍ର୍ୟେ"),
+    ],
+)
+def test_a_left_matra_lands_after_every_subjoined_form_past_a_ya_phala(source: str, expected: str) -> None:
+    assert legacy.to_unicode(source, font="ORTTSarala") == expected
+
+
 def test_unmapped_ascii_punctuation_passes_through() -> None:
     assert legacy.to_unicode("K, M.", font="AkrutiOriSarala") == "କ, ଗ."
 
