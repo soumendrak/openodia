@@ -1331,6 +1331,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/spell/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spell checking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1541,6 +1569,11 @@
 <td><code>--top</code></td>
 </tr>
 <tr>
+<td><code>spell</code></td>
+<td><code>spell.is_correct</code>, <code>spell.suggest</code>, <code>spell.correct_text</code></td>
+<td><code>--check</code>, <code>--suggest</code>, <code>--top</code></td>
+</tr>
+<tr>
 <td><code>pii</code></td>
 <td><code>pii.detect</code>, <code>pii.mask</code></td>
 <td><code>--mask</code>, <code>--type</code>, <code>--min-confidence</code></td>
@@ -1556,6 +1589,8 @@
 <span class="go">ସୀତା ଲକ୍ଷ୍ମଣ</span>
 <span class="gp">$ </span>openodia<span class="w"> </span>freq<span class="w"> </span><span class="s2">&quot;ରାମ ସୀତା ରାମ&quot;</span><span class="w"> </span>--top<span class="w"> </span><span class="m">1</span>
 <span class="go">2   ରାମ</span>
+<span class="gp">$ </span>openodia<span class="w"> </span>spell<span class="w"> </span><span class="s2">&quot;ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତ&quot;</span>
+<span class="go">ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତି</span>
 <span class="gp">$ </span>openodia<span class="w"> </span>translate<span class="w"> </span><span class="s2">&quot;good morning&quot;</span>
 <span class="go">ଶୁଭ ସକାଳ</span>
 <span class="gp">$ </span>openodia<span class="w"> </span>pii<span class="w"> </span><span class="s2">&quot;ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ଓ a@b.com&quot;</span><span class="w"> </span>--mask
@@ -1564,7 +1599,7 @@
 <span class="go">PHONE   7   17  ୯୮୭୬୫୪୩୨୧୦</span>
 <span class="go">EMAIL   20  27  a@b.com</span>
 </code></pre></div>
-<p><code>freq</code> prints the count, a tab, then the token. <code>pii</code> prints the type, the start, the end, and the matched text, separated by tabs. With <code>--mask</code> it prints the text with each match replaced by <code>&lt;TYPE&gt;</code>. What the patterns miss is in <a href="../pii/">Find and mask personal identifiers</a>. <code>translate</code> answers English to Odia from the <a href="../translation/">offline dictionary</a> when it can and uses Google Translate for everything else, so it needs the network then.</p>
+<p><code>freq</code> prints the count, a tab, then the token. <code>pii</code> prints the type, the start, the end, and the matched text, separated by tabs. With <code>--mask</code> it prints the text with each match replaced by <code>&lt;TYPE&gt;</code>. What the patterns miss is in <a href="../pii/">Find and mask personal identifiers</a>. <code>translate</code> answers English to Odia from the <a href="../translation/">offline dictionary</a> when it can and uses Google Translate for everything else, so it needs the network then. <code>spell</code> needs a release newer than 0.2.0: <code>openodia spell</code> exits 2 on 0.2.0, and <code>import openodia.spell</code> fails on 0.2.0.</p>
 <h2 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h2>
 <p>A usage error such as a missing argument, or two options that exclude each other, exits with code 2 and prints the usage text. A runtime error such as a missing file prints <code>openodia: error: ...</code> and exits with code 1.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">$ </span>openodia<span class="w"> </span>clean<span class="w"> </span><span class="s2">&quot;x&quot;</span><span class="w"> </span>--latin-to-odia<span class="w"> </span>--odia-to-latin<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span>
@@ -1598,7 +1633,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 17, 2026 06:28:43 UTC"><span class="timeago" datetime="2026-11-17T06:28:43+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 17, 2026 06:28:43 UTC">2026-11-17</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 18, 2026 12:00:17 UTC"><span class="timeago" datetime="2026-11-18T12:00:17+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 18, 2026 12:00:17 UTC">2026-11-18</span>
   </span>
 
     

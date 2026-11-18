@@ -720,6 +720,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#odia-spell-checker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Odia spell checker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pii-detection-and-masking" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1671,6 +1682,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/spell/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spell checking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1852,6 +1891,7 @@ uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># or: pi
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#translation-cache">Translation cache configuration</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#numbers-and-words">Numbers, dates, and currency in words</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#sentence-segmenter">Sentence segmenter</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#odia-spell-checker">Odia spell checker</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#pii-detection-and-masking">PII detection and masking</a></li>
 </ul>
 <h3 id="unicode-normalization"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m19.36 2.72 1.42 1.42-5.72 5.71c1.07 1.54 1.22 3.39.32 4.59L9.06 8.12c1.2-.9 3.05-.75 4.59.32zM5.93 17.57c-2.01-2.01-3.24-4.41-3.58-6.65l4.88-2.09 7.44 7.44-2.09 4.88c-2.24-.34-4.64-1.57-6.65-3.58"/></svg></span> Unicode normalization<a class="headerlink" href="#unicode-normalization" title="Permanent link">&para;</a></h3>
@@ -2237,6 +2277,20 @@ extending it in a wrapper module.</p>
 <code>openodia.sentences()</code> also splits on <code>.</code> and <code>…</code> and knows Odia
 abbreviations. <code>summarize</code> and <code>tokenize --sentences</code> use the former.</p>
 </details>
+<h3 id="odia-spell-checker"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m21.59 11.59-8.09 8.09L9.83 16l-1.41 1.41 5.08 5.09L23 13M6.43 11 8.5 5.5l2.07 5.5m1.88 5h2.09L9.43 3H7.57L2.46 16h2.09l1.12-3h5.64z"/></svg></span> Odia spell checker<a class="headerlink" href="#odia-spell-checker" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>openodia.spell</code> checks a word, suggests dictionary corrections, and rewrites text. It is offline and adds no dependency. It needs a release newer than 0.2.0: <code>openodia spell</code> exits 2 on 0.2.0, and <code>import openodia.spell</code> fails on 0.2.0.</li>
+<li>A suggestion is a dictionary word within akshara edit distance 2, closest first, then the word that appears more often in the offline dictionary. <code>correct_text</code> keeps whitespace, punctuation, digits and non-Odia text, and leaves a word unchanged when nothing is within distance 2.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">spell</span>
+
+<span class="n">spell</span><span class="o">.</span><span class="n">is_correct</span><span class="p">(</span><span class="s2">&quot;ନମସ୍କାର&quot;</span><span class="p">)</span>
+<span class="n">spell</span><span class="o">.</span><span class="n">suggest</span><span class="p">(</span><span class="s2">&quot;ନମସ୍କର&quot;</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">spell</span><span class="o">.</span><span class="n">correct_text</span><span class="p">(</span><span class="s2">&quot;ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତ&quot;</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>openodia<span class="w"> </span>spell<span class="w"> </span><span class="s2">&quot;ସେ ଆମ ଘରକୁ ଆସୁଛନ୍ତ&quot;</span>
+openodia<span class="w"> </span>spell<span class="w"> </span>--suggest<span class="w"> </span>--top<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="s2">&quot;ନମସ୍କର&quot;</span>
+</code></pre></div>
 <h3 id="pii-detection-and-masking"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5zm0 4a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-3-3 3 3 0 0 1 3-3m5.13 12A9.7 9.7 0 0 1 12 20.92 9.7 9.7 0 0 1 6.87 17c-.34-.5-.63-1-.87-1.53 0-1.65 2.71-3 6-3s6 1.32 6 3c-.24.53-.53 1.03-.87 1.53"/></svg></span> PII detection and masking<a class="headerlink" href="#pii-detection-and-masking" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>openodia.pii</code> finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: <code>openodia pii</code> exits 2 on 0.1.14 and <code>import openodia.pii</code> fails there.</li>
@@ -2675,7 +2729,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 17, 2026 06:28:43 UTC"><span class="timeago" datetime="2026-11-17T06:28:43+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 17, 2026 06:28:43 UTC">2026-11-17</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 18, 2026 12:00:17 UTC"><span class="timeago" datetime="2026-11-18T12:00:17+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 18, 2026 12:00:17 UTC">2026-11-18</span>
   </span>
 
     
