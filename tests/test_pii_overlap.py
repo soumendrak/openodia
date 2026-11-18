@@ -231,8 +231,8 @@ def test_text_must_be_a_str_and_the_error_does_not_echo_it(value: object) -> Non
 
 
 def test_unknown_type_error_names_only_the_type() -> None:
-    with pytest.raises(ValueError, match="unknown PII type 'NAME'") as error:
-        pii.detect("secret 9876543210", types=["NAME"])
+    with pytest.raises(ValueError, match="unknown PII type 'PASSPORT'") as error:
+        pii.detect("secret 9876543210", types=["PASSPORT"])
     assert "9876543210" not in str(error.value)
 
 

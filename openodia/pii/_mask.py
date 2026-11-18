@@ -1,13 +1,13 @@
-"""Replace detected PII with placeholders."""
-
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Iterable
 
 from openodia.pii._detect import detect, validated_types
-from openodia.pii._entity import PIIEntity
+from openodia.pii._entity import PII_TYPES, PIIEntity
 
 _MAX_PASSES = 10
+_TOKEN = re.compile(rf"<({'|'.join(PII_TYPES)}):[1-9][0-9]*>")
 
 
 def _tag(entity: PIIEntity) -> str:
@@ -50,3 +50,81 @@ def mask(
             break
         text = masked
     return text
+
+
+class KeyStore:
+    """Record each detected value as one stable ``<TYPE:n>`` token.
+
+    The same type and text always receive the same token. The store keeps the
+    original text, so anyone who has it can reverse the tokens.
+    """
+
+    def __init__(self) -> None:
+        self._token: dict[tuple[str, str], str] = {}
+        self._original: dict[str, str] = {}
+        self._counts: dict[str, int] = {}
+
+    def token_for(self, entity: PIIEntity) -> str:
+        key = (entity.type, entity.text)
+        token = self._token.get(key)
+        if token is not None:
+            return token
+        count = self._counts.get(entity.type, 0) + 1
+        self._counts[entity.type] = count
+        token = f"<{entity.type}:{count}>"
+        self._token[key] = token
+        self._original[token] = entity.text
+        return token
+
+    def original(self, token: str) -> str | None:
+        return self._original.get(token)
+
+
+def pseudonymize(
+    text: str,
+    store: KeyStore,
+    types: Iterable[str] | None = None,
+    min_confidence: float = 0.0,
+) -> str:
+    """Replace each detected span with a ``<TYPE:n>`` token recorded in ``store``.
+
+    The same value of the same type keeps one token. Replacement repeats the
+    way ``mask`` does, so a value glued onto another is still replaced.
+    """
+    if not isinstance(store, KeyStore):
+        raise TypeError(f"store must be KeyStore, got {type(store).__name__}")
+    return mask(text, types, min_confidence, store.token_for)
+
+
+def restore(text: str, store: KeyStore) -> str:
+    """Put back the values ``store`` recorded for ``<TYPE:n>`` tokens.
+
+    Expansion repeats, so a token nested inside a later span is expanded too.
+    A ``<TYPE:n>`` that was already in ``text`` is rewritten when that token is
+    in the store, and a round-trip does not preserve it. Expansion stops after
+    10 passes.
+    """
+    if not isinstance(text, str):
+        raise TypeError(f"text must be str, got {type(text).__name__}")
+    if not isinstance(store, KeyStore):
+        raise TypeError(f"store must be KeyStore, got {type(store).__name__}")
+    for _ in range(_MAX_PASSES):
+        expanded = _expand_tokens(text, store)
+        if expanded == text:
+            return text
+        text = expanded
+    return text
+
+
+def _expand_tokens(text: str, store: KeyStore) -> str:
+    pieces: list[str] = []
+    cursor = 0
+    for match in _TOKEN.finditer(text):
+        original = store.original(match.group(0))
+        if original is None:
+            continue
+        pieces.append(text[cursor : match.start()])
+        pieces.append(original)
+        cursor = match.end()
+    pieces.append(text[cursor:])
+    return "".join(pieces)

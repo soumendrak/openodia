@@ -20,6 +20,7 @@ from . import roman
 from . import numbers
 from . import phonetic
 from . import spell
+from . import pii
 from . import syllable
 from . import sandhi
 from .segment import sentences
@@ -40,6 +41,7 @@ __all__ = [
     "normalize",
     "numbers",
     "odia_to_other_lang",
+    "pii",
     "odia_to_other_lang_async",
     "other_lang_to_odia",
     "other_lang_to_odia_async",
