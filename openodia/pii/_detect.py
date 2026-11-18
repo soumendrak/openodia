@@ -305,14 +305,12 @@ def _nfc_bounds(text: str) -> tuple[str, list[int] | None]:
     parts: list[str] = []
     bounds = [0]
     for start, end in _mark_runs(text):
-        chunk = text[start:end]
-        if end - start > _LONGEST_EXACT_RUN:
-            parts.append(chunk)
-            bounds.extend([end] * len(chunk))
-            continue
-        nfc_chunk = unicodedata.normalize("NFC", chunk)
+        nfc_chunk = unicodedata.normalize("NFC", text[start:end])
         parts.append(nfc_chunk)
-        bounds.extend(_nfc_ends(chunk, nfc_chunk, start))
+        if end - start > _LONGEST_EXACT_RUN:
+            bounds.extend([end] * len(nfc_chunk))
+            continue
+        bounds.extend(_nfc_ends(text[start:end], nfc_chunk, start))
     return "".join(parts), bounds
 
 

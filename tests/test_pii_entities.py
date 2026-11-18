@@ -383,19 +383,15 @@ def test_a_long_run_of_combining_marks_is_mapped_in_linear_time() -> None:
     assert large < small * 8
 
 
-def test_nfc_is_not_invoked_on_a_combining_run_longer_than_32_code_points(monkeypatch: pytest.MonkeyPatch) -> None:
-    oversized: list[int] = []
-    real = _detect.unicodedata.normalize
-
-    def bounded(form: str, value: str) -> str:
-        if len(value) > 32:
-            oversized.append(len(value))
-        return real(form, value)
-
-    monkeypatch.setattr(_detect.unicodedata, "normalize", bounded)
-    text = "a" + "\u0301" * 40 + "\u0323" * 40 + " 9876543210"
-    assert pii.mask(text) == text[:-10] + "<PHONE>"
-    assert oversized == []
+@pytest.mark.parametrize("marks", [29, 30, 31, 32, 33, 60, 200])
+def test_a_name_carrying_a_long_mark_run_is_still_masked(marks: int) -> None:
+    for text in (
+        unicodedata.normalize("NFD", "ଅଶୋକ କାନୁନଗୋ") + "\u0301" * marks,
+        "ଅଶୋକ ମହାକୁ\u0b5c" + "\u0301" * marks,
+    ):
+        masked = pii.mask(text, types=["NAME"])
+        assert masked.startswith("<NAME>")
+        assert set(masked.removeprefix("<NAME>")) <= {"\u0301"}
 
 
 NEW_PII_RELEASE = (
