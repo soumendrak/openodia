@@ -107,7 +107,8 @@ def test_fold_and_flap_rules_are_visible() -> None:
     assert roman.type_odia("aaaa") == "ଆ"
     assert "ସାଇଟୋୋକାଇନ୍ସିସ୍" not in roman.type_odia("saitookainsis", candidates=True)
     assert roman.type_odia("sidirigudika") == "ସିଡ଼ିଡ଼ିଗୁଡ଼ିକ"
-    assert "ୱିଂ" not in roman.type_odia("win", candidates=True)
+    assert roman.type_odia("win", candidates=True) == ["ୱିନ୍", "ୱିଂ"]
+    assert roman.type_odia("wa") == "ୱା"
     ranked = roman.type_odia("besi chipsakripsed pharmatariddhi glokal", candidates=True)
     assert ranked[1] == "ବେସି ଚିପ୍ସକ୍ରିପ୍ସେଡ୍ ଫର୍ମାଟରିଦ୍ଧୀ ଗ୍ଲୋକାଲ୍"
     assert ranked[2] == "ବେସୀ ଚିପ୍ସକ୍ରିପ୍ସେଡ୍ ଫର୍ମାଟରିଦ୍ଧୀ ଗ୍ଲୋକଲ୍"
