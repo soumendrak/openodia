@@ -175,6 +175,16 @@ def test_name_words_separated_by_any_whitespace_run_are_masked_whole(gap: str) -
         assert text[entity.start : entity.end] == entity.text == gap.join(words)
 
 
+@pytest.mark.parametrize("gap", [" ", "  ", "\t", "\u00a0", "\n", "\r\n", "\u2003"])
+def test_a_given_middle_word_before_a_surname_joins_across_any_whitespace_run(gap: str) -> None:
+    for first, second in ((" ", gap), (gap, " "), (gap, gap)):
+        name = "ଅଶୋକ" + first + "ଅକ୍ଷୟ" + second + "ଦାସ"
+        text = "ମୁଁ " + name + " ଆସିଲି"
+        assert pii.mask(text, types=["NAME"]) == "ମୁଁ <NAME> ଆସିଲି"
+        [entity] = pii.detect(text, types=["NAME"])
+        assert text[entity.start : entity.end] == name
+
+
 def test_a_surname_written_with_a_precomposed_nukta_letter_is_masked_to_its_end() -> None:
     text = "ଅଶୋକ ମହାକୁ\u0b5c"
     assert pii.mask(text) == "<NAME>"
