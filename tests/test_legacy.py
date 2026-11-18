@@ -102,7 +102,7 @@ def test_ortt_ya_phala_moves_ahead_of_each_sign_typed_before_it(source: str, exp
         ("ÒLÍÔ", "କ୍ର୍ୟେ"),
     ],
 )
-def test_a_left_matra_lands_after_every_subjoined_form_past_a_ya_phala(source: str, expected: str) -> None:
+def test_a_left_matra_goes_after_every_subjoined_form_past_a_ya_phala(source: str, expected: str) -> None:
     assert legacy.to_unicode(source, font="ORTTSarala") == expected
 
 
