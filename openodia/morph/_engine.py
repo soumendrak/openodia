@@ -6,6 +6,8 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Literal, TypeVar
 
+from openodia.syllable import count as akshara_count
+
 Pos = Literal["NOUN", "VERB", "UNKNOWN"]
 Case = Literal["nominative", "genitive", "dative", "locative", "ablative", "instrumental"]
 Number = Literal["singular", "plural"]
@@ -299,11 +301,6 @@ def suffixes() -> tuple[Suffix, ...]:
     )
 
 
-def _aksharas(text: str) -> int:
-    skipped = _MATRA | set("଼୍ଁଂଃ")
-    return sum(1 for char in text if char not in skipped)
-
-
 def _consonant_final(text: str) -> bool:
     last = text[-1]
     return last not in _MATRA and last not in _INDEPENDENT
@@ -343,7 +340,7 @@ def _candidate(word: str, tail: _Row) -> str | None:
     remainder = word[: -len(tail.text)]
     if len(remainder) < 2 or not _shape(remainder) or not _allows(tail.guard, remainder):
         return None
-    if isinstance(tail, _Nominal) and _aksharas(remainder) < tail.min_aksharas and not remainder.endswith("ଁ"):
+    if isinstance(tail, _Nominal) and akshara_count(remainder) < tail.min_aksharas and not remainder.endswith("ଁ"):
         return None
     if (
         isinstance(tail, _Nominal)

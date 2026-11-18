@@ -494,6 +494,8 @@ _REJECT_REGRESSIONS: tuple[tuple[str, str, Lemma], ...] = (
     ("ଗାଁର", "ଗାଁ", Lemma("ଗାଁ", "NOUN", NounFeatures("singular", "genitive", False))),
     ("ଗାଁକୁ", "ଗାଁ", Lemma("ଗାଁ", "NOUN", NounFeatures("singular", "dative", False))),
     ("ଫେର", "ଫେର", Lemma("ଫେର", "UNKNOWN", UnknownFeatures())),
+    ("ସ୍ତର", "ସ୍ତର", Lemma("ସ୍ତର", "UNKNOWN", UnknownFeatures())),
+    ("ସ୍ଥିର", "ସ୍ଥିର", Lemma("ସ୍ଥିର", "UNKNOWN", UnknownFeatures())),
     ("ବିଚାର", "ବିଚାର", Lemma("ବିଚାର", "UNKNOWN", UnknownFeatures())),
     ("କରିବାର", "କର", Lemma("କରିବା", "VERB", _INF)),
     ("ଖାଇବାର", "ଖା", Lemma("ଖାଇବା", "VERB", _INF)),
@@ -562,7 +564,7 @@ def test_no_stem_is_cut_inside_thi(word: str) -> None:
 
 def test_reject_regression_table_is_pinned_and_documented() -> None:
     words = [word for word, _, _ in _REJECT_REGRESSIONS]
-    assert len(words) == len(set(words)) == 70
+    assert len(words) == len(set(words)) == 72
     for required in ("ଚାହିଁଥିଲା", "ପିଇବା", "ଶୁଇବା", "ଧୋଇବା", "ହୋଇଥିଲା", "ଖାଇବି", "ପାଇବି", "ଗାଇବି", "ଗାଁର"):
         assert required in words
     tails = {tail for item in suffixes() for tail in item.tails}
