@@ -152,11 +152,12 @@ def test_a_vowel_sign_composes_with_the_sign_before_it() -> None:
 MARK_RUN_SHAPES: dict[str, Callable[[int], str]] = {
     "one long run": lambda count: "a" + "\u0323" * count + " ",
     "many short runs": lambda count: "a\u0323" * count + " ",
+    "many runs of 33 marks": lambda count: ("a" + "\u0323" * 33) * (count // 33) + " ",
 }
 
 
 def _shape(name: str, count: int) -> str:
-    assert len(MARK_RUN_SHAPES) == 2
+    assert len(MARK_RUN_SHAPES) == 3
     return MARK_RUN_SHAPES[name](count) + "a@b.com"
 
 
@@ -208,14 +209,14 @@ def test_an_exact_run_resumes_its_search_where_the_last_letter_ended(monkeypatch
 
     counting = SimpleNamespace(normalize=normalize, is_normalized=unicodedata.is_normalized, category=unicodedata.category)
     monkeypatch.setattr(_detect, "unicodedata", counting)
-    run = "e\u0301" + "\u0323" * 30
+    run = "x" + "\u0301" * 31
     assert len(run) == _detect._LONGEST_EXACT_RUN
-    _detect._nfc_ends(run, unicodedata.normalize("NFC", run), 0)
+    assert _detect._nfc_ends(run, run, 0) == list(range(1, 33))
     assert sum(normalized) == sum(range(1, 33))
 
 
 BUDGET_SECONDS = 2.5
-BUDGET_MARKS = 64_000
+BUDGET_MARKS = {"one long run": 64_000, "many short runs": 64_000, "many runs of 33 marks": 640_000}
 
 
 def _seconds(text: str) -> float:
@@ -225,12 +226,12 @@ def _seconds(text: str) -> float:
 
 
 @pytest.mark.parametrize("shape", MARK_RUN_SHAPES)
-def test_64000_marks_are_mapped_within_the_time_budget(shape: str) -> None:
-    text = _shape(shape, BUDGET_MARKS)
+def test_long_mark_runs_are_mapped_within_the_time_budget(shape: str) -> None:
+    text = _shape(shape, BUDGET_MARKS[shape])
     times: list[float] = []
     for _ in range(3):
         times.append(_seconds(text))
-        if times[-1] < BUDGET_SECONDS:
+        if times[-1] < BUDGET_SECONDS or times[-1] > 4 * BUDGET_SECONDS:
             break
     assert min(times) < BUDGET_SECONDS, times
 
