@@ -153,6 +153,7 @@ MARK_RUN_SHAPES: dict[str, Callable[[int], str]] = {
     "one long run": lambda count: "a" + "\u0323" * count + " ",
     "many short runs": lambda count: "a\u0323" * count + " ",
     "many runs of 33 marks": lambda count: ("a" + "\u0323" * 33) * (count // 33) + " ",
+    "a short run then many letters": lambda count: "a\u0323" + "x" * count + " ",
 }
 
 
@@ -161,7 +162,12 @@ def _shape(name: str, count: int) -> str:
 
 
 def test_mark_run_shapes_cover_a_long_run_and_many_short_runs() -> None:
-    assert list(MARK_RUN_SHAPES) == ["one long run", "many short runs", "many runs of 33 marks"]
+    assert list(MARK_RUN_SHAPES) == [
+        "one long run",
+        "many short runs",
+        "many runs of 33 marks",
+        "a short run then many letters",
+    ]
 
 
 def _only_the_email(text: str) -> None:
@@ -222,6 +228,7 @@ def test_an_exact_run_resumes_its_search_where_the_last_letter_ended(monkeypatch
 BUDGET_SECONDS = 2.5
 BUDGET_MARKS = 64_000
 BUDGET_SHAPES = ("one long run", "many short runs")
+SLICE_COPY_SHAPES = ("many short runs", "a short run then many letters")
 
 
 def _seconds(text: str) -> float:
@@ -241,6 +248,34 @@ def test_64000_marks_are_mapped_within_the_time_budget(shape: str) -> None:
         if times[-1] < BUDGET_SECONDS or times[-1] > 4 * BUDGET_SECONDS:
             break
     assert min(times) < BUDGET_SECONDS, times
+
+
+class _SlicedText(str):
+    copied_characters = 0
+
+    def __getitem__(self, key: int | slice) -> str:
+        if isinstance(key, slice):
+            start, stop, step = key.indices(len(self))
+            width = (stop - start) if step == 1 else len(range(start, stop, step))
+            type(self).copied_characters += max(0, width)
+        item = str.__getitem__(self, key)
+        return item if not isinstance(item, str) else _SlicedText(item)
+
+
+@pytest.mark.parametrize("shape", SLICE_COPY_SHAPES)
+def test_mark_run_scans_copy_a_linear_amount_of_the_text(shape: str) -> None:
+    assert set(SLICE_COPY_SHAPES) <= set(MARK_RUN_SHAPES)
+    assert len(SLICE_COPY_SHAPES) == 2
+
+    def copied(count: int) -> int:
+        _SlicedText.copied_characters = 0
+        _only_the_email(_SlicedText(_shape(shape, count)))
+        return _SlicedText.copied_characters
+
+    small = copied(2_000)
+    large = copied(8_000)
+    assert small >= 2_000
+    assert large < small * 5
 
 
 @pytest.mark.parametrize("page", ["CHANGELOG.md", "docs/guides/pii.md"])
