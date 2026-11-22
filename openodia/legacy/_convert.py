@@ -175,13 +175,6 @@ def _replace(text: str, pairs: tuple[tuple[str, str], ...]) -> str:
     return text
 
 
-def _with_nukta(text: str, index: int) -> int:
-    end = index + 1
-    if end < len(text) and text[end] == _NUKTA:
-        return end + 1
-    return end
-
-
 _JOINERS = frozenset("\u200c\u200d")
 _NASALS = frozenset("ଁଂଃ")
 _REPH = "ର୍"
@@ -192,7 +185,7 @@ def _subjoined_end(text: str, index: int) -> int:
     while cursor < len(text) and text[cursor] in _JOINERS:
         cursor += 1
     if cursor < len(text) and text[cursor] in _CONSONANTS:
-        return _with_nukta(text, cursor)
+        return cursor + 1
     return cursor
 
 
@@ -211,7 +204,7 @@ def _syllable(text: str, index: int, font: _Font) -> tuple[str, int]:
     signs = [text[index]] if text[index] == marker else []
     cursor = index + len(signs)
     limit = len(text)
-    base_end = _with_nukta(text, cursor) if cursor < limit and text[cursor] in _CONSONANTS else cursor
+    base_end = cursor + 1 if cursor < limit and text[cursor] in _CONSONANTS else cursor
     base = text[cursor:base_end]
     chain: list[str] = []
     nasals: list[str] = []
@@ -226,12 +219,16 @@ def _syllable(text: str, index: int, font: _Font) -> tuple[str, int]:
             continue
         if char == marker and text[cursor + 1 : cursor + 2] not in _CONSONANTS:
             signs.append(char)
-        elif char == font.reph and base:
+        elif char == font.reph and base[:1] in _CONSONANTS:
             reph = True
         elif char in _VOWEL_SIGNS or char in dict(matra.forms):
             signs.append(char)
         elif char in _NASALS:
             nasals.append(char)
+        elif char == _NUKTA and chain:
+            chain[-1] += char
+        elif char == _NUKTA:
+            base += char
         else:
             break
         cursor += 1

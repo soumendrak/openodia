@@ -491,7 +491,7 @@ EXAMPLE = re.compile(r"`([^`]+)` and `([^`]+)` both give `([^`]+)`")
 def test_every_both_orders_example_on_the_page_is_what_the_converter_gives(path: str) -> None:
     text = (Path(__file__).parent.parent / path).read_text(encoding="utf-8")
     examples = EXAMPLE.findall(text)
-    assert len(examples) == 3
+    assert len(examples) == 4
     for first, second, expected in examples:
         font = "AkrutiOriSarala" if first.startswith("ù") else "ORTTSarala"
         assert legacy.to_unicode(first, font=font) == expected
@@ -586,3 +586,60 @@ def test_a_nasal_or_reph_before_a_subjoined_form_leaves_no_sign_before_a_halant_
 
 def test_a_reph_with_no_consonant_in_its_syllable_stays_where_it_was_typed() -> None:
     assert legacy.to_unicode("Óà", font="ORTTSarala") == "ଃର୍"
+
+
+SIGN_BEFORE_NUKTA = re.compile("[ାିୀୁୂୃେୈୋୌଁଂଃ]଼")
+
+
+@pytest.mark.parametrize(
+    ("typed", "other_order", "expected"),
+    [("XÐÏ", "XÏÐ", "ଡ଼ା"), ("ÒXßÏ", "ÒXÏß", "ଡ଼ୈ"), ("ÒXàÏ", "ÒXÏà", "ର୍ଡ଼େ")],
+)
+def test_a_nukta_typed_after_a_sign_joins_its_consonant(typed: str, other_order: str, expected: str) -> None:
+    assert legacy.to_unicode(typed, font="ORTTSarala") == expected
+    assert legacy.to_unicode(other_order, font="ORTTSarala") == expected
+
+
+def _sign_and_nukta_orders() -> list[tuple[str, str]]:
+    font = _font("ORTTSarala")
+    signs = [src for src, dst in font.pairs if len(src) == 1 and dst != "" and set(dst) <= set("ାିୀୁୂୃେୈୋୌଁଂଃ")]
+    marks = [*signs, "à", *(suffix for suffix, _sign in font.matra.forms if suffix != "ା")]
+    return [(lead + base + mark + "Ï", lead + base + "Ï" + mark) for lead in ("", "Ò") for base in "XY" for mark in marks]
+
+
+SIGN_AND_NUKTA_ORDERS = _sign_and_nukta_orders()
+assert len(SIGN_AND_NUKTA_ORDERS) == 92
+
+
+@pytest.mark.parametrize(("typed", "other_order"), SIGN_AND_NUKTA_ORDERS)
+def test_a_sign_typed_before_a_nukta_gives_the_same_output_as_typed_after_it(typed: str, other_order: str) -> None:
+    output = legacy.to_unicode(typed, font="ORTTSarala")
+    assert output == legacy.to_unicode(other_order, font="ORTTSarala")
+    assert SIGN_BEFORE_NUKTA.search(output) is None
+
+
+@pytest.mark.parametrize("font_name", ["ORTTSarala", "AkrutiOriSarala"])
+def test_no_two_key_syllable_leaves_a_sign_before_a_nukta(font_name: str) -> None:
+    keys = _keys(font_name, "")
+    lead, base = ("Ò", "L") if font_name == "ORTTSarala" else ("ù", "K")
+    inputs = [start + base + first + second for start in ("", lead) for first in keys for second in keys]
+    assert len(inputs) == 2 * len(keys) ** 2
+    bad = [text for text in inputs if SIGN_BEFORE_NUKTA.search(legacy.to_unicode(text, font=font_name))]
+    assert bad == []
+
+
+@pytest.mark.parametrize(
+    ("font", "typed", "other_order", "expected"),
+    [
+        ("ORTTSarala", "LÔÐÏ", "LÔÏÐ", "କ୍ୟ଼ା"),
+        ("ORTTSarala", "LÔÍÐÏ", "LÔÍÏÐ", "କ୍ୟ୍ର଼ା"),
+        ("ORTTSarala", "ÐÏà", "ÏÐà", "଼ାର୍"),
+        ("AkrutiOriSarala", "Wû଼", "W଼û", "ଡ଼ା"),
+        ("AkrutiOriSarala", "K£û଼", "K£଼û", "କ୍ମ଼ା"),
+    ],
+)
+def test_a_delayed_nukta_attaches_to_the_last_consonant_before_it(
+    font: str, typed: str, other_order: str, expected: str
+) -> None:
+    assert legacy.to_unicode(typed, font=font) == expected
+    assert legacy.to_unicode(other_order, font=font) == expected

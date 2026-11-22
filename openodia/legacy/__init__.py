@@ -7,6 +7,8 @@ After the glyph table, each syllable is rebuilt in Unicode order: reph (when
 the base is a consonant), the base letter, its subjoined forms in the order typed, the vowel sign, then the
 nasal or visarga. A left matra is typed before the consonant in these fonts
 and joins its right half wherever that half is typed in the syllable.
+A nukta joins the consonant typed last before it, also across a vowel sign,
+nasal, visarga or reph typed in between.
 
 Examples:
     >>> from openodia import legacy
