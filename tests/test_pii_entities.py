@@ -392,31 +392,47 @@ def test_pii_is_exported_once_from_the_package_root() -> None:
     assert openodia.__all__.count("pii") == 1
 
 
-def test_a_long_run_of_combining_marks_is_mapped_in_linear_time(monkeypatch: pytest.MonkeyPatch) -> None:
-    normalized: list[int] = []
+MARK_RUN_SHAPES = {
+    "one long run": lambda count: "a" + "\u0323" * count,
+    "many short runs": lambda count: "a\u0323" * count,
+}
+assert len(MARK_RUN_SHAPES) == 2
+
+
+@pytest.mark.parametrize("shape", MARK_RUN_SHAPES)
+def test_a_long_run_of_combining_marks_is_mapped_in_linear_time(shape: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    work: list[int] = []
 
     def normalize(form: Literal["NFC", "NFD", "NFKC", "NFKD"], text: str) -> str:
-        normalized.append(len(text))
+        work.append(len(text))
         return unicodedata.normalize(form, text)
+
+    def category(char: str) -> str:
+        work.append(1)
+        return unicodedata.category(char)
+
+    def combining(char: str) -> int:
+        work.append(1)
+        return unicodedata.combining(char)
 
     counting = SimpleNamespace(
         normalize=normalize,
         is_normalized=unicodedata.is_normalized,
-        category=unicodedata.category,
-        combining=unicodedata.combining,
+        category=category,
+        combining=combining,
     )
     monkeypatch.setattr(_detect, "unicodedata", counting)
 
-    def work(count: int) -> int:
-        normalized.clear()
-        text = "a" + "\u0323" * count + "a@b.com"
+    def steps(count: int) -> int:
+        work.clear()
+        text = MARK_RUN_SHAPES[shape](count) + "a@b.com"
         entities = pii.detect(text)
         assert [(entity.type, text[entity.start : entity.end]) for entity in entities] == [("EMAIL", "a@b.com")]
-        return sum(normalized)
+        return sum(work)
 
-    small = work(100)
-    large = work(400)
-    assert small > 100
+    small = steps(100)
+    large = steps(400)
+    assert small > 200
     assert large < small * 5
 
 
