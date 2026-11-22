@@ -81,6 +81,7 @@ The tools are available in Odia language. [Getting started](getting-started.md) 
 - [x] [Sentence segmenter](#sentence-segmenter)
 - [x] [Odia spell checker](#odia-spell-checker)
 - [x] [PII detection and masking](#pii-detection-and-masking)
+- [x] [Legacy font bytes](#legacy-fonts)
 
 
 ### :material-broom: Unicode normalization
@@ -887,6 +888,16 @@ wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
     2. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Found --> Return result from Cache
     3. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Not Found --> Hit Google Translate API --> Update the Cache --> Return result
 
+
+### :material-format-font: Legacy fonts
+
+`openodia.legacy` needs a release newer than 0.2.0: `import openodia.legacy` fails on 0.2.0. `legacy.decode` reads the bytes of text typed in an 8-bit Odia font as keystroke characters: cp1252 for each defined byte, while 0x81, 0x8D, 0x8F, 0x90 and 0x9D, which that codec leaves undefined, stay as those code points.
+
+```python
+from openodia import legacy
+
+legacy.decode(b"JX\xcf\x85")  # 'JXÏ…'
+```
 
 ## :bug: Known Issues
 
