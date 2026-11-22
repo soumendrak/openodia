@@ -236,10 +236,10 @@ def _shift_halant(text: str, marker: str) -> str:
     return "".join(out)
 
 
-def _form_at(text: str, index: int, matra: _Matra) -> tuple[str, int] | None:
+def _form_at(text: str, index: int, matra: _Matra, skip: frozenset[str]) -> tuple[str, int] | None:
     end = index
     limit = len(text)
-    while end < limit and text[end] in _ANUSVARA:
+    while end < limit and text[end] in skip:
         end += 1
     for suffix, sign in matra.forms:
         if text.startswith(suffix, end):
@@ -278,7 +278,8 @@ def _shift_join(text: str, matra: _Matra) -> str:
     return text
 
 
-def _apply_matra(text: str, matra: _Matra) -> str:
+def _apply_matra(text: str, matra: _Matra, reph: str | None) -> str:
+    skip = _ANUSVARA if reph is None else _ANUSVARA | {reph}
     text = _shift_consonant(text, matra.marker)
     while True:
         shifted = _shift_join(_shift_halant(text, matra.marker), matra)
@@ -290,7 +291,7 @@ def _apply_matra(text: str, matra: _Matra) -> str:
     limit = len(text)
     while index < limit:
         if text[index] == matra.marker:
-            formed = _form_at(text, index + 1, matra)
+            formed = _form_at(text, index + 1, matra, skip)
             if formed is not None:
                 sign, index = formed
                 out.append(sign)
@@ -396,7 +397,7 @@ def _convert(text: str, font: _Font) -> str:
         return ""
     text = _replace(text, font.pairs)
     if font.matra is not None:
-        text = _apply_matra(text, font.matra)
+        text = _apply_matra(text, font.matra, font.reph)
     text = _apply_post(text, font.before_reph)
     if font.reph is not None:
         text = _apply_reph(text, font.reph)

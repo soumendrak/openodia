@@ -119,6 +119,71 @@ def test_ya_phala_after_a_combined_reph_glyph_matches_the_other_key_order(after:
     assert legacy.to_unicode(before, font="ORTTSarala") == expected
 
 
+YA_PHALA_SIGN_ROWS = (
+    ("LÐ", "Ð", "କ୍ୟ୍ରା"),
+    ("LÞ", "Þ", "କ୍ୟ୍ରି"),
+    ("LÑ", "Ñ", "କ୍ୟ୍ରୀ"),
+    ("LÊ", "Ê", "କ୍ୟ୍ରୁ"),
+    ("LË", "Ë", "କ୍ୟ୍ରୂ"),
+    ("LÌ", "Ì", "କ୍ୟ୍ରୃ"),
+    ("ÒLÊ", "Ê", "କ୍ୟ୍ରେୁ"),
+    ("ÒLß", "ß", "କ୍ୟ୍ରୈ"),
+    ("ÒLÐ", "Ð", "କ୍ୟ୍ରୋ"),
+    ("ÒL×", "×", "କ୍ୟ୍ରୌ"),
+    ("LÜ", "Ü", "କ୍ୟ୍ରଁ"),
+    ("LÕ", "Õ", "କ୍ୟ୍ରଂ"),
+    ("LÚ", "Ú", "କ୍ୟ୍ରିଁ"),
+)
+assert len(YA_PHALA_SIGN_ROWS) == 13
+
+
+@pytest.mark.parametrize(("typed", "sign", "expected"), YA_PHALA_SIGN_ROWS)
+def test_each_sign_typed_before_a_ya_phala_goes_after_the_subjoined_ra_typed_after_it(
+    typed: str, sign: str, expected: str
+) -> None:
+    other_order = typed.removesuffix(sign) + "ÔÍ" + sign
+    assert legacy.to_unicode(typed + "ÔÍ", font="ORTTSarala") == expected
+    assert legacy.to_unicode(other_order, font="ORTTSarala") == expected
+
+
+SUBJOINED_AFTER_YA_PHALA = (
+    ("LÐÔÍ", "LÔÍÐ", "କ୍ୟ୍ରା"),
+    ("LÜÔÍ", "LÔÍÜ", "କ୍ୟ୍ରଁ"),
+    ("L™ÔÍ", "LÔÍ™", "ର୍କ୍ୟ୍ରଁ"),
+    ("LÙÔ˜", "LÔ˜Ù", "ର୍କ୍ୟ୍ଳି"),
+    ("LÐÔçL", "LÔçLÐ", "କ୍ୟ୍\u200dକା"),
+    ("LÐÔçk", "LÔçkÐ", "କ୍ୟ୍\u200dହା"),
+    ("LÐÔç¯", "LÔç¯Ð", "କ୍ୟ୍\u200dୟା"),
+    ("LÐÔš", "LÔšÐ", "କ୍ୟ୍ୱା"),
+    ("LÐÔçXÏ", "LÔçXÏÐ", "କ୍ୟ୍\u200dଡ଼ା"),
+    ("LÐÔÍ˜", "LÔÍ˜Ð", "କ୍ୟ୍ର୍ଳା"),
+)
+assert len(SUBJOINED_AFTER_YA_PHALA) == 10
+
+
+@pytest.mark.parametrize(("typed", "other_order", "expected"), SUBJOINED_AFTER_YA_PHALA)
+def test_a_sign_before_a_ya_phala_lands_after_every_subjoined_form_typed_after_it(
+    typed: str, other_order: str, expected: str
+) -> None:
+    assert legacy.to_unicode(typed, font="ORTTSarala") == expected
+    assert legacy.to_unicode(other_order, font="ORTTSarala") == expected
+
+
+@pytest.mark.parametrize(
+    ("reph_first", "reph_last", "expected"),
+    [
+        ("ÒLàß", "ÒLßà", "ର୍କୈ"),
+        ("ÒLà×", "ÒL×à", "ର୍କୌ"),
+        ("ÒLàÜß", "ÒLÜßà", "ର୍କୈଁ"),
+    ],
+)
+def test_reph_before_the_right_half_of_a_composite_matra_matches_the_other_key_order(
+    reph_first: str, reph_last: str, expected: str
+) -> None:
+    assert legacy.to_unicode(reph_first, font="ORTTSarala") == expected
+    assert legacy.to_unicode(reph_last, font="ORTTSarala") == expected
+
+
 def test_unmapped_ascii_punctuation_passes_through() -> None:
     assert legacy.to_unicode("K, M.", font="AkrutiOriSarala") == "କ, ଗ."
 
@@ -414,3 +479,19 @@ def test_docs_name_every_byte_cp1252_leaves_undefined(page: str) -> None:
     text = " ".join((Path(__file__).resolve().parents[1] / page).read_text(encoding="utf-8").split())
     assert listed == "0x81, 0x8D, 0x8F, 0x90 and 0x9D"
     assert listed in text
+
+
+LEGACY_RULE_FILES = ("CHANGELOG.md", "docs/index.md")
+assert len(LEGACY_RULE_FILES) == 2
+
+
+@pytest.mark.parametrize("path", LEGACY_RULE_FILES)
+def test_every_page_states_the_ya_phala_and_reph_examples_that_the_converter_gives(path: str) -> None:
+    text = (Path(__file__).parent.parent / path).read_text(encoding="utf-8")
+    examples = (("LÐÔÍ", "କ୍ୟ୍ରା"), ("LÔÍÐ", "କ୍ୟ୍ରା"), ("ÒLàß", "ର୍କୈ"))
+    assert "the sign lands after every subjoined form typed after the ya-phala" in text
+    assert "Reph typed before the right half of ୈ or ୌ gives the same output as reph typed after it" in text
+    for source, expected in examples:
+        assert f"`{source}`" in text
+        assert f"`{expected}`" in text
+        assert legacy.to_unicode(source, font="ORTTSarala") == expected
