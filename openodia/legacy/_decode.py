@@ -10,7 +10,7 @@ def decode(data: bytes) -> str:
     if not isinstance(data, bytes | bytearray):
         raise TypeError("legacy font bytes are required")
     chars: list[str] = []
-    for byte in data:
+    for byte in bytes(data):
         try:
             chars.append(bytes((byte,)).decode("cp1252"))
         except UnicodeDecodeError:

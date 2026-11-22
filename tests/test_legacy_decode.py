@@ -2,6 +2,7 @@ import ast
 import hashlib
 import json
 import re
+from collections.abc import Iterator
 from pathlib import Path
 from typing import cast
 
@@ -36,6 +37,21 @@ def test_decode_uses_cp1252_for_every_defined_byte_and_keeps_the_undefined_ones(
 @pytest.mark.parametrize(("byte", "expected"), [(0x85, "\u2026"), (0x80, "\u20ac"), (0x9F, "\u0178"), (0x8D, "\x8d")])
 def test_decode_is_cp1252_and_not_latin_1(byte: int, expected: str) -> None:
     assert legacy.decode(bytes([byte])) == expected
+
+
+class _Replaying(bytes):
+    def __iter__(self) -> Iterator[int]:
+        return iter([65])
+
+
+class _ReplayingArray(bytearray):
+    def __iter__(self) -> Iterator[int]:
+        return iter([65])
+
+
+def test_decode_reads_the_buffer_of_a_bytes_subclass() -> None:
+    assert legacy.decode(_Replaying(b"xyz")) == "xyz"
+    assert legacy.decode(_ReplayingArray(b"xyz")) == "xyz"
 
 
 def test_decode_of_empty_bytes_is_empty() -> None:
