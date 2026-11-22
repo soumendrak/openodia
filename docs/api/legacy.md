@@ -1,0 +1,3 @@
+# Legacy fonts
+
+::: openodia.legacy
