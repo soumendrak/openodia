@@ -4,6 +4,7 @@ import subprocess
 import sys
 import time
 import unicodedata
+from pathlib import Path
 from collections.abc import Callable
 from types import SimpleNamespace
 from typing import Literal
@@ -12,6 +13,13 @@ import pytest
 
 from openodia import pii
 from openodia.pii import _detect
+
+ROOT = Path(__file__).resolve().parents[1]
+NFC_SENTENCES = (
+    "Text that is not in NFC is also searched in its NFC form, and each match is mapped back to offsets in the"
+    " text you passed, so a PAN followed by a decomposed accented letter is found.",
+    "In text that is not in NFC, a match whose last letter carries 32 or more combining marks also covers those marks.",
+)
 
 EXPANDING = ["ବ\u0b5c ଘର", "କ\u0b4d\u0b3c", "ପ\u0b5dା", "a\u0301\u0323", "ଉ\u0b5cାଣଗୁଡିକ"]
 
@@ -224,3 +232,10 @@ def test_64000_marks_are_mapped_within_the_time_budget(shape: str) -> None:
         if times[-1] < BUDGET_SECONDS:
             break
     assert min(times) < BUDGET_SECONDS, times
+
+
+@pytest.mark.parametrize("page", ["CHANGELOG.md", "docs/guides/pii.md"])
+def test_pages_state_the_nfc_mapping_rule(page: str) -> None:
+    text = " ".join((ROOT / page).read_text(encoding="utf-8").split())
+    for sentence in NFC_SENTENCES:
+        assert sentence in text

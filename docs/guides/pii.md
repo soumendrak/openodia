@@ -8,7 +8,7 @@ Every example on this page is run by the test suite.
 
 ## Find matches
 
-`detect` returns one `PIIEntity` per match, in order. `start` and `end` are character offsets into the text you passed.
+`detect` returns one `PIIEntity` per match, in order. `start` and `end` are character offsets into the text you passed. Text that is not in NFC is also searched in its NFC form, and each match is mapped back to offsets in the text you passed, so a PAN followed by a decomposed accented letter is found. In text that is not in NFC, a match whose last letter carries 32 or more combining marks also covers those marks.
 
 ```pycon
 >>> from openodia import pii
@@ -17,6 +17,8 @@ Every example on this page is run by the test suite.
 >>> text = "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ଓ a@b.com"
 >>> pii.detect(text)
 [PIIEntity(type='PHONE', text='୯୮୭୬୫୪୩୨୧୦', start=7, end=17, confidence=0.9), PIIEntity(type='EMAIL', text='a@b.com', start=20, end=27, confidence=0.95)]
+>>> pii.detect("ABCPE1234Fe\u0301")
+[PIIEntity(type='PAN', text='ABCPE1234F', start=0, end=10, confidence=0.95)]
 ```
 
 A 10-digit number that starts with 6, 7, 8, or 9 is a `PHONE`, including an order number that happens to have that shape. A PIN code is reported only after `PIN`, `Pincode`, or `ପିନ`.
