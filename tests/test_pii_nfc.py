@@ -157,8 +157,11 @@ MARK_RUN_SHAPES: dict[str, Callable[[int], str]] = {
 
 
 def _shape(name: str, count: int) -> str:
-    assert len(MARK_RUN_SHAPES) == 3
     return MARK_RUN_SHAPES[name](count) + "a@b.com"
+
+
+def test_mark_run_shapes_cover_a_long_run_and_many_short_runs() -> None:
+    assert list(MARK_RUN_SHAPES) == ["one long run", "many short runs", "many runs of 33 marks"]
 
 
 def _only_the_email(text: str) -> None:
@@ -197,6 +200,7 @@ def test_mark_run_mapping_does_linear_unicodedata_work(shape: str, monkeypatch: 
     small_normalized, small = steps(100)
     _, large = steps(400)
     assert small_normalized >= 100
+    assert small > 200
     assert large < small * 5
 
 
@@ -216,7 +220,8 @@ def test_an_exact_run_resumes_its_search_where_the_last_letter_ended(monkeypatch
 
 
 BUDGET_SECONDS = 2.5
-BUDGET_MARKS = {"one long run": 64_000, "many short runs": 64_000, "many runs of 33 marks": 640_000}
+BUDGET_MARKS = 64_000
+BUDGET_SHAPES = ("one long run", "many short runs")
 
 
 def _seconds(text: str) -> float:
@@ -225,9 +230,11 @@ def _seconds(text: str) -> float:
     return time.perf_counter() - start
 
 
-@pytest.mark.parametrize("shape", MARK_RUN_SHAPES)
-def test_long_mark_runs_are_mapped_within_the_time_budget(shape: str) -> None:
-    text = _shape(shape, BUDGET_MARKS[shape])
+@pytest.mark.parametrize("shape", BUDGET_SHAPES)
+def test_64000_marks_are_mapped_within_the_time_budget(shape: str) -> None:
+    assert set(BUDGET_SHAPES) <= set(MARK_RUN_SHAPES)
+    assert len(BUDGET_SHAPES) == 2
+    text = _shape(shape, BUDGET_MARKS)
     times: list[float] = []
     for _ in range(3):
         times.append(_seconds(text))
@@ -241,6 +248,17 @@ def test_pages_state_the_nfc_mapping_rule(page: str) -> None:
     text = " ".join((ROOT / page).read_text(encoding="utf-8").split())
     for sentence in NFC_SENTENCES:
         assert sentence in text
+
+
+def test_a_joiner_keeps_the_following_mark_out_of_the_letter_before_it() -> None:
+    joiners = ("\N{ZERO WIDTH NON-JOINER}", "\N{ZERO WIDTH JOINER}")
+    assert len(joiners) == 2
+    for joiner in joiners:
+        text = "e" + joiner + "\u0301 ABCPE1234F"
+        assert _detect._nfc_bounds(text)[0] == unicodedata.normalize("NFC", text)
+        assert pii.mask(text) == "e" + joiner + "\u0301 <PAN>"
+        for entity in pii.detect(text):
+            assert text[entity.start : entity.end] == entity.text
 
 
 def test_hangul_jamo_are_composed_like_marks() -> None:
