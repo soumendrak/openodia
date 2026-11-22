@@ -278,6 +278,61 @@ def test_mark_run_scans_copy_a_linear_amount_of_the_text(shape: str) -> None:
     assert large < small * 5
 
 
+class _AddedText(str):
+    copied_characters = 0
+
+    def __add__(self, other: object) -> str:
+        if not isinstance(other, str):
+            return NotImplemented
+        type(self).copied_characters += len(self) + len(other)
+        return _AddedText(str.__add__(self, other))
+
+    def __radd__(self, other: object) -> str:
+        if not isinstance(other, str):
+            return NotImplemented
+        type(self).copied_characters += len(other) + len(self)
+        return _AddedText(str.__add__(other, self))
+
+    def __iadd__(self, other: object) -> str:
+        result = self.__add__(other)
+        return result
+
+
+JOIN_SHAPES = SLICE_COPY_SHAPES
+
+
+@pytest.mark.parametrize("shape", JOIN_SHAPES)
+def test_nfc_chunks_are_joined_without_repeated_addition(shape: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    assert list(JOIN_SHAPES) == list(SLICE_COPY_SHAPES)
+
+    def normalize(form: Literal["NFC", "NFD", "NFKC", "NFKD"], text: str) -> str:
+        return _AddedText(unicodedata.normalize(form, text))
+
+    monkeypatch.setattr(
+        _detect,
+        "unicodedata",
+        SimpleNamespace(
+            normalize=normalize,
+            is_normalized=unicodedata.is_normalized,
+            category=unicodedata.category,
+            combining=unicodedata.combining,
+        ),
+    )
+    _AddedText.copied_characters = 0
+    assert _AddedText("a") + _AddedText("b") == "ab"
+    assert _AddedText.copied_characters == 2
+
+    def copied(count: int) -> int:
+        _AddedText.copied_characters = 0
+        _only_the_email(_shape(shape, count))
+        return _AddedText.copied_characters
+
+    small = copied(2_000)
+    large = copied(8_000)
+    assert small == 0
+    assert large == 0
+
+
 @pytest.mark.parametrize("page", ["CHANGELOG.md", "docs/guides/pii.md"])
 def test_pages_state_the_nfc_mapping_rule(page: str) -> None:
     text = " ".join((ROOT / page).read_text(encoding="utf-8").split())

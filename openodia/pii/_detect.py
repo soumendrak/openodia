@@ -115,16 +115,14 @@ def _attaches_to_previous(char: str) -> bool:
     return any(low <= char <= high for low, high in _LETTERS_THAT_COMPOSE_WITH_THE_PREVIOUS)
 
 
-def _mark_runs(text: str) -> list[tuple[int, int]]:
-    runs: list[tuple[int, int]] = []
+def _mark_runs(text: str) -> Iterable[tuple[int, int]]:
     start = 0
     while start < len(text):
         end = start + 1
         while end < len(text) and _attaches_to_previous(text[end]):
             end += 1
-        runs.append((start, end))
+        yield start, end
         start = end
-    return runs
 
 
 def _nfc_ends(chunk: str, nfc_chunk: str, origin: int) -> list[int]:
@@ -149,16 +147,18 @@ _LONGEST_EXACT_RUN = 32
 def _nfc_bounds(text: str) -> tuple[str, list[int] | None]:
     if unicodedata.is_normalized("NFC", text):
         return text, None
-    parts: list[str] = []
     bounds = [0]
-    for start, end in _mark_runs(text):
-        nfc_chunk = unicodedata.normalize("NFC", text[start:end])
-        parts.append(nfc_chunk)
-        if end - start > _LONGEST_EXACT_RUN:
-            bounds.extend([end] * len(nfc_chunk))
-            continue
-        bounds.extend(_nfc_ends(text[start:end], nfc_chunk, start))
-    return "".join(parts), bounds
+
+    def parts() -> Iterable[str]:
+        for start, end in _mark_runs(text):
+            nfc_chunk = unicodedata.normalize("NFC", text[start:end])
+            if end - start > _LONGEST_EXACT_RUN:
+                bounds.extend([end] * len(nfc_chunk))
+            else:
+                bounds.extend(_nfc_ends(text[start:end], nfc_chunk, start))
+            yield nfc_chunk
+
+    return "".join(parts()), bounds
 
 
 def detect(text: str, types: Iterable[str] | None = None, min_confidence: float = 0.0) -> list[PIIEntity]:
