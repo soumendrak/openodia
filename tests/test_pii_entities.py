@@ -4,6 +4,7 @@ import sys
 import time
 import unicodedata
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -390,18 +391,32 @@ def test_pii_is_exported_once_from_the_package_root() -> None:
     assert openodia.__all__.count("pii") == 1
 
 
-def test_a_long_run_of_combining_marks_is_mapped_in_linear_time() -> None:
-    def elapsed(count: int) -> float:
-        text = "a" + "\u0323" * count + "a@b.com"
-        started = time.perf_counter()
-        entities = pii.detect(text)
-        spent = time.perf_counter() - started
-        assert [(entity.type, text[entity.start : entity.end]) for entity in entities] == [("EMAIL", "a@b.com")]
-        return spent
+def test_a_long_run_of_combining_marks_is_mapped_in_linear_time(monkeypatch: pytest.MonkeyPatch) -> None:
+    normalized: list[int] = []
 
-    small = min(elapsed(4000) for _ in range(3))
-    large = min(elapsed(16000) for _ in range(3))
-    assert large < small * 8
+    def normalize(form: str, text: str) -> str:
+        normalized.append(len(text))
+        return unicodedata.normalize(form, text)
+
+    counting = SimpleNamespace(
+        normalize=normalize,
+        is_normalized=unicodedata.is_normalized,
+        category=unicodedata.category,
+        combining=unicodedata.combining,
+    )
+    monkeypatch.setattr(_detect, "unicodedata", counting)
+
+    def work(count: int) -> int:
+        normalized.clear()
+        text = "a" + "\u0323" * count + "a@b.com"
+        entities = pii.detect(text)
+        assert [(entity.type, text[entity.start : entity.end]) for entity in entities] == [("EMAIL", "a@b.com")]
+        return sum(normalized)
+
+    small = work(100)
+    large = work(400)
+    assert small > 100
+    assert large < small * 5
 
 
 @pytest.mark.parametrize("marks", [29, 30, 31, 32, 33, 60, 200])
