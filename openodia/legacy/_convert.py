@@ -206,7 +206,8 @@ def _syllable(text: str, index: int, font: _Font) -> tuple[str, int]:
     limit = len(text)
     base_end = cursor + 1 if cursor < limit and text[cursor] in _CONSONANTS else cursor
     base = text[cursor:base_end]
-    chain: list[str] = []
+    pieces = [[base]]
+    consonant = pieces[0]
     nasals: list[str] = []
     reph = False
     cursor = base_end
@@ -214,26 +215,27 @@ def _syllable(text: str, index: int, font: _Font) -> tuple[str, int]:
         char = text[cursor]
         if char == _HALANT:
             end = _subjoined_end(text, cursor)
-            chain.append(text[cursor:end])
+            piece = text[cursor:end]
+            pieces.append([piece])
+            if piece[-1:] in _CONSONANTS:
+                consonant = pieces[-1]
             cursor = end
             continue
         if char == marker and text[cursor + 1 : cursor + 2] not in _CONSONANTS:
             signs.append(char)
-        elif char == font.reph and base[:1] in _CONSONANTS:
+        elif char == font.reph and base:
             reph = True
         elif char in _VOWEL_SIGNS or char in dict(matra.forms):
             signs.append(char)
         elif char in _NASALS:
             nasals.append(char)
-        elif char == _NUKTA and chain:
-            chain[-1] += char
         elif char == _NUKTA:
-            base += char
+            consonant.append(char)
         else:
             break
         cursor += 1
     head = _REPH if reph else ""
-    return head + base + "".join(chain) + _vowel(signs, matra) + "".join(nasals), cursor
+    return head + "".join("".join(piece) for piece in pieces) + _vowel(signs, matra) + "".join(nasals), cursor
 
 
 def _canonical(text: str, font: _Font) -> str:

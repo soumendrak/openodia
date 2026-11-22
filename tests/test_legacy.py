@@ -2,6 +2,7 @@ import json
 import random
 import re
 from pathlib import Path
+from typing import SupportsIndex
 
 import pytest
 
@@ -633,7 +634,6 @@ def test_no_two_key_syllable_leaves_a_sign_before_a_nukta(font_name: str) -> Non
     [
         ("ORTTSarala", "LÔÐÏ", "LÔÏÐ", "କ୍ୟ଼ା"),
         ("ORTTSarala", "LÔÍÐÏ", "LÔÍÏÐ", "କ୍ୟ୍ର଼ା"),
-        ("ORTTSarala", "ÐÏà", "ÏÐà", "଼ାର୍"),
         ("AkrutiOriSarala", "Wû଼", "W଼û", "ଡ଼ା"),
         ("AkrutiOriSarala", "K£û଼", "K£଼û", "କ୍ମ଼ା"),
     ],
@@ -643,3 +643,82 @@ def test_a_delayed_nukta_attaches_to_the_last_consonant_before_it(
 ) -> None:
     assert legacy.to_unicode(typed, font=font) == expected
     assert legacy.to_unicode(other_order, font=font) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [("ÒLçÏ", "କ଼୍‍େ"), ("LçÏ", "କ଼୍‍"), ("LÍçÏ", "କ୍ର଼୍‍"), ("ÒLçÐÏ", "କ଼୍‍ୋ")],
+)
+def test_a_nukta_goes_on_the_consonant_before_a_trailing_halant_or_joiner(text: str, expected: str) -> None:
+    assert legacy.to_unicode(text, font="ORTTSarala") == expected
+
+
+@pytest.mark.parametrize("prefix", ["L", "Lç", "LÍ", "LÔ"])
+def test_collecting_nuktas_does_linear_string_work(prefix: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    work: list[int] = []
+
+    class Measured(str):
+        def __getitem__(self, key: SupportsIndex | slice) -> str:
+            value = super().__getitem__(key)
+            work.append(len(value))
+            return Measured(value)
+
+        def __add__(self, other: str) -> str:
+            work.append(len(self) + len(other))
+            return Measured(super().__add__(other))
+
+    replace = _convert._replace
+
+    def measured(text: str, pairs: tuple[tuple[str, str], ...]) -> str:
+        return Measured(replace(text, pairs))
+
+    monkeypatch.setattr(_convert, "_replace", measured)
+
+    def steps(count: int) -> int:
+        work.clear()
+        result = legacy.to_unicode(prefix + "Ï" * count, font="ORTTSarala")
+        assert result.count("଼") == count
+        return sum(work)
+
+    small = steps(100)
+    large = steps(400)
+    assert small >= 100
+    assert large < small * 5
+
+
+def test_nukta_attachment_does_not_cross_a_syllable_or_expand_akruti_suffix_glyphs() -> None:
+    assert legacy.to_unicode("L1Ï", font="ORTTSarala") == "କ୧଼"
+    assert legacy.to_unicode("LAÏ", font="ORTTSarala") == "କଆ଼"
+    assert legacy.to_unicode("Wûÿ", font="AkrutiOriSarala") == "ଡାÿ"
+    assert legacy.to_unicode("ùWõÿ", font="AkrutiOriSarala") == "ଡେଂÿ"
+    assert legacy.to_unicode("Wÿû", font="AkrutiOriSarala") == "ଡ଼ା"
+
+
+def test_a_nukta_without_a_consonant_stays_before_the_syllable_signs() -> None:
+    assert legacy.to_unicode("ÐÏà", font="ORTTSarala") == "଼ାର୍"
+    assert legacy.to_unicode("ÏÐà", font="ORTTSarala") == "଼ାର୍"
+    assert legacy.to_unicode("çÏ", font="ORTTSarala") == "୍‍଼"
+    assert legacy.to_unicode("ÒLKçÏ", font="ORTTSarala") == "କେଔ୍‍଼"
+
+
+@pytest.mark.parametrize("font", ["ORTTSarala", "AkrutiOriSarala"])
+def test_no_two_key_syllable_puts_a_nukta_after_a_halant_or_joiner(font: str) -> None:
+    keys = _keys(font, "଼")
+    lead, base = ("Ò", "L") if font == "ORTTSarala" else ("ù", "K")
+    assert len(keys) == (189 if font == "ORTTSarala" else 191)
+    bad = re.compile("[‍‌୍]଼")
+    for start in ("", lead):
+        for first in keys:
+            for second in keys:
+                text = start + base + first + second
+                assert bad.search(legacy.to_unicode(text, font=font)) is None, text
+
+
+AKRUTI_SIGN_KEYS = "éêëìíñòóõùúûü"
+
+
+@pytest.mark.parametrize("sign", AKRUTI_SIGN_KEYS)
+def test_an_akruti_suffix_glyph_after_a_sign_is_not_a_nukta(sign: str) -> None:
+    assert len(AKRUTI_SIGN_KEYS) == 13
+    result = legacy.to_unicode("W" + sign + "ÿ", font="AkrutiOriSarala")
+    assert result == legacy.to_unicode("W" + sign, font="AkrutiOriSarala") + "ÿ"
