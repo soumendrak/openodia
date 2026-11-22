@@ -333,6 +333,72 @@ def test_nfc_chunks_are_joined_without_repeated_addition(shape: str, monkeypatch
     assert large == 0
 
 
+class _IndexedText(str):
+    furthest_index = -1
+
+    def __getitem__(self, key: int | slice) -> str:
+        if isinstance(key, slice):
+            start, stop, _step = key.indices(len(self))
+            reached = start if stop <= start else stop - 1
+            type(self).furthest_index = max(type(self).furthest_index, reached)
+        else:
+            index = key if key >= 0 else key + len(self)
+            type(self).furthest_index = max(type(self).furthest_index, index)
+        return str.__getitem__(self, key)
+
+
+STREAM_SHAPES = SLICE_COPY_SHAPES
+FIRST_SHORT_RUN_END = 2
+
+
+@pytest.mark.parametrize("shape", STREAM_SHAPES)
+def test_the_first_mark_run_is_found_before_the_rest_of_the_text_is_read(shape: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    assert list(STREAM_SHAPES) == list(SLICE_COPY_SHAPES)
+
+    def furthest_when_the_first_run_is_reported(count: int) -> tuple[int, int]:
+        _IndexedText.furthest_index = -1
+        start, end = next(_detect._mark_runs(_IndexedText(_shape(shape, count))))
+        assert start == 0
+        return _IndexedText.furthest_index, end
+
+    small_index, small_end = furthest_when_the_first_run_is_reported(2_000)
+    large_index, large_end = furthest_when_the_first_run_is_reported(8_000)
+    assert small_end == FIRST_SHORT_RUN_END
+    assert large_end == FIRST_SHORT_RUN_END
+    assert 1 <= small_index <= small_end
+    assert 1 <= large_index <= large_end
+
+    _IndexedText.furthest_index = -1
+    for start, end in _detect._mark_runs(_IndexedText(_shape(shape, 2_000))):
+        assert _IndexedText.furthest_index <= end
+
+    def furthest_when_the_first_nfc_chunk_is_built(count: int) -> int:
+        _IndexedText.furthest_index = -1
+        seen: list[int] = []
+
+        def normalize(form: Literal["NFC", "NFD", "NFKC", "NFKD"], text: str) -> str:
+            if not seen:
+                seen.append(_IndexedText.furthest_index)
+            return unicodedata.normalize(form, text)
+
+        monkeypatch.setattr(
+            _detect,
+            "unicodedata",
+            SimpleNamespace(
+                normalize=normalize,
+                is_normalized=unicodedata.is_normalized,
+                category=unicodedata.category,
+                combining=unicodedata.combining,
+            ),
+        )
+        _detect._nfc_bounds(_IndexedText(_shape(shape, count)))
+        assert seen
+        return seen[0]
+
+    assert 1 <= furthest_when_the_first_nfc_chunk_is_built(2_000) <= FIRST_SHORT_RUN_END
+    assert 1 <= furthest_when_the_first_nfc_chunk_is_built(8_000) <= FIRST_SHORT_RUN_END
+
+
 @pytest.mark.parametrize("page", ["CHANGELOG.md", "docs/guides/pii.md"])
 def test_pages_state_the_nfc_mapping_rule(page: str) -> None:
     text = " ".join((ROOT / page).read_text(encoding="utf-8").split())
