@@ -5,6 +5,7 @@ import time
 import unicodedata
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Literal
 
 import pytest
 
@@ -394,7 +395,7 @@ def test_pii_is_exported_once_from_the_package_root() -> None:
 def test_a_long_run_of_combining_marks_is_mapped_in_linear_time(monkeypatch: pytest.MonkeyPatch) -> None:
     normalized: list[int] = []
 
-    def normalize(form: str, text: str) -> str:
+    def normalize(form: Literal["NFC", "NFD", "NFKC", "NFKD"], text: str) -> str:
         normalized.append(len(text))
         return unicodedata.normalize(form, text)
 
