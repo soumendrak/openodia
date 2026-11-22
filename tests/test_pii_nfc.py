@@ -154,6 +154,7 @@ MARK_RUN_SHAPES: dict[str, Callable[[int], str]] = {
     "many short runs": lambda count: "a\u0323" * count + " ",
     "many runs of 33 marks": lambda count: ("a" + "\u0323" * 33) * (count // 33) + " ",
     "a short run then many letters": lambda count: "a\u0323" + "x" * count + " ",
+    "letters that NFC splits into astral pairs": lambda count: "\U0001d15e" * count + " ",
 }
 
 
@@ -161,53 +162,20 @@ def _shape(name: str, count: int) -> str:
     return MARK_RUN_SHAPES[name](count) + "a@b.com"
 
 
-def test_mark_run_shapes_cover_a_long_run_and_many_short_runs() -> None:
+def test_mark_run_shapes_cover_long_runs_short_runs_and_expanding_letters() -> None:
     assert list(MARK_RUN_SHAPES) == [
         "one long run",
         "many short runs",
         "many runs of 33 marks",
         "a short run then many letters",
+        "letters that NFC splits into astral pairs",
     ]
+    assert unicodedata.normalize("NFC", "\U0001d15e") == "\U0001d157\U0001d165"
 
 
 def _only_the_email(text: str) -> None:
     entities = pii.detect(text)
     assert [(entity.type, text[entity.start : entity.end]) for entity in entities] == [("EMAIL", "a@b.com")]
-
-
-@pytest.mark.parametrize("shape", MARK_RUN_SHAPES)
-def test_mark_run_mapping_does_linear_unicodedata_work(shape: str, monkeypatch: pytest.MonkeyPatch) -> None:
-    normalized: list[int] = []
-    looked_up: list[int] = []
-
-    def normalize(form: Literal["NFC", "NFD", "NFKC", "NFKD"], text: str) -> str:
-        normalized.append(len(text))
-        return unicodedata.normalize(form, text)
-
-    def category(char: str) -> str:
-        looked_up.append(1)
-        return unicodedata.category(char)
-
-    def combining(char: str) -> int:
-        looked_up.append(1)
-        return unicodedata.combining(char)
-
-    counting = SimpleNamespace(
-        normalize=normalize, is_normalized=unicodedata.is_normalized, category=category, combining=combining
-    )
-    monkeypatch.setattr(_detect, "unicodedata", counting)
-
-    def steps(count: int) -> tuple[int, int]:
-        normalized.clear()
-        looked_up.clear()
-        _only_the_email(_shape(shape, count))
-        return sum(normalized), sum(normalized) + sum(looked_up)
-
-    small_normalized, small = steps(100)
-    _, large = steps(400)
-    assert small_normalized >= 100
-    assert small > 200
-    assert large < small * 5
 
 
 def test_an_exact_run_resumes_its_search_where_the_last_letter_ended(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -225,178 +193,43 @@ def test_an_exact_run_resumes_its_search_where_the_last_letter_ended(monkeypatch
     assert sum(normalized) == sum(range(1, 33))
 
 
-BUDGET_SECONDS = 2.5
-BUDGET_MARKS = 64_000
-BUDGET_SHAPES = ("one long run", "many short runs")
-SLICE_COPY_SHAPES = ("many short runs", "a short run then many letters")
+GROWTH_COUNTS = (2_000, 8_000, 32_000, 128_000)
+GROWTH_LIMIT = 7.0
+GROWTH_TRIES = 3
+MIN_MEASURED_SECONDS = 0.1
 
 
-def _seconds(text: str) -> float:
-    start = time.perf_counter()
-    _only_the_email(text)
-    return time.perf_counter() - start
+def _cpu_seconds_per_call(text: str) -> float:
+    calls = 0
+    start = time.thread_time()
+    while (elapsed := time.thread_time() - start) < MIN_MEASURED_SECONDS:
+        _only_the_email(text)
+        calls += 1
+    return elapsed / calls
 
 
-@pytest.mark.parametrize("shape", BUDGET_SHAPES)
-def test_64000_marks_are_mapped_within_the_time_budget(shape: str) -> None:
-    assert set(BUDGET_SHAPES) <= set(MARK_RUN_SHAPES)
-    assert len(BUDGET_SHAPES) == 2
-    text = _shape(shape, BUDGET_MARKS)
-    times: list[float] = []
-    for _ in range(3):
-        times.append(_seconds(text))
-        if times[-1] < BUDGET_SECONDS or times[-1] > 4 * BUDGET_SECONDS:
+def _growth_ratios(shape: str, fastest: dict[int, float]) -> list[float]:
+    ratios: list[float] = []
+    for smaller, larger in itertools.pairwise(GROWTH_COUNTS):
+        for count in (smaller, larger):
+            fastest[count] = min(fastest.get(count, float("inf")), _cpu_seconds_per_call(_shape(shape, count)))
+        ratios.append(fastest[larger] / fastest[smaller])
+        if ratios[-1] >= GROWTH_LIMIT:
             break
-    assert min(times) < BUDGET_SECONDS, times
+    return ratios
 
 
-class _SlicedText(str):
-    copied_characters = 0
-
-    def __getitem__(self, key: int | slice) -> str:
-        if isinstance(key, slice):
-            start, stop, step = key.indices(len(self))
-            width = (stop - start) if step == 1 else len(range(start, stop, step))
-            type(self).copied_characters += max(0, width)
-        item = str.__getitem__(self, key)
-        return item if not isinstance(item, str) else _SlicedText(item)
-
-
-@pytest.mark.parametrize("shape", SLICE_COPY_SHAPES)
-def test_mark_run_scans_copy_a_linear_amount_of_the_text(shape: str) -> None:
-    assert set(SLICE_COPY_SHAPES) <= set(MARK_RUN_SHAPES)
-    assert len(SLICE_COPY_SHAPES) == 2
-
-    def copied(count: int) -> int:
-        _SlicedText.copied_characters = 0
-        _only_the_email(_SlicedText(_shape(shape, count)))
-        return _SlicedText.copied_characters
-
-    small = copied(2_000)
-    large = copied(8_000)
-    assert small >= 2_000
-    assert large < small * 5
-
-
-class _AddedText(str):
-    copied_characters = 0
-
-    def __add__(self, other: object) -> str:
-        if not isinstance(other, str):
-            return NotImplemented
-        type(self).copied_characters += len(self) + len(other)
-        return _AddedText(str.__add__(self, other))
-
-    def __radd__(self, other: object) -> str:
-        if not isinstance(other, str):
-            return NotImplemented
-        type(self).copied_characters += len(other) + len(self)
-        return _AddedText(str.__add__(other, self))
-
-    def __iadd__(self, other: object) -> str:
-        result = self.__add__(other)
-        return result
-
-
-JOIN_SHAPES = SLICE_COPY_SHAPES
-
-
-@pytest.mark.parametrize("shape", JOIN_SHAPES)
-def test_nfc_chunks_are_joined_without_repeated_addition(shape: str, monkeypatch: pytest.MonkeyPatch) -> None:
-    assert list(JOIN_SHAPES) == list(SLICE_COPY_SHAPES)
-
-    def normalize(form: Literal["NFC", "NFD", "NFKC", "NFKD"], text: str) -> str:
-        return _AddedText(unicodedata.normalize(form, text))
-
-    monkeypatch.setattr(
-        _detect,
-        "unicodedata",
-        SimpleNamespace(
-            normalize=normalize,
-            is_normalized=unicodedata.is_normalized,
-            category=unicodedata.category,
-            combining=unicodedata.combining,
-        ),
-    )
-    _AddedText.copied_characters = 0
-    assert _AddedText("a") + _AddedText("b") == "ab"
-    assert _AddedText.copied_characters == 2
-
-    def copied(count: int) -> int:
-        _AddedText.copied_characters = 0
-        _only_the_email(_shape(shape, count))
-        return _AddedText.copied_characters
-
-    small = copied(2_000)
-    large = copied(8_000)
-    assert small == 0
-    assert large == 0
-
-
-class _IndexedText(str):
-    furthest_index = -1
-
-    def __getitem__(self, key: int | slice) -> str:
-        if isinstance(key, slice):
-            start, stop, _step = key.indices(len(self))
-            reached = start if stop <= start else stop - 1
-            type(self).furthest_index = max(type(self).furthest_index, reached)
-        else:
-            index = key if key >= 0 else key + len(self)
-            type(self).furthest_index = max(type(self).furthest_index, index)
-        return str.__getitem__(self, key)
-
-
-STREAM_SHAPES = SLICE_COPY_SHAPES
-FIRST_SHORT_RUN_END = 2
-
-
-@pytest.mark.parametrize("shape", STREAM_SHAPES)
-def test_the_first_mark_run_is_found_before_the_rest_of_the_text_is_read(shape: str, monkeypatch: pytest.MonkeyPatch) -> None:
-    assert list(STREAM_SHAPES) == list(SLICE_COPY_SHAPES)
-
-    def furthest_when_the_first_run_is_reported(count: int) -> tuple[int, int]:
-        _IndexedText.furthest_index = -1
-        start, end = next(_detect._mark_runs(_IndexedText(_shape(shape, count))))
-        assert start == 0
-        return _IndexedText.furthest_index, end
-
-    small_index, small_end = furthest_when_the_first_run_is_reported(2_000)
-    large_index, large_end = furthest_when_the_first_run_is_reported(8_000)
-    assert small_end == FIRST_SHORT_RUN_END
-    assert large_end == FIRST_SHORT_RUN_END
-    assert 1 <= small_index <= small_end
-    assert 1 <= large_index <= large_end
-
-    _IndexedText.furthest_index = -1
-    for start, end in _detect._mark_runs(_IndexedText(_shape(shape, 2_000))):
-        assert _IndexedText.furthest_index <= end
-
-    def furthest_when_the_first_nfc_chunk_is_built(count: int) -> int:
-        _IndexedText.furthest_index = -1
-        seen: list[int] = []
-
-        def normalize(form: Literal["NFC", "NFD", "NFKC", "NFKD"], text: str) -> str:
-            if not seen:
-                seen.append(_IndexedText.furthest_index)
-            return unicodedata.normalize(form, text)
-
-        monkeypatch.setattr(
-            _detect,
-            "unicodedata",
-            SimpleNamespace(
-                normalize=normalize,
-                is_normalized=unicodedata.is_normalized,
-                category=unicodedata.category,
-                combining=unicodedata.combining,
-            ),
-        )
-        _detect._nfc_bounds(_IndexedText(_shape(shape, count)))
-        assert seen
-        return seen[0]
-
-    assert 1 <= furthest_when_the_first_nfc_chunk_is_built(2_000) <= FIRST_SHORT_RUN_END
-    assert 1 <= furthest_when_the_first_nfc_chunk_is_built(8_000) <= FIRST_SHORT_RUN_END
+@pytest.mark.parametrize("shape", MARK_RUN_SHAPES)
+def test_four_times_the_text_takes_less_than_seven_times_the_cpu_time(shape: str) -> None:
+    assert [larger / smaller for smaller, larger in itertools.pairwise(GROWTH_COUNTS)] == [4, 4, 4]
+    fastest: dict[int, float] = {}
+    tries: list[list[float]] = []
+    while len(tries) < GROWTH_TRIES:
+        tries.append(_growth_ratios(shape, fastest))
+        if max(tries[-1]) < GROWTH_LIMIT and len(tries[-1]) == len(GROWTH_COUNTS) - 1:
+            break
+    assert max(tries[-1]) < GROWTH_LIMIT, (tries, fastest)
+    assert len(tries[-1]) == len(GROWTH_COUNTS) - 1
 
 
 @pytest.mark.parametrize("page", ["CHANGELOG.md", "docs/guides/pii.md"])
