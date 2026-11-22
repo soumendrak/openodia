@@ -896,6 +896,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#legacy-fonts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy fonts
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1633,6 +1644,34 @@
   
   
     <li class="md-nav__item">
+      <a href="api/legacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Legacy fonts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="api/indic/" class="md-nav__link">
         
   
@@ -1893,6 +1932,7 @@ uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># or: pi
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#sentence-segmenter">Sentence segmenter</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#odia-spell-checker">Odia spell checker</a></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#pii-detection-and-masking">PII detection and masking</a></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <a href="#legacy-fonts">Legacy font bytes</a></li>
 </ul>
 <h3 id="unicode-normalization"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m19.36 2.72 1.42 1.42-5.72 5.71c1.07 1.54 1.22 3.39.32 4.59L9.06 8.12c1.2-.9 3.05-.75 4.59.32zM5.93 17.57c-2.01-2.01-3.24-4.41-3.58-6.65l4.88-2.09 7.44 7.44-2.09 4.88c-2.24-.34-4.64-1.57-6.65-3.58"/></svg></span> Unicode normalization<a class="headerlink" href="#unicode-normalization" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2678,6 +2718,12 @@ keeps working unchanged.</p>
 <li>English text &rarr; Check in Offline dictionary &rarr; Not Found &rarr; Check in Cache &rarr; Not Found &rarr; Hit Google Translate API &rarr; Update the Cache &rarr; Return result</li>
 </ol>
 </details>
+<h3 id="legacy-fonts"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 8h3v12h1v1h-4v-1h1v-3h-4l-1.5 3H14v1h-4v-1h1zm1 1-3.5 7H18zM5 3h5c1.11 0 2 .89 2 2v11H9v-5H6v5H3V5c0-1.11.89-2 2-2m1 2v4h3V5z"/></svg></span> Legacy fonts<a class="headerlink" href="#legacy-fonts" title="Permanent link">&para;</a></h3>
+<p><code>openodia.legacy</code> needs a release newer than 0.2.0: <code>import openodia.legacy</code> fails on 0.2.0. <code>legacy.decode</code> reads the bytes of text typed in an 8-bit Odia font as keystroke characters: cp1252 for each defined byte, while 0x81, 0x8D, 0x8F, 0x90 and 0x9D, which that codec leaves undefined, stay as those code points.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">legacy</span>
+
+<span class="n">legacy</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;JX</span><span class="se">\xcf\x85</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;JXÏ…&#39;</span>
+</code></pre></div>
 <h2 id="known-issues"><img alt="🐛" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f41b.svg" title=":bug:" /> Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">&para;</a></h2>
 <ul>
 <li>There are few issues in the code an be found <a href="https://github.com/soumendrak/openodia/issues">here</a>.</li>
@@ -2729,7 +2775,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 18, 2026 12:00:17 UTC"><span class="timeago" datetime="2026-11-18T12:00:17+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 18, 2026 12:00:17 UTC">2026-11-18</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 22, 2026 18:00:48 UTC"><span class="timeago" datetime="2026-11-22T18:00:48+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 22, 2026 18:00:48 UTC">2026-11-22</span>
   </span>
 
     
