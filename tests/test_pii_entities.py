@@ -204,6 +204,17 @@ def test_runs_up_to_32_code_points_map_exactly_and_longer_runs_map_to_the_run_en
     assert pii.mask(text) == prefix + "<EMAIL>" + masked_tail
 
 
+def test_offsets_after_a_long_run_that_nfc_shortens_point_at_the_entities() -> None:
+    run = "e" + "\u0301\u0323" * 30
+    assert len(run) == 61
+    assert len(unicodedata.normalize("NFC", run)) == 60
+    text = run + " ଅଶୋକ ଦାସ 9876543210 x"
+    entities = pii.detect(text, types=["NAME", "PHONE"])
+    assert [(entity.type, entity.start, entity.end) for entity in entities] == [("NAME", 62, 70), ("PHONE", 71, 81)]
+    assert [text[entity.start : entity.end] for entity in entities] == ["ଅଶୋକ ଦାସ", "9876543210"]
+    assert pii.mask(text, types=["NAME", "PHONE"]) == run + " <NAME> <PHONE> x"
+
+
 def test_an_honorific_includes_three_dictionary_words_and_not_only_two() -> None:
     assert pii.mask("ଶ୍ରୀ ଅଶୋକ କୁମାର ଦାସ") == "<NAME>"
 
