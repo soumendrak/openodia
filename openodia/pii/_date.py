@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from datetime import date
 
 from openodia.numbers._tables import GREGORIAN_MONTHS
@@ -45,14 +46,12 @@ def _is_calendar_day(day: str, month: int, year: str) -> bool:
     return True
 
 
-def find_dates(text: str) -> list[tuple[int, int, float]]:
-    """Return ``(start, end, confidence)`` for each real calendar date in ASCII-digit ``text``."""
-    found: list[tuple[int, int, float]] = []
+def find_dates(text: str) -> Iterator[tuple[int, int, float]]:
+    """Yield ``(start, end, confidence)`` for each real calendar date in ASCII-digit ``text``."""
     for pattern, day, month in ((_DAY_MONTH_YEAR, 1, 2), (_MONTH_DAY_YEAR, 2, 1)):
         for match in pattern.finditer(text):
             if _is_calendar_day(match[day], _MONTH_NUMBER[match[month].casefold()], match[3]):
-                found.append((match.start(), match.end(), NAMED_CONFIDENCE))
+                yield match.start(), match.end(), NAMED_CONFIDENCE
     for match in _NUMERIC.finditer(text):
         if _is_calendar_day(match[1], int(match[2]), match[3]):
-            found.append((match.start(), match.end(), NUMERIC_CONFIDENCE))
-    return found
+            yield match.start(), match.end(), NUMERIC_CONFIDENCE

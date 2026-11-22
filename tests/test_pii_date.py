@@ -1,5 +1,6 @@
 import calendar
 import json
+import re
 import time
 import unicodedata
 
@@ -8,7 +9,7 @@ import pytest
 from openodia import cli, pii
 from openodia.numbers import odia_to_ascii
 from openodia.numbers._tables import GREGORIAN_MONTHS
-from openodia.pii import _date
+from openodia.pii import _date, _detect
 
 ENGLISH_MONTHS = (
     ("January", "Jan"),
@@ -99,6 +100,14 @@ def test_a_numeric_date_is_found_at_07(text: str, found: str) -> None:
         "0 January 2024",
         "32 January 2024",
         "115/01/2024",
+        "015/01/2024",
+        "15/001/2024",
+        "015 January 2024",
+        "January 015, 2024",
+        "15/01 2024",
+        "15 01 2024",
+        "Aprıl 15, 2024",
+        "ſept 15, 2024",
         "15/01/20245",
         "115 January 2024",
         "15 January 20245",
@@ -241,7 +250,7 @@ class _Measured(str):
 def test_finding_dates_copies_a_linear_amount_of_the_text(shape: str) -> None:
     def work(count: int) -> tuple[int, int]:
         _Measured.work = 0
-        found = _date.find_dates(_Measured(odia_to_ascii(LONG_SHAPES[shape]) * count))
+        found = list(_date.find_dates(_Measured(odia_to_ascii(LONG_SHAPES[shape]) * count)))
         return _Measured.work, len(found)
 
     small, small_found = work(500)
@@ -268,3 +277,30 @@ def test_64000_repeats_are_searched_within_the_time_budget(shape: str) -> None:
 def test_long_shapes_cover_found_and_rejected_dates() -> None:
     counts = {shape: len(pii.detect(unit * 3, types=["DATE"])) for shape, unit in LONG_SHAPES.items()}
     assert list(counts.values()) == [3, 3, 3, 3, 0, 0, 0, 0]
+
+
+PAGES = ("AGENTS.md", "docs/index.md", "docs/guides/pii.md")
+TYPE_LISTS = {"AGENTS.md": "`--type` (repeatable) limits the types: ", "docs/guides/pii.md": "`types` is a list of "}
+
+
+def _page(name: str) -> str:
+    from pathlib import Path
+
+    return (Path(__file__).resolve().parent.parent / name).read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("page", TYPE_LISTS)
+def test_each_list_of_types_names_every_type_in_order(page: str) -> None:
+    sentence = _page(page).split(TYPE_LISTS[page])[1].split(".")[0]
+    assert tuple(re.findall(r"`([A-Z]+)`", sentence)) == pii.PII_TYPES
+
+
+def test_the_index_table_has_one_row_per_type() -> None:
+    assert tuple(re.findall(r"^\| `([A-Z]+)` \|", _page("docs/index.md"), re.MULTILINE)) == pii.PII_TYPES
+
+
+@pytest.mark.parametrize("page", PAGES)
+def test_the_tie_order_on_each_page_is_the_order_detect_uses(page: str) -> None:
+    sentence = re.search(r"earlier of (.*?)(?: wins|\)|\.\s)", _page(page))
+    assert sentence is not None
+    assert re.findall(r"`([A-Z]+)`", sentence[1]) == list(_detect._RANK)
