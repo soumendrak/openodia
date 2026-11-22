@@ -11,6 +11,7 @@ _ODIA_LETTERS = [
     for code in range(0x0B00, 0x0B80)
     if unicodedata.name(chr(code), "").startswith("ORIYA LETTER ") and unicodedata.normalize("NFC", chr(code)) == chr(code)
 ]
+assert "".join(_ODIA_LETTERS) == "ଅଆଇଈଉଊଋଌଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯରଲଳଵଶଷସହୟୠୡୱ"
 
 
 @pytest.mark.parametrize("letter", _ODIA_LETTERS, ids=lambda letter: unicodedata.name(letter))
@@ -20,6 +21,7 @@ def test_every_odia_letter_is_one_akshara(letter: str) -> None:
 
 
 _CONSONANT_LETTERS = [letter for letter in _ODIA_LETTERS if letter not in "ଅଆଇଈଉଊଋଌଏଐଓଔୠୡ"]
+assert len(_CONSONANT_LETTERS) == 36
 
 
 @pytest.mark.parametrize("letter", _CONSONANT_LETTERS, ids=lambda letter: unicodedata.name(letter))

@@ -540,9 +540,26 @@ _REJECT_REGRESSIONS: tuple[tuple[str, str, Lemma], ...] = (
     ("ଚାହିଁଛି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", FiniteVerb("present", "perfect", 3, "singular"))),
     ("ଚାହିଁଛନ୍ତି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _PRES_PERF_P)),
     ("ଚାହିଁ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", NonfiniteVerb("conjunctive"))),
+    ("ଚାହିଲା", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _SIMPLE_S)),
+    ("ଚାହିଛି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", FiniteVerb("present", "perfect", 3, "singular"))),
+    ("ଚାହିବି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", _FUT_1S)),
+    ("ଚାହିଁକୁ", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", NonfiniteVerb("conjunctive"))),
     ("ଚାହାଁନ୍ତି", "ଚାହ", Lemma("ଚାହିଁବା", "VERB", FiniteVerb("present", "simple", 3, "plural"))),
     ("ଧୋଆନ୍ତି", "ଧୋ", Lemma("ଧୋଇବା", "VERB", FiniteVerb("present", "simple", 3, "plural"))),
 )
+
+
+_NASAL_CHAH_ROWS = tuple(
+    row for row in _REJECT_REGRESSIONS if row[0].startswith("ଚାହ") and row[0][4:5] == "ଁ" and row[0][4:] != "ଁ"
+)
+assert len(_NASAL_CHAH_ROWS) == 19
+
+
+@pytest.mark.parametrize(("word", "root", "expected"), _NASAL_CHAH_ROWS)
+def test_the_non_nasal_spelling_of_each_chah_form_gives_the_nasal_reading(word: str, root: str, expected: Lemma) -> None:
+    plain = word[:4] + word[5:]
+    assert "ଁ" not in plain[:5]
+    assert (stem(plain), lemma(plain)) == (root, expected)
 
 
 @pytest.mark.parametrize(("word", "root", "expected"), _REJECT_REGRESSIONS)
@@ -564,7 +581,7 @@ def test_no_stem_is_cut_inside_thi(word: str) -> None:
 
 def test_reject_regression_table_is_pinned_and_documented() -> None:
     words = [word for word, _, _ in _REJECT_REGRESSIONS]
-    assert len(words) == len(set(words)) == 72
+    assert len(words) == len(set(words)) == 76
     for required in ("ଚାହିଁଥିଲା", "ପିଇବା", "ଶୁଇବା", "ଧୋଇବା", "ହୋଇଥିଲା", "ଖାଇବି", "ପାଇବି", "ଗାଇବି", "ଗାଁର"):
         assert required in words
     tails = {tail for item in suffixes() for tail in item.tails}
