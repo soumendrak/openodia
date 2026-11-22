@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections.abc import Callable, Iterable
 from typing import NamedTuple
 
@@ -92,6 +93,69 @@ def _validate_min_confidence(value: float) -> None:
         raise ValueError(f"min_confidence must be a number between 0 and 1, got {value!r}")
 
 
+def _regex_candidates(text: str, wanted: frozenset[str], min_confidence: float) -> list[_Candidate]:
+    found: list[_Candidate] = []
+    for kind, pattern, group, confidence_of in _DETECTORS:
+        if kind not in wanted:
+            continue
+        for match in pattern.finditer(text):
+            start, end = match.span(group)
+            confidence = confidence_of(text[start:end])
+            if confidence >= min_confidence:
+                found.append(_Candidate(start, end, kind, confidence))
+    return found
+
+
+def _attaches_to_previous(char: str) -> bool:
+    return unicodedata.category(char) in {"Mn", "Mc", "Me"}
+
+
+def _mark_runs(text: str) -> list[tuple[int, int]]:
+    runs: list[tuple[int, int]] = []
+    start = 0
+    while start < len(text):
+        end = start + 1
+        while end < len(text) and _attaches_to_previous(text[end]):
+            end += 1
+        runs.append((start, end))
+        start = end
+    return runs
+
+
+def _nfc_ends(chunk: str, nfc_chunk: str, origin: int) -> list[int]:
+    ends: list[int] = []
+    taken = 0
+    for length in range(1, len(nfc_chunk) + 1):
+        target = nfc_chunk[:length]
+        end = taken + 1
+        while end <= len(chunk) and unicodedata.normalize("NFC", chunk[:end]) != target:
+            end += 1
+        if end > len(chunk):
+            ends.extend([origin + len(chunk)] * (len(nfc_chunk) - len(ends)))
+            return ends
+        ends.append(origin + end)
+        taken = end
+    return ends
+
+
+_LONGEST_EXACT_RUN = 32
+
+
+def _nfc_bounds(text: str) -> tuple[str, list[int] | None]:
+    if unicodedata.is_normalized("NFC", text):
+        return text, None
+    parts: list[str] = []
+    bounds = [0]
+    for start, end in _mark_runs(text):
+        nfc_chunk = unicodedata.normalize("NFC", text[start:end])
+        parts.append(nfc_chunk)
+        if end - start > _LONGEST_EXACT_RUN:
+            bounds.extend([end] * len(nfc_chunk))
+            continue
+        bounds.extend(_nfc_ends(text[start:end], nfc_chunk, start))
+    return "".join(parts), bounds
+
+
 def detect(text: str, types: Iterable[str] | None = None, min_confidence: float = 0.0) -> list[PIIEntity]:
     """Find PII spans in ``text``, sorted by position and never overlapping.
 
@@ -112,14 +176,12 @@ def detect(text: str, types: Iterable[str] | None = None, min_confidence: float 
         raise TypeError(f"text must be str, got {type(text).__name__}")
     wanted = validated_types(types)
     _validate_min_confidence(min_confidence)
-    ascii_text = odia_to_ascii(text)
-    candidates = []
-    for kind, pattern, group, confidence_of in _DETECTORS:
-        if kind not in wanted:
-            continue
-        for match in pattern.finditer(ascii_text):
-            start, end = match.span(group)
-            confidence = confidence_of(ascii_text[start:end])
-            if confidence >= min_confidence:
-                candidates.append(_Candidate(start, end, kind, confidence))
-    return [PIIEntity(c.kind, text[c.start : c.end], c.start, c.end, c.confidence) for c in _merge(candidates)]
+    nfc_text, bounds = _nfc_bounds(text)
+    candidates = _regex_candidates(odia_to_ascii(nfc_text), wanted, min_confidence)
+    if bounds is not None:
+        candidates = [found._replace(start=bounds[found.start], end=bounds[found.end]) for found in candidates]
+        candidates.extend(_regex_candidates(odia_to_ascii(text), wanted, min_confidence))
+    return [
+        PIIEntity(found.kind, text[found.start : found.end], found.start, found.end, found.confidence)
+        for found in _merge(candidates)
+    ]
