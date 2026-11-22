@@ -117,6 +117,8 @@ def test_a_numeric_date_is_found_at_07(text: str, found: str) -> None:
         "15 ମଇରେ 2024",
         "15 ଅମଇ 2024",
         "XMay 4, 2024",
+        "ଗମଇ 4, 2024",
+        "ଗମଇ ୪, ୨୦୨୪",
         "15 January,, 2024",
         "15 Jan.. 2024",
         "May 4,, 2024",
@@ -173,6 +175,30 @@ def test_nfd_text_masks_the_same_date_as_nfc(text: str) -> None:
     assert unicodedata.normalize("NFC", pii.mask(decomposed)) == pii.mask(text)
     for entity in pii.detect(decomposed):
         assert decomposed[entity.start : entity.end] == entity.text
+
+
+@pytest.mark.parametrize("pad", [" ", "\t", "\n", "\r", "\r\n", "  \r\n\r\n ", "\u00a0"])
+def test_padding_around_dates_keeps_their_offsets_and_every_other_character(pad: str) -> None:
+    text = pad + "15/01/2024" + pad + "May 4, 2024" + pad
+    second = 2 * len(pad) + 10
+    entities = pii.detect(text)
+    assert [(entity.start, entity.end) for entity in entities] == [(len(pad), len(pad) + 10), (second, second + 11)]
+    assert [text[entity.start : entity.end] for entity in entities] == ["15/01/2024", "May 4, 2024"]
+    assert pii.mask(text) == pad + "<DATE>" + pad + "<DATE>" + pad
+
+
+def test_dates_far_into_a_long_text_keep_exact_offsets() -> None:
+    lead = "ଘର \r\n" * 200
+    text = lead + "15 January 2024" + " ।" * 200 + "\r\n".join(["15/01/2024"] * 300)
+    entities = pii.detect(text)
+    assert len(entities) == 301
+    assert (entities[0].start, entities[0].end) == (len(lead), len(lead) + 15)
+    tail = len(lead) + 15 + 400
+    assert [(entity.start, entity.end) for entity in entities[1:]] == [
+        (tail + 12 * index, tail + 12 * index + 10) for index in range(300)
+    ]
+    masked = pii.mask(text)
+    assert masked == lead + "<DATE>" + " ।" * 200 + "\r\n".join(["<DATE>"] * 300)
 
 
 def test_a_date_inside_a_longer_match_is_merged_into_it() -> None:
