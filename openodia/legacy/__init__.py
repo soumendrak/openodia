@@ -3,8 +3,10 @@
 Decode the font bytes with ``decode``. Output is NFC. ଡ଼ and ଢ଼ stay
 consonant plus nukta, which is the NFC spelling of those letters.
 
-A left matra is typed before the consonant in these fonts and is moved to the
-end of that conjunct.
+After the glyph table, each syllable is rebuilt in Unicode order: reph (when
+the base is a consonant), the base letter, its subjoined forms in the order typed, the vowel sign, then the
+nasal or visarga. A left matra is typed before the consonant in these fonts
+and joins its right half wherever that half is typed in the syllable.
 
 Examples:
     >>> from openodia import legacy

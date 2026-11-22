@@ -1,4 +1,6 @@
 import json
+import random
+import re
 from pathlib import Path
 
 import pytest
@@ -246,7 +248,8 @@ def test_a_font_table_must_have_the_expected_shape(monkeypatch: pytest.MonkeyPat
         _convert._strings(None)
     with pytest.raises(TypeError):
         _convert._strings([""])
-    assert _convert._matra(None) is None
+    with pytest.raises(TypeError):
+        _convert._matra(None)
     with pytest.raises(TypeError):
         _convert._matra([])
     with pytest.raises(TypeError):
@@ -256,15 +259,13 @@ def test_a_font_table_must_have_the_expected_shape(monkeypatch: pytest.MonkeyPat
     with pytest.raises(TypeError):
         _convert._matra({"marker": "m", "default": "d", "forms": [["", "x"]]})
     with pytest.raises(TypeError):
-        _convert._matra({"marker": "m", "default": "d", "forms": [], "joins": "x"})
-    with pytest.raises(TypeError):
-        _convert._matra({"marker": "m", "default": "d", "forms": [], "joins": [""]})
-    with pytest.raises(TypeError):
         _convert._rules("no")
     with pytest.raises(TypeError):
         _convert._rules([["a"]])
     with pytest.raises(TypeError):
-        _convert._rules([["a", "b", "no"]])
+        _convert._rules([["a", 1]])
+    with pytest.raises(TypeError):
+        _convert._rules(None)
     with pytest.raises(TypeError):
         _convert._reph("")
     monkeypatch.setattr(_convert.json, "loads", lambda _text: [])
@@ -483,15 +484,105 @@ def test_docs_name_every_byte_cp1252_leaves_undefined(page: str) -> None:
 
 LEGACY_RULE_FILES = ("CHANGELOG.md", "docs/index.md")
 assert len(LEGACY_RULE_FILES) == 2
+EXAMPLE = re.compile(r"`([^`]+)` and `([^`]+)` both give `([^`]+)`")
 
 
 @pytest.mark.parametrize("path", LEGACY_RULE_FILES)
-def test_every_page_states_the_ya_phala_and_reph_examples_that_the_converter_gives(path: str) -> None:
+def test_every_both_orders_example_on_the_page_is_what_the_converter_gives(path: str) -> None:
     text = (Path(__file__).parent.parent / path).read_text(encoding="utf-8")
-    examples = (("LÐÔÍ", "କ୍ୟ୍ରା"), ("LÔÍÐ", "କ୍ୟ୍ରା"), ("ÒLàß", "ର୍କୈ"))
-    assert "the sign lands after every subjoined form typed after the ya-phala" in text
-    assert "Reph typed before the right half of ୈ or ୌ gives the same output as reph typed after it" in text
-    for source, expected in examples:
-        assert f"`{source}`" in text
-        assert f"`{expected}`" in text
-        assert legacy.to_unicode(source, font="ORTTSarala") == expected
+    examples = EXAMPLE.findall(text)
+    assert len(examples) == 3
+    for first, second, expected in examples:
+        font = "AkrutiOriSarala" if first.startswith("ù") else "ORTTSarala"
+        assert legacy.to_unicode(first, font=font) == expected
+        assert legacy.to_unicode(second, font=font) == expected
+
+
+KEY_ORDER_PAIRS = (
+    ("ORTTSarala", "ÒLÕÔÍ", "ÒLÔÍÕ", "କ୍ୟ୍ରେଂ"),
+    ("ORTTSarala", "ÒLÜÔÍ", "ÒLÔÍÜ", "କ୍ୟ୍ରେଁ"),
+    ("ORTTSarala", "ÒLÕÔçL", "ÒLÔçLÕ", "କ୍ୟ୍\u200dକେଂ"),
+    ("ORTTSarala", "ÒLàÔß", "ÒLÔßà", "ର୍କ୍ୟୈ"),
+    ("ORTTSarala", "ÒLàÔ×", "ÒLÔ×à", "ର୍କ୍ୟୌ"),
+    ("ORTTSarala", "ÒLàÔÐ", "ÒLÔÐà", "ର୍କ୍ୟୋ"),
+    ("ORTTSarala", "ÒLÕÍ", "ÒLÍÕ", "କ୍ରେଂ"),
+    ("ORTTSarala", "ÒLÜÍ", "ÒLÍÜ", "କ୍ରେଁ"),
+    ("ORTTSarala", "ÒLàÍ", "ÒLÍà", "ର୍କ୍ରେ"),
+    ("ORTTSarala", "ÒLàçL", "ÒLçLà", "ର୍କ୍\u200dକେ"),
+    ("ORTTSarala", "ÒLàÍß", "ÒLÍßà", "ର୍କ୍ରୈ"),
+    ("ORTTSarala", "ÒLÕÍß", "ÒLÍÕß", "କ୍ରୈଂ"),
+    ("ORTTSarala", "LÓÊ", "LÊÓ", "କୁଃ"),
+    ("AkrutiOriSarala", "ùKõ£", "ùK£õ", "କ୍ମେଂ"),
+    ("AkrutiOriSarala", "ùKõ£ø", "ùK£õø", "କ୍ମୌଂ"),
+    ("AkrutiOriSarala", "Küé", "Kéü", "କୃଃ"),
+)
+assert len(KEY_ORDER_PAIRS) == 16
+
+
+@pytest.mark.parametrize(("font", "typed", "other_order", "expected"), KEY_ORDER_PAIRS)
+def test_a_syllable_gives_the_same_output_in_either_key_order(font: str, typed: str, other_order: str, expected: str) -> None:
+    assert legacy.to_unicode(typed, font=font) == expected
+    assert legacy.to_unicode(other_order, font=font) == expected
+
+
+SIGN_BEFORE_HALANT = re.compile("[ାିୀୁୂୃେୈୋୌଁଂଃ]୍")
+
+
+def _font(font_name: str) -> "_convert._Font":
+    [font] = [font for font in _convert._FONTS if font.name == font_name]
+    return font
+
+
+def _keys(font_name: str, extra: str) -> list[str]:
+    return sorted(_font(font_name).alphabet | set(extra))
+
+
+def test_no_two_key_ortt_syllable_leaves_a_sign_before_a_halant() -> None:
+    keys = _keys("ORTTSarala", "ÔàÒ")
+    assert len(keys) == 188
+    inputs = [lead + "L" + first + ya + second for lead in ("", "Ò") for first in keys for ya in ("", "Ô") for second in keys]
+    assert len(inputs) == 141376
+    bad = [text for text in inputs if SIGN_BEFORE_HALANT.search(legacy.to_unicode(text, font="ORTTSarala"))]
+    assert bad == []
+
+
+def _raw_glyphs(font_name: str, text: str) -> list[str]:
+    return [char for char in text if not char.isascii() and char in _font(font_name).alphabet]
+
+
+def test_seeded_random_ortt_text_leaves_no_sign_before_a_halant() -> None:
+    keys = _keys("ORTTSarala", "")
+    picker = random.Random(301)
+    inputs = ["".join(picker.choices(keys, k=picker.randint(1, 8))) for _ in range(20000)]
+    assert len(inputs) == 20000
+    bad = [text for text in inputs if SIGN_BEFORE_HALANT.search(legacy.to_unicode(text, font="ORTTSarala"))]
+    assert bad == []
+
+
+@pytest.mark.parametrize(("font_name", "text"), [("ORTTSarala", "ôÒð"), ("ORTTSarala", "L ÊÔ"), ("AkrutiOriSarala", "ëùÔ")])
+def test_signs_typed_without_a_base_letter_go_after_the_subjoined_form(font_name: str, text: str) -> None:
+    output = legacy.to_unicode(text, font=font_name)
+    assert output.startswith("୍") or output.startswith("କ ୍")
+    assert SIGN_BEFORE_HALANT.search(output) is None
+
+
+@pytest.mark.parametrize(
+    ("font_name", "lead", "sizes"), [("ORTTSarala", "ÒL", (7, 22, 4)), ("AkrutiOriSarala", "ùK", (3, 31, 4))]
+)
+def test_a_nasal_or_reph_before_a_subjoined_form_leaves_no_sign_before_a_halant_or_raw_glyph(
+    font_name: str, lead: str, sizes: tuple[int, int, int]
+) -> None:
+    font = _font(font_name)
+    between = [src for src, dst in font.pairs if len(src) == 1 and dst != "" and set(dst) <= set("ଁଂଃ")]
+    between += [font.reph] if font.reph is not None else []
+    subjoined = [src for src, dst in font.pairs if len(src) == 1 and dst.startswith("୍")]
+    halves = [""] + [suffix for suffix, _sign in font.matra.forms]
+    assert (len(between), len(subjoined), len(halves)) == sizes
+    for text in (lead + mark + form + half for mark in between for form in subjoined for half in halves):
+        output = legacy.to_unicode(text, font=font_name)
+        assert SIGN_BEFORE_HALANT.search(output) is None, text
+        assert _raw_glyphs(font_name, output) == [], text
+
+
+def test_a_reph_with_no_consonant_in_its_syllable_stays_where_it_was_typed() -> None:
+    assert legacy.to_unicode("Óà", font="ORTTSarala") == "ଃର୍"

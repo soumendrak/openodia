@@ -8,8 +8,6 @@ SUPPORTED_FONTS = ("AkrutiOriSarala", "ORTTSarala")
 
 _CONSONANTS = frozenset("କଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯରଲଳଵଶଷସହୟୱଡ଼ଢ଼")
 _VOWEL_SIGNS = frozenset("ାିୀୁୂୃେୈୋୌ")
-_ANUSVARA = frozenset("ଂଁ")
-_REPH_SIGNS = _VOWEL_SIGNS | _ANUSVARA
 _HALANT = "୍"
 _NUKTA = "଼"
 _FONTS_DIR = Path(__file__).resolve().parent / "fonts"
@@ -20,14 +18,12 @@ class _Matra:
     marker: str
     default: str
     forms: tuple[tuple[str, str], ...]
-    joins: tuple[str, ...]
 
 
 @dataclass(frozen=True)
 class _Rule:
     pattern: re.Pattern[str]
     repl: str
-    repeat: bool
 
 
 @dataclass(frozen=True)
@@ -35,9 +31,8 @@ class _Font:
     name: str
     pairs: tuple[tuple[str, str], ...]
     signatures: tuple[str, ...]
-    matra: _Matra | None
+    matra: _Matra
     reph: str | None
-    before_reph: tuple[_Rule, ...]
     post: tuple[_Rule, ...]
     alphabet: frozenset[str]
     unique: frozenset[str]
@@ -68,9 +63,7 @@ def _strings(value: object) -> tuple[str, ...]:
     return tuple(items)
 
 
-def _matra(value: object) -> _Matra | None:
-    if value is None:
-        return None
+def _matra(value: object) -> _Matra:
     if not isinstance(value, dict):
         raise TypeError("font matra must be an object")
     marker = value.get("marker")
@@ -87,25 +80,20 @@ def _matra(value: object) -> _Matra | None:
             raise TypeError("matra form must be a suffix and a vowel sign")
         parsed.append((suffix, sign))
     parsed.sort(key=lambda item: len(item[0]), reverse=True)
-    joins = value.get("joins", [])
-    if not isinstance(joins, list) or not all(isinstance(glyph, str) and glyph != "" for glyph in joins):
-        raise TypeError("matra joins must be non-empty strings")
-    return _Matra(marker, default, tuple(parsed), tuple(joins))
+    return _Matra(marker, default, tuple(parsed))
 
 
 def _rules(value: object) -> tuple[_Rule, ...]:
-    if value is None:
-        return ()
     if not isinstance(value, list):
         raise TypeError("font post rules must be a list")
     rules: list[_Rule] = []
     for item in value:
-        if not isinstance(item, list) or len(item) != 3:
-            raise TypeError("font post rule must be pattern, replacement, repeat")
-        pattern, repl, repeat = item
-        if not isinstance(pattern, str) or not isinstance(repl, str) or not isinstance(repeat, bool):
-            raise TypeError("font post rule must be pattern, replacement, repeat")
-        rules.append(_Rule(re.compile(pattern), repl, repeat))
+        if not isinstance(item, list) or len(item) != 2:
+            raise TypeError("font post rule must be pattern and replacement")
+        pattern, repl = item
+        if not isinstance(pattern, str) or not isinstance(repl, str):
+            raise TypeError("font post rule must be pattern and replacement")
+        rules.append(_Rule(re.compile(pattern), repl))
     return tuple(rules)
 
 
@@ -124,11 +112,11 @@ def _legacy_evidence(text: str) -> bool:
     return all(character not in _NOT_LEGACY_EVIDENCE for character in text)
 
 
-def _alphabet(pairs: tuple[tuple[str, str], ...], matra: _Matra | None, reph: str | None) -> frozenset[str]:
+def _alphabet(pairs: tuple[tuple[str, str], ...], matra: _Matra, reph: str | None) -> frozenset[str]:
     chars: set[str] = set()
     for src, _dst in pairs:
         chars.update(character for character in src if character not in _NOT_LEGACY_EVIDENCE)
-    if matra is not None and _legacy_evidence(matra.marker):
+    if _legacy_evidence(matra.marker):
         chars.add(matra.marker)
         for suffix, _sign in matra.forms:
             chars.update(character for character in suffix if character not in _NOT_LEGACY_EVIDENCE)
@@ -139,7 +127,7 @@ def _alphabet(pairs: tuple[tuple[str, str], ...], matra: _Matra | None, reph: st
 
 def _read_font(
     name: str,
-) -> tuple[tuple[tuple[str, str], ...], tuple[str, ...], _Matra | None, str | None, tuple[_Rule, ...], tuple[_Rule, ...]]:
+) -> tuple[tuple[tuple[str, str], ...], tuple[str, ...], _Matra, str | None, tuple[_Rule, ...]]:
     data = json.loads((_FONTS_DIR / f"{name}.json").read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise TypeError(f"{name} font must be an object")
@@ -148,17 +136,16 @@ def _read_font(
         _strings(data.get("signatures")),
         _matra(data.get("matra")),
         _reph(data.get("reph")),
-        _rules(data.get("before_reph")),
         _rules(data.get("post")),
     )
 
 
 def _load() -> tuple[_Font, ...]:
     loaded = [_read_font(name) for name in SUPPORTED_FONTS]
-    alphabets = [_alphabet(pairs, matra, reph) for pairs, _sigs, matra, reph, _before, _post in loaded]
+    alphabets = [_alphabet(pairs, matra, reph) for pairs, _sigs, matra, reph, _post in loaded]
     fonts: list[_Font] = []
     for index, name in enumerate(SUPPORTED_FONTS):
-        pairs, signatures, matra, reph, before_reph, post = loaded[index]
+        pairs, signatures, matra, reph, post = loaded[index]
         others: set[str] = set()
         for other, alphabet in enumerate(alphabets):
             if other != index:
@@ -170,7 +157,6 @@ def _load() -> tuple[_Font, ...]:
                 signatures=tuple(item for item in signatures if _legacy_evidence(item)),
                 matra=matra,
                 reph=reph,
-                before_reph=before_reph,
                 post=post,
                 alphabet=alphabets[index],
                 unique=alphabets[index] - others,
@@ -196,194 +182,81 @@ def _with_nukta(text: str, index: int) -> int:
     return end
 
 
-def _shift_consonant(text: str, marker: str) -> str:
-    out: list[str] = []
-    index = 0
-    limit = len(text)
-    while index < limit:
-        if text[index] == marker and index + 1 < limit and text[index + 1] in _CONSONANTS:
-            end = _with_nukta(text, index + 1)
-            out.append(text[index + 1 : end])
-            out.append(marker)
-            index = end
-            continue
-        out.append(text[index])
-        index += 1
-    return "".join(out)
-
-
 _JOINERS = frozenset("\u200c\u200d")
+_NASALS = frozenset("ଁଂଃ")
+_REPH = "ର୍"
 
 
-def _shift_halant(text: str, marker: str) -> str:
-    out: list[str] = []
-    index = 0
+def _subjoined_end(text: str, index: int) -> int:
+    cursor = index + 1
+    while cursor < len(text) and text[cursor] in _JOINERS:
+        cursor += 1
+    if cursor < len(text) and text[cursor] in _CONSONANTS:
+        return _with_nukta(text, cursor)
+    return cursor
+
+
+def _vowel(signs: list[str], matra: _Matra) -> str:
+    forms = dict(matra.forms)
+    found = next((index for index, sign in enumerate(signs) if sign in forms), None)
+    if matra.marker in signs and found is not None:
+        signs[signs.index(matra.marker)] = forms[signs[found]]
+        del signs[found]
+    return "".join(matra.default if sign == matra.marker else sign for sign in signs)
+
+
+def _syllable(text: str, index: int, font: _Font) -> tuple[str, int]:
+    matra = font.matra
+    marker = matra.marker
+    signs = [text[index]] if text[index] == marker else []
+    cursor = index + len(signs)
     limit = len(text)
-    while index < limit:
-        if text[index] == marker and index + 1 < limit and text[index + 1] == _HALANT:
-            cursor = index + 2
-            while cursor < limit and text[cursor] in _JOINERS:
-                cursor += 1
-            if cursor < limit and text[cursor] in _CONSONANTS:
-                end = _with_nukta(text, cursor)
-                out.append(_HALANT)
-                out.append(text[index + 2 : end])
-                out.append(marker)
-                index = end
-                continue
-        out.append(text[index])
-        index += 1
-    return "".join(out)
-
-
-def _form_at(text: str, index: int, matra: _Matra, skip: frozenset[str]) -> tuple[str, int] | None:
-    end = index
-    limit = len(text)
-    while end < limit and text[end] in skip:
-        end += 1
-    for suffix, sign in matra.forms:
-        if text.startswith(suffix, end):
-            return sign + text[index:end], end + len(suffix)
-    return None
-
-
-def _shift_join_across_nasals(text: str, matra: _Matra) -> str:
-    if not matra.joins:
-        return text
-    out: list[str] = []
-    index = 0
-    limit = len(text)
-    while index < limit:
-        if text[index] == matra.marker:
-            end = index + 1
-            while end < limit and text[end] in _ANUSVARA:
-                end += 1
-            if end > index + 1:
-                matched = next((glyph for glyph in matra.joins if text.startswith(glyph, end)), None)
-                if matched is not None:
-                    out.append(matra.marker)
-                    out.append(matched)
-                    out.append(text[index + 1 : end])
-                    index = end + len(matched)
-                    continue
-        out.append(text[index])
-        index += 1
-    return "".join(out)
-
-
-def _shift_join(text: str, matra: _Matra) -> str:
-    text = _shift_join_across_nasals(text, matra)
-    for glyph in matra.joins:
-        text = text.replace(matra.marker + glyph, glyph + matra.marker)
-    return text
-
-
-def _apply_matra(text: str, matra: _Matra, reph: str | None) -> str:
-    skip = _ANUSVARA if reph is None else _ANUSVARA | {reph}
-    text = _shift_consonant(text, matra.marker)
-    while True:
-        shifted = _shift_join(_shift_halant(text, matra.marker), matra)
-        if shifted == text:
-            break
-        text = shifted
-    out: list[str] = []
-    index = 0
-    limit = len(text)
-    while index < limit:
-        if text[index] == matra.marker:
-            formed = _form_at(text, index + 1, matra, skip)
-            if formed is not None:
-                sign, index = formed
-                out.append(sign)
-                continue
-            out.append(matra.default)
-            index += 1
+    base_end = _with_nukta(text, cursor) if cursor < limit and text[cursor] in _CONSONANTS else cursor
+    base = text[cursor:base_end]
+    chain: list[str] = []
+    nasals: list[str] = []
+    reph = False
+    cursor = base_end
+    while cursor < limit:
+        char = text[cursor]
+        if char == _HALANT:
+            end = _subjoined_end(text, cursor)
+            chain.append(text[cursor:end])
+            cursor = end
             continue
-        out.append(text[index])
-        index += 1
-    return "".join(out)
-
-
-def _shift_reph_signs(text: str, marker: str) -> str:
-    out: list[str] = []
-    index = 0
-    limit = len(text)
-    while index < limit:
-        if text[index] in _CONSONANTS:
-            end = _with_nukta(text, index)
-            while end < limit and text[end] in _REPH_SIGNS:
-                end += 1
-            if end < limit and text[end] == marker:
-                out.append(marker)
-                out.append(text[index:end])
-                index = end + 1
-                continue
-        out.append(text[index])
-        index += 1
-    return "".join(out)
-
-
-def _shift_reph_halant(text: str, marker: str) -> str:
-    out: list[str] = []
-    index = 0
-    limit = len(text)
-    while index < limit:
-        if text[index] in _CONSONANTS:
-            base = _with_nukta(text, index)
-            if base < limit and text[base] == _HALANT:
-                cursor = base + 1
-                while cursor < limit and text[cursor] in _JOINERS:
-                    cursor += 1
-                if cursor < limit and text[cursor] == marker:
-                    out.append(marker)
-                    out.append(text[index:base])
-                    out.append(_HALANT)
-                    out.append(text[base + 1 : cursor])
-                    index = cursor + 1
-                    continue
-        out.append(text[index])
-        index += 1
-    return "".join(out)
-
-
-def _apply_reph(text: str, marker: str) -> str:
-    text = _shift_reph_signs(text, marker)
-    while True:
-        shifted = _shift_reph_halant(text, marker)
-        if shifted == text:
+        if char == marker and text[cursor + 1 : cursor + 2] not in _CONSONANTS:
+            signs.append(char)
+        elif char == font.reph and base:
+            reph = True
+        elif char in _VOWEL_SIGNS or char in dict(matra.forms):
+            signs.append(char)
+        elif char in _NASALS:
+            nasals.append(char)
+        else:
             break
-        text = shifted
-    return text.replace(marker, "ର୍")
+        cursor += 1
+    head = _REPH if reph else ""
+    return head + base + "".join(chain) + _vowel(signs, matra) + "".join(nasals), cursor
 
 
-def _shift_anusvara(text: str) -> str:
+def _canonical(text: str, font: _Font) -> str:
+    marker = font.matra.marker
     out: list[str] = []
     index = 0
     limit = len(text)
     while index < limit:
-        if text[index] in _ANUSVARA and index + 1 < limit and text[index + 1] in _VOWEL_SIGNS:
-            out.append(text[index + 1])
-            out.append(text[index])
-            index += 2
+        char = text[index]
+        if char in _CONSONANTS or char in _VOWEL_SIGNS or char in _NASALS or char == marker:
+            piece, index = _syllable(text, index, font)
+            out.append(piece)
             continue
-        out.append(text[index])
+        out.append(_REPH if char == font.reph else char)
         index += 1
     return "".join(out)
-
-
-def _apply_anusvara(text: str) -> str:
-    while True:
-        shifted = _shift_anusvara(text)
-        if shifted == text:
-            return text
-        text = shifted
 
 
 def _apply_post(text: str, rules: tuple[_Rule, ...]) -> str:
     for rule in rules:
-        if not rule.repeat:
-            text = rule.pattern.sub(rule.repl, text)
-            continue
         while True:
             updated = rule.pattern.sub(rule.repl, text)
             if updated == text:
@@ -395,13 +268,7 @@ def _apply_post(text: str, rules: tuple[_Rule, ...]) -> str:
 def _convert(text: str, font: _Font) -> str:
     if text == "":
         return ""
-    text = _replace(text, font.pairs)
-    if font.matra is not None:
-        text = _apply_matra(text, font.matra, font.reph)
-    text = _apply_post(text, font.before_reph)
-    if font.reph is not None:
-        text = _apply_reph(text, font.reph)
-    text = _apply_anusvara(text)
+    text = _canonical(_replace(text, font.pairs), font)
     text = _apply_post(text, font.post)
     return unicodedata.normalize("NFC", text)
 
