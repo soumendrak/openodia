@@ -32,6 +32,15 @@ def rendered_text(page: Path) -> str:
     return html.unescape(TAGS.sub("\n", page.read_text(encoding="utf-8")))
 
 
+def test_legacy_api_page_lists_decode(site: Path) -> None:
+    page = (site / "api" / "legacy" / "index.html").read_text(encoding="utf-8")
+    assert 'id="openodia.legacy.decode"' in page
+    assert "0x81, 0x8D, 0x8F, 0x90 and 0x9D" in " ".join(
+        rendered_text(page_path := site / "api" / "legacy" / "index.html").split()
+    )
+    assert page_path.exists()
+
+
 def test_api_pages_were_built(site: Path) -> None:
     assert len(list((site / "api").glob("*/index.html"))) >= 10
 
