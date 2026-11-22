@@ -128,8 +128,11 @@ def to_unicode(text: str, font: str) -> str:
     ``SUPPORTED_FONTS``.
 
     Raises:
+        TypeError: ``text`` is not ``str``.
         ValueError: ``font`` is not in ``SUPPORTED_FONTS``.
     """
+    if not isinstance(text, str):
+        raise TypeError("text must be str; turn legacy font bytes into keystrokes with decode first")
     found = _FONTS.get(font)
     if found is None:
         raise ValueError(f"unknown font {font!r}; choose from {', '.join(SUPPORTED_FONTS)}")

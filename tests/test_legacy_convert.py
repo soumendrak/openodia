@@ -47,6 +47,12 @@ def test_an_unknown_font_is_rejected_with_the_supported_names() -> None:
         legacy.to_unicode("K", font="AkrutiOriSarala")
 
 
+@pytest.mark.parametrize("text", [None, 5, b"JX", bytearray(b"JX"), ["J"]])
+def test_text_that_is_not_str_is_rejected_with_a_type_error(text: str) -> None:
+    with pytest.raises(TypeError, match=r"^text must be str; turn legacy font bytes into keystrokes with decode first$"):
+        legacy.to_unicode(text, font="ORTTSarala")
+
+
 def test_empty_text_stays_empty() -> None:
     assert ortt("") == ""
 
