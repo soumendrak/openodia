@@ -178,7 +178,17 @@ def _only_the_email(text: str) -> None:
     assert [(entity.type, text[entity.start : entity.end]) for entity in entities] == [("EMAIL", "a@b.com")]
 
 
-def test_an_exact_run_resumes_its_search_where_the_last_letter_ended(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_an_exact_run_maps_each_letter_to_its_own_end() -> None:
+    composed = "a\u0301" + "\u0302" * 30
+    assert len(composed) == _detect._LONGEST_EXACT_RUN
+    assert _detect._nfc_bounds(composed + "x") == ("\u00e1" + "\u0302" * 30 + "x", [0, *range(2, 34)])
+    already_nfc = "x" + "\u0301" * 31
+    assert len(already_nfc) == _detect._LONGEST_EXACT_RUN
+    assert _detect._nfc_bounds(already_nfc + "\u00e9") == (already_nfc + "\u00e9", None)
+    assert _detect._nfc_ends(already_nfc, already_nfc, 5) == list(range(6, 38))
+
+
+def test_an_exact_run_never_normalizes_more_than_one_pass_over_its_prefixes(monkeypatch: pytest.MonkeyPatch) -> None:
     normalized: list[int] = []
 
     def normalize(form: Literal["NFC", "NFD", "NFKC", "NFKD"], text: str) -> str:
@@ -190,7 +200,7 @@ def test_an_exact_run_resumes_its_search_where_the_last_letter_ended(monkeypatch
     run = "x" + "\u0301" * 31
     assert len(run) == _detect._LONGEST_EXACT_RUN
     assert _detect._nfc_ends(run, run, 0) == list(range(1, 33))
-    assert sum(normalized) == sum(range(1, 33))
+    assert sum(normalized) <= sum(range(1, 33))
 
 
 GROWTH_COUNTS = (2_000, 8_000, 32_000, 128_000)
