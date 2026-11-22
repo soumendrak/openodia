@@ -18,7 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 NFC_SENTENCES = (
     "Text that is not in NFC is also searched in its NFC form, and each match is mapped back to offsets in the"
     " text you passed, so a PAN followed by a decomposed accented letter is found.",
-    "In text that is not in NFC, a match whose last letter carries 32 or more combining marks also covers those marks.",
+    "In text that is not in NFC, a match found in the NFC form whose last letter carries 32 or more combining marks"
+    " also covers those marks.",
 )
 
 EXPANDING = ["ବ\u0b5c ଘର", "କ\u0b4d\u0b3c", "ପ\u0b5dା", "a\u0301\u0323", "ଉ\u0b5cାଣଗୁଡିକ"]
@@ -257,3 +258,8 @@ def test_every_canonical_composition_is_searched_in_nfc_form() -> None:
         assert _detect._nfc_bounds(text)[0] == unicodedata.normalize("NFC", text), hex(code)
         checked += 1
     assert checked > 13_000
+
+
+def test_a_match_found_only_in_the_original_text_keeps_its_marks() -> None:
+    text = "ABCPE1234F" + "\u0307" * 32
+    assert pii.mask(text) == "<PAN>" + "\u0307" * 32

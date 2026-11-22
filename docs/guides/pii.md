@@ -8,7 +8,7 @@ Every example on this page is run by the test suite.
 
 ## Find matches
 
-`detect` returns one `PIIEntity` per match, in order. `start` and `end` are character offsets into the text you passed. Text that is not in NFC is also searched in its NFC form, and each match is mapped back to offsets in the text you passed, so a PAN followed by a decomposed accented letter is found. In text that is not in NFC, a match whose last letter carries 32 or more combining marks also covers those marks.
+`detect` returns one `PIIEntity` per match, in order. `start` and `end` are character offsets into the text you passed. Text that is not in NFC is also searched in its NFC form, and each match is mapped back to offsets in the text you passed, so a PAN followed by a decomposed accented letter is found. In text that is not in NFC, a match found in the NFC form whose last letter carries 32 or more combining marks also covers those marks.
 
 ```pycon
 >>> from openodia import pii
