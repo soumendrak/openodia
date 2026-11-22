@@ -370,6 +370,7 @@ LONG_SHAPES = {
     "subjoined consonants": ("L", "çL"),
     "ya-phalas": ("L", "Ô"),
     "joiners": ("Lç", "\u200d"),
+    "left matras after a consonant": ("L", "Ò"),
     "syllables": ("", "LÐ"),
     "numeric separators": ("1", "Ð1"),
 }
@@ -377,7 +378,7 @@ LONG_SHAPES = {
 
 @pytest.mark.parametrize(("head", "unit"), LONG_SHAPES.values(), ids=LONG_SHAPES)
 def test_string_work_grows_linearly_with_the_input(head: str, unit: str, monkeypatch: pytest.MonkeyPatch) -> None:
-    assert len(LONG_SHAPES) == 13
+    assert len(LONG_SHAPES) == 14
     work: list[int] = []
 
     class Measured(str):
@@ -412,15 +413,21 @@ def test_string_work_grows_linearly_with_the_input(head: str, unit: str, monkeyp
     assert large < small * 5
 
 
+BUDGET_SECONDS = 4.0
+BUDGET_REPEATS = 200_000
+
+
 @pytest.mark.parametrize(("head", "unit"), LONG_SHAPES.values(), ids=LONG_SHAPES)
-def test_fifty_thousand_repeats_convert_within_the_time_budget(head: str, unit: str) -> None:
-    text = head + unit * 50000
-    times = []
+def test_200000_repeats_convert_within_the_time_budget(head: str, unit: str) -> None:
+    text = head + unit * BUDGET_REPEATS
+    times: list[float] = []
     for _ in range(2):
         start = time.perf_counter()
         legacy.to_unicode(text, font="ORTTSarala")
         times.append(time.perf_counter() - start)
-    assert min(times) < 2.5
+        if times[-1] < BUDGET_SECONDS:
+            break
+    assert min(times) < BUDGET_SECONDS, times
 
 
 ODIA_CONSONANTS = [
@@ -444,3 +451,22 @@ def test_each_vowel_sign_and_nasal_typed_before_a_ya_phala_goes_after_it(sign: s
 def test_a_halant_with_a_zero_width_non_joiner_is_part_of_the_syllable() -> None:
     assert ortt("ÒL\u0b4d\u200cL") == "କ୍\u200cକେ"
     assert ortt("ÒL\u0b4d\u200c\u200dL") == "କ୍\u200c\u200dକେ"
+
+
+def test_the_first_right_half_typed_joins_the_left_matra() -> None:
+    assert ortt("ÒLßÐ") == "କୈା"
+    assert ortt("ÒLÐß") == "କୋß"
+
+
+@pytest.mark.parametrize("pad", [" ", "\t", "\n", "\r", "\r\n", "  \r\n\r\n ", "\u00a0"])
+def test_padding_around_keystrokes_is_kept_exactly(pad: str) -> None:
+    assert ortt(pad) == pad
+    assert ortt(pad + "L" + pad + "XÏÐ" + pad) == pad + "କ" + pad + "ଡ଼ା" + pad
+
+
+def test_long_text_keeps_every_syllable_and_line_break() -> None:
+    rows = json.loads(FIXTURE.read_text(encoding="utf-8"))["ORTTSarala"]
+    text = "\r\n".join(row["legacy"] for row in rows) + "\r\n"
+    assert len(text) > 256
+    assert ortt(text) == "\r\n".join(row["unicode"] for row in rows) + "\r\n"
+    assert ortt("LÐ " * 300) == "କା " * 300

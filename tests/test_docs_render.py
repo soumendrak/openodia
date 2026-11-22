@@ -41,6 +41,7 @@ def test_legacy_api_page_lists_decode_and_to_unicode(site: Path) -> None:
     assert "openodia.legacy needs a release newer than 0.2.0: import openodia.legacy fails on 0.2.0." in text
     assert "to_unicode ( text : str , font : str ) -> str" in text
     assert "ValueError font is not in SUPPORTED_FONTS ." in text
+    assert "Convert keystrokes typed in a legacy 8-bit Odia font to NFC Unicode Odia." in text
 
 
 def test_api_pages_were_built(site: Path) -> None:
