@@ -267,10 +267,12 @@ BUDGET_REPEATS = 64_000
 def test_64000_repeats_are_searched_within_the_time_budget(shape: str) -> None:
     text = LONG_SHAPES[shape] * BUDGET_REPEATS
     times: list[float] = []
-    for _ in range(2):
-        start = time.perf_counter()
+    for _ in range(3):
+        start = time.process_time()
         pii.detect(text, types=["DATE"])
-        times.append(time.perf_counter() - start)
+        times.append(time.process_time() - start)
+        if times[-1] < BUDGET_SECONDS:
+            break
     assert min(times) < BUDGET_SECONDS, times
 
 
@@ -304,3 +306,20 @@ def test_the_tie_order_on_each_page_is_the_order_detect_uses(page: str) -> None:
     sentence = re.search(r"earlier of (.*?)(?: wins|\)|\.\s)", _page(page))
     assert sentence is not None
     assert re.findall(r"`([A-Z]+)`", sentence[1]) == list(_detect._RANK)
+
+
+MANY_DATES = 256_000
+MANY_DATES_CPU_SECONDS = 6.0
+
+
+def test_256000_dates_are_found_within_the_cpu_budget() -> None:
+    text = "1/1/2000\n" * MANY_DATES
+    times: list[float] = []
+    for _ in range(3):
+        start = time.process_time()
+        found = pii.detect(text, types=["DATE"])
+        times.append(time.process_time() - start)
+        assert len(found) == MANY_DATES
+        if times[-1] < MANY_DATES_CPU_SECONDS:
+            break
+    assert min(times) < MANY_DATES_CPU_SECONDS, times

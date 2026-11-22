@@ -94,14 +94,11 @@ def _validate_min_confidence(value: float) -> None:
         raise ValueError(f"min_confidence must be a number between 0 and 1, got {value!r}")
 
 
-def _candidates(text: str, wanted: frozenset[str], min_confidence: float) -> list[_Candidate]:
-    found: list[_Candidate] = []
+def _candidates(text: str, wanted: frozenset[str], min_confidence: float) -> Iterable[_Candidate]:
     if "DATE" in wanted:
-        found.extend(
-            _Candidate(start, end, "DATE", confidence)
-            for start, end, confidence in find_dates(text)
-            if confidence >= min_confidence
-        )
+        for start, end, confidence in find_dates(text):
+            if confidence >= min_confidence:
+                yield _Candidate(start, end, "DATE", confidence)
     for kind, pattern, group, confidence_of in _DETECTORS:
         if kind not in wanted:
             continue
@@ -109,8 +106,7 @@ def _candidates(text: str, wanted: frozenset[str], min_confidence: float) -> lis
             start, end = match.span(group)
             confidence = confidence_of(text[start:end])
             if confidence >= min_confidence:
-                found.append(_Candidate(start, end, kind, confidence))
-    return found
+                yield _Candidate(start, end, kind, confidence)
 
 
 _LETTERS_THAT_COMPOSE_WITH_THE_PREVIOUS = (("\u1161", "\u1175"), ("\u11a8", "\u11c2"), ("\U00016d67", "\U00016d67"))
@@ -189,7 +185,7 @@ def detect(text: str, types: Iterable[str] | None = None, min_confidence: float 
     wanted = validated_types(types)
     _validate_min_confidence(min_confidence)
     nfc_text, bounds = _nfc_bounds(text)
-    candidates = _candidates(odia_to_ascii(nfc_text), wanted, min_confidence)
+    candidates = list(_candidates(odia_to_ascii(nfc_text), wanted, min_confidence))
     if bounds is not None:
         candidates = [found._replace(start=bounds[found.start], end=bounds[found.end]) for found in candidates]
         candidates.extend(_candidates(odia_to_ascii(text), wanted, min_confidence))
