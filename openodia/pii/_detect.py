@@ -106,8 +106,13 @@ def _regex_candidates(text: str, wanted: frozenset[str], min_confidence: float) 
     return found
 
 
+_LETTERS_THAT_COMPOSE_WITH_THE_PREVIOUS = (("\u1161", "\u1175"), ("\u11a8", "\u11c2"), ("\U00016d67", "\U00016d67"))
+
+
 def _attaches_to_previous(char: str) -> bool:
-    return unicodedata.category(char) in {"Mn", "Mc", "Me"}
+    if unicodedata.category(char) in {"Mn", "Mc", "Me"}:
+        return True
+    return any(low <= char <= high for low, high in _LETTERS_THAT_COMPOSE_WITH_THE_PREVIOUS)
 
 
 def _mark_runs(text: str) -> list[tuple[int, int]]:

@@ -44,18 +44,18 @@ def test_expanded_nfc_keeps_offsets_inside_the_original_text(text: str) -> None:
     assert bounds[0] == 0
     assert bounds[-1] == len(text)
     assert bounds == sorted(bounds)
-    pii.mask(text)
-    for entity in pii.detect(text):
-        assert text[entity.start : entity.end] == entity.text
+    full = text + " ABCPE1234F"
+    assert [(entity.type, entity.start, entity.end) for entity in pii.detect(full)] == [("PAN", len(text) + 1, len(full))]
+    assert pii.mask(full) == text + " <PAN>"
 
 
 def test_detect_finishes_when_nfc_expands_a_letter() -> None:
     script = f"""
 from openodia import pii
 for text in {EXPANDING!r}:
-    for entity in pii.detect(text):
-        assert text[entity.start:entity.end] == entity.text, text
-    pii.mask(text)
+    full = text + " ABCPE1234F"
+    assert [(entity.start, entity.end) for entity in pii.detect(full)] == [(len(text) + 1, len(full))], text
+    assert pii.mask(full) == text + " <PAN>", text
 print("ok")
 """
     completed = subprocess.run([sys.executable, "-c", script], check=False, capture_output=True, text=True, timeout=30)
@@ -239,3 +239,21 @@ def test_pages_state_the_nfc_mapping_rule(page: str) -> None:
     text = " ".join((ROOT / page).read_text(encoding="utf-8").split())
     for sentence in NFC_SENTENCES:
         assert sentence in text
+
+
+def test_hangul_jamo_are_composed_like_marks() -> None:
+    assert _detect._nfc_bounds("\u1100\u1161\u11a8 a\u0301") == ("\uac01 \u00e1", [0, 3, 4, 6])
+    assert _detect._nfc_bounds("\uac00\u11a8a\u0301") == ("\uac01\u00e1", [0, 2, 4])
+
+
+def test_every_canonical_composition_is_searched_in_nfc_form() -> None:
+    checked = 0
+    for code in range(sys.maxunicode + 1):
+        char = chr(code)
+        decomposed = unicodedata.normalize("NFD", char)
+        if decomposed == char:
+            continue
+        text = "a" + decomposed + " " + char + "\u0301"
+        assert _detect._nfc_bounds(text)[0] == unicodedata.normalize("NFC", text), hex(code)
+        checked += 1
+    assert checked > 13_000
