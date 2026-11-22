@@ -84,12 +84,13 @@ removed). Pass `-` without `--file` to read UTF-8 text from stdin.
 
 ### Legacy fonts
 
-`openodia.legacy` needs a release newer than 0.2.0: `import openodia.legacy` fails on 0.2.0. `legacy.decode` reads the bytes of text typed in an 8-bit Odia font as keystroke characters: cp1252 for each defined byte, while 0x81, 0x8D, 0x8F, 0x90 and 0x9D, which that codec leaves undefined, stay as those code points.
+`openodia.legacy` needs a release newer than 0.2.0: `import openodia.legacy` fails on 0.2.0. `legacy.decode` reads the bytes of text typed in an 8-bit Odia font as keystroke characters: cp1252 for each defined byte, while 0x81, 0x8D, 0x8F, 0x90 and 0x9D, which that codec leaves undefined, stay as those code points. `legacy.to_unicode(text, font="ORTTSarala")` converts those keystrokes to NFC Unicode Odia, so ଡ଼ is consonant plus nukta. `SUPPORTED_FONTS` is `("ORTTSarala",)`.
 
 ```python
 from openodia import legacy
 
 legacy.decode(b"JX\xcf\x85")  # 'JXÏ…'
+legacy.to_unicode(legacy.decode(b"JX\xcf\xdeA"), font="ORTTSarala")  # 'ଓଡ଼ିଆ'
 ```
 
 ### Use from an AI agent

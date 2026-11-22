@@ -89,7 +89,7 @@ def test_package_exports_the_module_once() -> None:
 
     assert openodia.legacy is legacy
     assert openodia.__all__.count("legacy") == 1
-    assert legacy.__all__ == ["decode"]
+    assert legacy.__all__ == ["SUPPORTED_FONTS", "decode", "to_unicode"]
 
 
 ORTT_TABLE_SHA256 = "d3fed7fae959f65f9e9fa777e40a7e20481616f059057cedddebb154e8763e76"
