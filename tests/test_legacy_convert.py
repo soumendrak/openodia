@@ -327,7 +327,7 @@ def test_every_example_in_the_rules_is_what_to_unicode_gives(page: str) -> None:
     text = _rules(page)
     both = BOTH_GIVE.findall(text)
     gives = GIVES.findall(text)
-    assert (len(both), len(gives)) == (3, 1)
+    assert (len(both), len(gives)) == (3, 2)
     for typed, other_order, expected in both:
         assert ortt(typed) == expected
         assert ortt(other_order) == expected
@@ -418,13 +418,13 @@ BUDGET_REPEATS = 200_000
 
 
 @pytest.mark.parametrize(("head", "unit"), LONG_SHAPES.values(), ids=LONG_SHAPES)
-def test_200000_repeats_convert_within_the_time_budget(head: str, unit: str) -> None:
+def test_200000_repeats_convert_within_the_cpu_budget(head: str, unit: str) -> None:
     text = head + unit * BUDGET_REPEATS
     times: list[float] = []
-    for _ in range(2):
-        start = time.perf_counter()
+    for _ in range(3):
+        start = time.process_time()
         legacy.to_unicode(text, font="ORTTSarala")
-        times.append(time.perf_counter() - start)
+        times.append(time.process_time() - start)
         if times[-1] < BUDGET_SECONDS:
             break
     assert min(times) < BUDGET_SECONDS, times

@@ -16,7 +16,8 @@ reph, vowel sign, nasal or visarga typed before a subjoined form gives the same 
 as typed after it (``ÒLÕÔÍ`` and ``ÒLÔÍÕ`` both give ``କ୍ୟ୍ରେଂ``). A reph typed in a
 syllable with no base consonant stays where it was typed. The left matra ``Ò``, typed
 before the consonant, joins its right half ``ß``, ``×`` or ``Ð`` into ୈ, ୌ or ୋ wherever
-that half is typed in the syllable (``ÒLàÔß`` and ``ÒLÔßà`` both give ``ର୍କ୍ୟୈ``). A
+that half is typed in the syllable (``ÒLàÔß`` and ``ÒLÔßà`` both give ``ର୍କ୍ୟୈ``). Only the first right half
+joins it, and a later one stays as typed (``ÒLÐß`` gives ``କୋß``). A
 nukta, ``Ï`` or a Unicode ``଼``, goes right after the consonant typed last before it in
 the same syllable, ahead of any halant or zero-width joiner, also when a vowel sign,
 nasal, visarga or reph is typed in between (``XÐÏ`` and ``XÏÐ`` both give ``ଡ଼ା``). In a
