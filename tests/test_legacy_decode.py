@@ -1,6 +1,7 @@
 import ast
 import hashlib
 import json
+import random
 import re
 from collections.abc import Iterator
 from pathlib import Path
@@ -17,6 +18,20 @@ RELEASE_PAGES = ("README.md", "docs/index.md", "docs/llms.txt", "AGENTS.md", "CH
 DECODE_PAGES = ("README.md", "docs/index.md", "docs/llms.txt", "CHANGELOG.md", "openodia/legacy/_decode.py")
 EXAMPLE_PAGES = ("README.md", "docs/index.md")
 EXAMPLE = re.compile(r'^legacy\.decode\((b"[^"]*")\)  # (\'[^\']*\')$', re.MULTILINE)
+
+
+def _expected_decode(data: bytes) -> str:
+    return "".join(chr(byte) if byte in UNDEFINED else bytes([byte]).decode("cp1252") for byte in data)
+
+
+def _shuffled_triples() -> bytes:
+    data = bytearray(bytes(range(256)) * 3)
+    random.Random(305).shuffle(data)
+    return bytes(data)
+
+
+LONG_BYTES = bytes(range(256)) * 3
+SHUFFLED_BYTES = _shuffled_triples()
 
 
 def _page(name: str) -> str:
@@ -57,6 +72,53 @@ def test_decode_reads_the_buffer_of_a_bytes_subclass() -> None:
 def test_decode_of_empty_bytes_is_empty() -> None:
     assert legacy.decode(b"") == ""
     assert legacy.decode(bytearray()) == ""
+
+
+def test_long_decode_inputs_are_longer_than_256_bytes() -> None:
+    assert len(LONG_BYTES) == len(SHUFFLED_BYTES) == 768
+    assert SHUFFLED_BYTES != LONG_BYTES
+    assert sorted(SHUFFLED_BYTES) == sorted(LONG_BYTES)
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b" J \r\n",
+        b"\t leading",
+        b"trailing \t",
+        b"trailing ",
+        b" ",
+        b" \t\r\n",
+        b"\r\n",
+        b"\r",
+        b"\n",
+        b"\x00",
+        b"\x00 \t\r\n\x00",
+        LONG_BYTES,
+        SHUFFLED_BYTES,
+    ],
+    ids=[
+        "space-J-space-crlf",
+        "tab-leading",
+        "trailing-tab",
+        "trailing-space",
+        "space-only",
+        "whitespace-only",
+        "crlf",
+        "cr",
+        "lf",
+        "nul",
+        "nul-and-whitespace",
+        "three-copies-of-every-byte",
+        "shuffled-three-copies",
+    ],
+)
+def test_decode_keeps_the_length_and_bytes_of_whitespace_newlines_and_long_inputs(data: bytes) -> None:
+    expected = _expected_decode(data)
+    assert len(expected) == len(data)
+    assert legacy.decode(data) == expected
+    assert len(legacy.decode(data)) == len(data)
+    assert legacy.decode(bytearray(data)) == expected
 
 
 @pytest.mark.parametrize("value", ["JX", memoryview(b"JX"), None, 74])
