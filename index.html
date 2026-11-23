@@ -2201,7 +2201,7 @@ openodia<span class="w"> </span>name<span class="w"> </span>--kind<span class="w
 <span class="c1"># Extractive summary</span>
 openodia<span class="w"> </span>summarize<span class="w"> </span>--file<span class="w"> </span>article.txt<span class="w"> </span>--threshold<span class="w"> </span><span class="m">3</span>
 
-<span class="c1"># Find or mask phone, email, Aadhaar, PAN, PIN code</span>
+<span class="c1"># Find or mask phone, email, URL, Aadhaar, PAN, PIN code, date</span>
 openodia<span class="w"> </span>pii<span class="w"> </span><span class="s2">&quot;ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦&quot;</span><span class="w"> </span>--mask
 
 <span class="c1"># Stopword removal + corpus stats</span>
@@ -2333,9 +2333,9 @@ openodia<span class="w"> </span>spell<span class="w"> </span>--suggest<span clas
 </code></pre></div>
 <h3 id="pii-detection-and-masking"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5zm0 4a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-3-3 3 3 0 0 1 3-3m5.13 12A9.7 9.7 0 0 1 12 20.92 9.7 9.7 0 0 1 6.87 17c-.34-.5-.63-1-.87-1.53 0-1.65 2.71-3 6-3s6 1.32 6 3c-.24.53-.53 1.03-.87 1.53"/></svg></span> PII detection and masking<a class="headerlink" href="#pii-detection-and-masking" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>openodia.pii</code> finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: <code>openodia pii</code> exits 2 on 0.1.14 and <code>import openodia.pii</code> fails there.</li>
+<li><code>openodia.pii</code> finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: <code>openodia pii</code> exits 2 on 0.1.14 and <code>import openodia.pii</code> fails there. <code>DATE</code> needs a release newer than 0.2.0: on 0.2.0, <code>pii.detect(text, types=["DATE"])</code> raises <code>ValueError</code> and <code>openodia pii --type DATE</code> exits 2.</li>
 <li>Odia digits (<code>୦</code>-<code>୯</code>) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: <code>--file</code> drops a leading BOM and turns CRLF and a lone CR into LF. <code>-</code> (stdin) drops a leading BOM only and keeps any <code>\r</code>: a Linux or macOS pipe delivers <code>\r\n</code> unchanged, so offsets from <code>-</code> can differ from <code>--file</code> by one per line break.</li>
-<li>Matches that overlap merge into one span typed by the longest match, so for every detected value no part of it stays visible; see the limits below. A tie goes to the earlier of <code>EMAIL</code>, <code>URL</code>, <code>AADHAAR</code>, <code>PAN</code>, <code>PHONE</code>, <code>PINCODE</code>. <code>min_confidence</code> is applied before merging.</li>
+<li>Matches that overlap merge into one span typed by the longest match, so for every detected value no part of it stays visible; see the limits below. A tie goes to the earlier of <code>EMAIL</code>, <code>URL</code>, <code>AADHAAR</code>, <code>PAN</code>, <code>PHONE</code>, <code>PINCODE</code>, <code>DATE</code>. <code>min_confidence</code> is applied before merging.</li>
 <li><code>openodia pii --json</code> puts the raw matched <code>text</code> in every entity, so it contains the PII. Use <code>--mask --json</code> for output that holds only the masked text.</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openodia</span><span class="w"> </span><span class="kn">import</span> <span class="n">pii</span>
@@ -2387,6 +2387,11 @@ openodia<span class="w"> </span>spell<span class="w"> </span>--suggest<span clas
 <td>6 digits, first 1-9, directly after <code>PIN</code>, <code>Pincode</code>, <code>PIN code</code> or <code>ପିନ</code></td>
 <td>0.8</td>
 </tr>
+<tr>
+<td><code>DATE</code></td>
+<td>A real calendar day from 1900 to 2099. Named: <code>D Month YYYY</code> or <code>Month D, YYYY</code> with an English or Odia month name (<code>15 January 2024</code>, <code>15th Jan. 2024</code>, <code>May 4, 2024</code>, <code>୧୫ ଜାନୁଆରୀ ୨୦୨୪</code>), confidence 0.85. Digits only, day-month-year with <code>/</code>, <code>-</code> or <code>.</code> (<code>15/01/2024</code>, <code>5.1.2024</code>), confidence 0.7. <code>31/02/2024</code>, month 13, years outside that range and a date split by a line break are not found</td>
+<td>0.85 / 0.7</td>
+</tr>
 </tbody>
 </table>
 <p>The wider local-part class can mask more than the address: leading delimiters can be swallowed, so <code>key=val@host.com</code>, <code>?q=a@b.com</code>, <code>path/to/a@c.com</code> and <code>price$5@x.com</code> lose their prefix, <code>`a@b.com`</code>, <code>'a@b.com'</code> and <code>**a@b.com**</code> swallow only the leading delimiter, <code>ssh://git@host.com</code> loses <code>//</code> (<code>ssh://git@host</code> has no top-level domain and stays unchanged), and <code>www.x.com/a@b.com</code> becomes <code>&lt;EMAIL&gt;</code> instead of <code>&lt;URL&gt;</code>; nothing leaks.</p>
@@ -2395,11 +2400,11 @@ openodia<span class="w"> </span>spell<span class="w"> </span>--suggest<span clas
 <summary>What it does not catch</summary>
 <ul>
 <li><strong>Names</strong>, nicknames and addresses. A masked text can still identify a person, so this is not anonymisation.</li>
-<li>Dates of birth, amounts, bank account and card numbers, landline numbers, passport and voter IDs.</li>
+<li>Dates outside the <code>DATE</code> shapes, such as <code>15 January</code> with no year or <code>01/13/2024</code> month first, amounts, bank account and card numbers, landline numbers, passport and voter IDs.</li>
 <li>Lowercase PAN, Aadhaar written with other separators or split by line breaks, and a PIN code with no <code>PIN</code> or <code>ପିନ</code> before it.</li>
 <li>Aadhaar numbers starting with 0 or 1, which UIDAI does not issue.</li>
 <li>A bare domain with no <code>http(s)://</code> or <code>www.</code>, an email whose local part is over 64 characters (see the <code>EMAIL</code> row), and digits of other scripts such as Devanagari.</li>
-<li><strong>False positives</strong>: a 10-digit number starting 6-9 (an order or account number) is reported as <code>PHONE</code> even if nobody owns it, a 12-digit number starting 2-9 as <code>AADHAAR</code> at confidence 0.5, and a PAN-shaped code as <code>PAN</code>. Filter with <code>types</code> and <code>min_confidence</code>.</li>
+<li><strong>False positives</strong>: a 10-digit number starting 6-9 (an order or account number) is reported as <code>PHONE</code> even if nobody owns it, a 12-digit number starting 2-9 as <code>AADHAAR</code> at confidence 0.5, and a PAN-shaped code as <code>PAN</code>, and a real calendar date that is not personal (including <code>1.2.2024</code>) as <code>DATE</code>. Filter with <code>types</code> and <code>min_confidence</code>.</li>
 <li>A bare <code>91</code> before a mobile number is taken as its country code only when a space or <code>-</code> follows it.</li>
 </ul>
 </details>
@@ -2775,7 +2780,7 @@ keeps working unchanged.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 23, 2026 02:55:53 UTC"><span class="timeago" datetime="2026-11-23T02:55:53+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 23, 2026 02:55:53 UTC">2026-11-23</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 23, 2026 03:24:14 UTC"><span class="timeago" datetime="2026-11-23T03:24:14+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 23, 2026 03:24:14 UTC">2026-11-23</span>
   </span>
 
     

@@ -774,6 +774,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#find-dates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find dates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#mask-matches" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1496,8 +1507,8 @@
 
 
 <h1 id="find-and-mask-personal-identifiers">Find and mask personal identifiers<a class="headerlink" href="#find-and-mask-personal-identifiers" title="Permanent link">&para;</a></h1>
-<p><code>pii</code> finds Indian mobile numbers, email addresses, URLs, Aadhaar numbers, PAN codes, and PIN codes. It reads Odia digits and ASCII digits, and it runs offline. It does not find names, street addresses, dates, or amounts, so masked text can still identify a person.</p>
-<p><code>pii</code> needs a release newer than 0.1.14. On PyPI 0.1.14, <code>import openodia.pii</code> fails and <code>openodia pii</code> exits with code 2. From a source checkout, <code>uv run python</code> can import it.</p>
+<p><code>pii</code> finds Indian mobile numbers, email addresses, URLs, Aadhaar numbers, PAN codes, PIN codes, and calendar dates. It reads Odia digits and ASCII digits, and it runs offline. It does not find names, street addresses, or amounts, so masked text can still identify a person.</p>
+<p><code>pii</code> needs a release newer than 0.1.14. On PyPI 0.1.14, <code>import openodia.pii</code> fails and <code>openodia pii</code> exits with code 2. <code>DATE</code> needs a release newer than 0.2.0: on 0.2.0, <code>pii.detect(text, types=["DATE"])</code> raises <code>ValueError</code> and <code>openodia pii --type DATE</code> exits 2. From a source checkout, <code>uv run python</code> can import it.</p>
 <p>Every example on this page is run by the test suite.</p>
 <h2 id="find-matches">Find matches<a class="headerlink" href="#find-matches" title="Permanent link">&para;</a></h2>
 <p><code>detect</code> returns one <code>PIIEntity</code> per match, in order. <code>start</code> and <code>end</code> are character offsets into the text you passed. Text that is not in NFC is also searched in its NFC form, and each match is mapped back to offsets in the text you passed, so a PAN followed by a decomposed accented letter is found. In text that is not in NFC, a match found in the NFC form whose last letter carries 32 or more combining marks also covers those marks.</p>
@@ -1516,6 +1527,15 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pii</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="s2">&quot;751001&quot;</span><span class="p">)</span>
 <span class="go">[]</span>
 </code></pre></div>
+<h2 id="find-dates">Find dates<a class="headerlink" href="#find-dates" title="Permanent link">&para;</a></h2>
+<p>A <code>DATE</code> is a real calendar day from 1900 to 2099, day before month. A date with a month name in English or Odia has confidence 0.85. A date written only in digits, separated by <code>/</code>, <code>-</code> or <code>.</code>, has confidence 0.7, so <code>min_confidence=0.8</code> keeps only named dates. <code>31/02/2024</code>, a month of 13 and a date split by a line break are not found.</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">pii</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="s2">&quot;ଜନ୍ମ ୧୫ ଜାନୁଆରୀ ୨୦୨୪, born May 4, 2024&quot;</span><span class="p">)]</span>
+<span class="go">[&#39;୧୫ ଜାନୁଆରୀ ୨୦୨୪&#39;, &#39;May 4, 2024&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pii</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="s2">&quot;15/01/2024 ଓ 15 January 2024&quot;</span><span class="p">,</span> <span class="n">min_confidence</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="go">&#39;15/01/2024 ଓ &lt;DATE&gt;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pii</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="s2">&quot;31/02/2024&quot;</span><span class="p">)</span>
+<span class="go">[]</span>
+</code></pre></div>
 <h2 id="mask-matches">Mask matches<a class="headerlink" href="#mask-matches" title="Permanent link">&para;</a></h2>
 <p><code>mask</code> replaces each match with <code>&lt;TYPE&gt;</code>. With those tags, masking the result again changes nothing, unless the input chains more than 10 values that were glued together.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">pii</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
@@ -1525,7 +1545,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pii</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EMAIL&quot;</span><span class="p">])</span>
 <span class="go">&#39;ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ଓ &lt;EMAIL&gt;&#39;</span>
 </code></pre></div>
-<p><code>types</code> is a list of <code>PHONE</code>, <code>EMAIL</code>, <code>URL</code>, <code>AADHAAR</code>, <code>PAN</code>, and <code>PINCODE</code>. A bare string raises <code>TypeError</code>.</p>
+<p><code>types</code> is a list of <code>PHONE</code>, <code>EMAIL</code>, <code>URL</code>, <code>AADHAAR</code>, <code>PAN</code>, <code>PINCODE</code>, and <code>DATE</code>. A bare string raises <code>TypeError</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">pii</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="s2">&quot;EMAIL&quot;</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
 <span class="w">  </span><span class="c">...</span>
@@ -1541,7 +1561,7 @@
 <span class="go">&#39;234567890125&#39;</span>
 </code></pre></div>
 <h2 id="limits">Limits<a class="headerlink" href="#limits" title="Permanent link">&para;</a></h2>
-<p>Overlapping matches become one span. The type is the longest match. When the lengths are equal, the earlier of <code>EMAIL</code>, <code>URL</code>, <code>AADHAAR</code>, <code>PAN</code>, <code>PHONE</code>, and <code>PINCODE</code> wins, so <code>mask</code> does not leave part of a detected value visible.</p>
+<p>Overlapping matches become one span. The type is the longest match. When the lengths are equal, the earlier of <code>EMAIL</code>, <code>URL</code>, <code>AADHAAR</code>, <code>PAN</code>, <code>PHONE</code>, <code>PINCODE</code>, and <code>DATE</code> wins, so <code>mask</code> does not leave part of a detected value visible.</p>
 <p><code>mask</code> repeats until the text stops changing, and it stops after 10 passes. After more than 10 glued values, the text it returns can still contain a raw value.</p>
 <p>An email local part longer than 64 characters is not found. When that local part contains punctuation, only its last 64 characters may be masked. A local part that starts with Odia letters is masked from the first ASCII character, so the Odia letters stay visible.</p>
 <p><code>detect</code> and <code>mask</code> raise <code>ValueError</code> for an unknown type, or for a <code>min_confidence</code> outside 0 to 1.</p>
@@ -1571,7 +1591,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 23, 2026 02:55:53 UTC"><span class="timeago" datetime="2026-11-23T02:55:53+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 23, 2026 02:55:53 UTC">2026-11-23</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="November 23, 2026 03:24:14 UTC"><span class="timeago" datetime="2026-11-23T03:24:14+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="November 23, 2026 03:24:14 UTC">2026-11-23</span>
   </span>
 
     
