@@ -1,6 +1,6 @@
 ---
 name: openodia
-description: Process Odia (ଓଡ଼ିଆ) text with the openodia command-line tool. Use when a task needs to tokenize, normalize, clean, translate, detect the language of, summarize, remove stopwords from, count words or n-grams in, generate names from, spell-check, or find and mask phone, email, Aadhaar, PAN and PIN code in Odia text, and you want machine-readable output.
+description: Process Odia (ଓଡ଼ିଆ) text with the openodia command-line tool. Use when a task needs to tokenize, normalize, clean, translate, detect the language of, summarize, remove stopwords from, count words or n-grams in, generate names from, spell-check, or find and mask phone, email, URL, Aadhaar, PAN, PIN code and calendar dates in Odia text, and you want machine-readable output.
 ---
 
 # openodia

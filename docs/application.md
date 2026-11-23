@@ -32,9 +32,9 @@ name.generate_names()
 - In data engineering projects when you need to ingest large amount of data, you need to mask or anonymize the PI (Personal Identification) data from the data source.
 - This is to remove bias and increase privacy on your data/model.
 
-#### Masking phone numbers, emails, Aadhaar, PAN, PIN codes and dates
+#### Masking phone numbers, emails, URLs, Aadhaar, PAN, PIN codes and dates
 
-- `openodia.pii.mask(text)` replaces them with `<PHONE>`, `<EMAIL>`, `<AADHAAR>`, `<PAN>`, `<PINCODE>` and `<URL>` tags. See [Find and mask personal identifiers](guides/pii.md) for what it does and does not catch. It does not mask names. `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there; it needs a newer release.
+- `openodia.pii.mask(text)` replaces them with `<PHONE>`, `<EMAIL>`, `<AADHAAR>`, `<PAN>`, `<PINCODE>`, `<URL>` and `<DATE>` tags. See [Find and mask personal identifiers](guides/pii.md) for what it does and does not catch. It does not mask names. `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there; it needs a newer release.
 
 #### Masking names: 
 

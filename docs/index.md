@@ -368,7 +368,7 @@ openodia name --kind first --count 5
 # Extractive summary
 openodia summarize --file article.txt --threshold 3
 
-# Find or mask phone, email, Aadhaar, PAN, PIN code, date
+# Find or mask phone, email, URL, Aadhaar, PAN, PIN code, date
 openodia pii "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦" --mask
 
 # Stopword removal + corpus stats
