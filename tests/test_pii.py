@@ -168,7 +168,7 @@ def test_verhoeff_checksum() -> None:
     assert is_valid(VALID_AADHAAR)
 
 
-@pytest.mark.parametrize("doc", ["AGENTS.md", "docs/index.md"])
+@pytest.mark.parametrize("doc", ["AGENTS.md", "docs/index.md", "docs/guides/pii.md"])
 def test_docs_name_every_pii_type(doc: str) -> None:
     from pathlib import Path
 

@@ -16,7 +16,7 @@ Version note: `--json` on every CLI subcommand (one machine-readable JSON docume
 - [Translation guide](https://openodia.soumendrak.com/guides/translation/): offline dictionary, Google Translate, translation cache
 - [Command-line guide](https://openodia.soumendrak.com/guides/cli/): every subcommand with runnable examples
 - [Transliteration guide](https://openodia.soumendrak.com/guides/transliteration/): Indic scripts and romanisation
-- [PII guide](https://openodia.soumendrak.com/guides/pii/): find and mask phone numbers, emails, URLs, Aadhaar numbers, PAN and PIN codes
+- [PII guide](https://openodia.soumendrak.com/guides/pii/): find and mask phone numbers, emails, URLs, Aadhaar numbers, PAN, PIN codes and dates
 - [API reference](https://openodia.soumendrak.com/api/text/): signatures and docstrings generated from the source
 - [Romanisation API](https://openodia.soumendrak.com/api/roman/): `to_roman` and `from_roman` for ISO 15919, Hunterian and ITRANS; `type_odia` types Roman input as Odia. `openodia.roman` needs a release newer than 0.1.14. `roman.type_odia` needs a release newer than 0.2.0: it raises `AttributeError` on 0.2.0.
 - [Legacy fonts API](https://openodia.soumendrak.com/api/legacy/): `openodia.legacy` needs a release newer than 0.2.0: `import openodia.legacy` fails on 0.2.0. `legacy.decode` reads the bytes of text typed in an 8-bit Odia font as keystroke characters: cp1252 for each defined byte, while 0x81, 0x8D, 0x8F, 0x90 and 0x9D, which that codec leaves undefined, stay as those code points. `legacy.to_unicode(text, font="ORTTSarala")` converts those keystrokes to NFC Unicode Odia, so ଡ଼ is consonant plus nukta. `SUPPORTED_FONTS` is `("ORTTSarala",)`.
