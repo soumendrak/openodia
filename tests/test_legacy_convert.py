@@ -17,6 +17,7 @@ from openodia.legacy import _convert
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "legacy_ortt_sentences.json"
 RULE_PAGES = ("CHANGELOG.md", "docs/index.md", "openodia/legacy/__init__.py")
+SOURCE = "https://github.com/OdiaWikimedia/Converter"
 CONVERT_PAGES = ("README.md", "docs/index.md", "docs/llms.txt", "CHANGELOG.md")
 SIGNS = "ାିୀୁୂୃେୈୋୌଁଂଃ"
 SIGN_BEFORE_HALANT = re.compile(f"[{SIGNS}]୍")
@@ -53,6 +54,58 @@ def test_text_that_is_not_str_is_rejected_with_a_type_error(text: str) -> None:
         legacy.to_unicode(text, font="ORTTSarala")
 
 
+def test_every_glyph_table_value_is_odia_text() -> None:
+    table = json.loads((ROOT / "openodia" / "legacy" / "fonts" / "ORTTSarala.json").read_text(encoding="utf-8"))
+    allowed = {chr(code) for code in range(0x0B00, 0x0B80)} | {"\u200d", table["reph"]}
+    odd = [(key, value) for key, value in table["pairs"] if not set(value) <= allowed]
+    assert odd == [("¼¼Ð", " ।"), (" ଙ୍ଗ ", " = ")]
+
+
+@pytest.mark.parametrize(
+    ("typed", "expected"),
+    [
+        ("Lú", "ତ୍କ"),
+        ("jú", "ତ୍ସ"),
+        ("`ú", "ତ୍ପ"),
+        ("DLúf", "ଉତ୍କଳ"),
+        ("DjúaÒ", "ଉତ୍ସବେ"),
+        ("£ú", "କ୍ତ୍କ"),
+        ("ÒLúÐ", "ତ୍କୋ"),
+        ("Lúà", "ର୍ତ୍କ"),
+        ("Lúú", "ତ୍କú"),
+        ("`úú", "ତ୍ପú"),
+        ("Hú", "ଏú"),
+        ("ú", "ú"),
+    ],
+)
+def test_u_acute_after_ka_sa_or_pa_is_the_half_ta_before_it(typed: str, expected: str) -> None:
+    assert ortt(typed) == expected
+
+
+@pytest.mark.parametrize(
+    ("typed", "expected"),
+    [
+        ("ÒLÒÐ", "କୋେ"),
+        ("ÒLÐÒ", "କୋେ"),
+        ("Làà", "ର୍କ"),
+        ("LàÐà", "ର୍କା"),
+        ("LÓÕ", "କଃଂ"),
+        ("LÕÓ", "କଂଃ"),
+        ("LÜÕÓ", "କଁଂଃ"),
+        ("LÓÕÜ", "କଃଂଁ"),
+    ],
+)
+def test_repeated_markers_rephs_and_nasals_follow_the_documented_order(typed: str, expected: str) -> None:
+    assert ortt(typed) == expected
+
+
+def test_the_table_credits_the_odiawikimedia_converter() -> None:
+    table = json.loads((ROOT / "openodia" / "legacy" / "fonts" / "ORTTSarala.json").read_text(encoding="utf-8"))
+    assert table["source"] == SOURCE
+    for page in RULE_PAGES:
+        assert SOURCE in " ".join(_page(page).split()), page
+
+
 def test_empty_text_stays_empty() -> None:
     assert ortt("") == ""
 
@@ -75,7 +128,8 @@ def test_decoded_bytes_convert() -> None:
 @pytest.mark.parametrize(
     ("byte", "expected"),
     [
-        (0x83, "„"),
+        (0x83, "ମ୍ପ"),
+        (0x84, "ମ୍ପ"),
         (0x85, "ଣ୍ଠ"),
         (0x86, "ପ୍ଟ"),
         (0x87, "ୁ"),
@@ -252,9 +306,9 @@ def test_every_sign_nasal_or_reph_typed_before_a_subjoined_form_matches_the_othe
 
 def test_no_two_key_syllable_leaves_a_sign_before_a_halant_or_nukta_or_a_nukta_after_a_halant() -> None:
     keys = _keys("Ô", "଼")
-    assert len(keys) == 189
+    assert len(keys) == 190
     inputs = [lead + "L" + first + ya + second for lead in ("", "Ò") for first in keys for ya in ("", "Ô") for second in keys]
-    assert len(inputs) == 142884
+    assert len(inputs) == 144400
     for text in inputs:
         output = ortt(text)
         assert SIGN_BEFORE_HALANT.search(output) is None, text
@@ -333,7 +387,7 @@ def test_every_example_in_the_rules_is_what_to_unicode_gives(page: str) -> None:
     text = _rules(page)
     both = BOTH_GIVE.findall(text)
     gives = GIVES.findall(text)
-    assert (len(both), len(gives)) == (3, 2)
+    assert (len(both), len(gives)) == (3, 6)
     for typed, other_order, expected in both:
         assert ortt(typed) == expected
         assert ortt(other_order) == expected

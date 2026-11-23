@@ -17,12 +17,19 @@ as typed after it (``ÒLÕÔÍ`` and ``ÒLÔÍÕ`` both give ``କ୍ୟ୍ର�
 syllable with no base consonant stays where it was typed. The left matra ``Ò``, typed
 before the consonant, joins its right half ``ß``, ``×`` or ``Ð`` into ୈ, ୌ or ୋ wherever
 that half is typed in the syllable (``ÒLàÔß`` and ``ÒLÔßà`` both give ``ର୍କ୍ୟୈ``). Only the first right half
-joins it, and a later one stays as typed (``ÒLÐß`` gives ``କୋß``). A
+joins it, and a later one stays as typed (``ÒLÐß`` gives ``କୋß``). A second ``Ò`` in the
+same syllable gives େ after the joined sign (``ÒLÒÐ`` gives ``କୋେ``). A second reph in
+the same syllable is dropped (``Làà`` gives ``ର୍କ``). Nasals and visarga keep the order
+typed (``LÓÕ`` gives ``କଃଂ``). A
 nukta, ``Ï`` or a Unicode ``଼``, goes right after the consonant typed last before it in
 the same syllable, ahead of any halant or zero-width joiner, also when a vowel sign,
 nasal, visarga or reph is typed in between (``XÐÏ`` and ``XÏÐ`` both give ``ଡ଼ା``). In a
-syllable with no consonant, a nukta goes ahead of the vowel signs. A run of numeric
-separators all convert (``1Ð2Ð3`` gives ``୧|୨|୩``).
+syllable with no consonant, a nukta goes ahead of the vowel signs. ``ú`` typed after
+କ, ସ or ପ puts a half ta before that consonant (``DLúf`` gives ``ଉତ୍କଳ``). A run of
+numeric separators all convert (``1Ð2Ð3`` gives ``୧|୨|୩``).
+
+The ORTTSarala glyph table and the ``ú`` half-ta rule come from the OdiaWikimedia
+ORTT-Sarala converter, https://github.com/OdiaWikimedia/Converter.
 
 Examples:
     >>> from openodia import legacy

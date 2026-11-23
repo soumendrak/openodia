@@ -154,7 +154,7 @@ def test_package_exports_the_module_once() -> None:
     assert legacy.__all__ == ["SUPPORTED_FONTS", "decode", "to_unicode"]
 
 
-ORTT_TABLE_SHA256 = "d3fed7fae959f65f9e9fa777e40a7e20481616f059057cedddebb154e8763e76"
+ORTT_TABLE_SHA256 = "49369ff51556b5ada2854a3895436f5e13c1dab38e2a1837a9391da08f5d84a3"
 
 
 def test_the_ortt_table_is_the_reference_table_with_one_pair_per_line() -> None:
@@ -164,4 +164,4 @@ def test_the_ortt_table_is_the_reference_table_with_one_pair_per_line() -> None:
     canonical = json.dumps(table, sort_keys=True, ensure_ascii=False).encode("utf-8")
     assert hashlib.sha256(canonical).hexdigest() == ORTT_TABLE_SHA256
     pair_lines = [line for line in source.read_text(encoding="utf-8").splitlines() if line.startswith("    [")]
-    assert len(pair_lines) == len(table["pairs"]) == 186
+    assert len(pair_lines) == len(table["pairs"]) == 189
