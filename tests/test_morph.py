@@ -718,3 +718,35 @@ def test_the_presents_named_as_dictionary_entries_are_exactly_the_listed_present
     for word in named:
         got = lemma(word)
         assert got.pos == "VERB" and isinstance(got.features, FiniteVerb) and got.features.tense == "present", word
+
+
+@pytest.mark.parametrize(
+    ("word", "root"),
+    (
+        ("ବାଛିବା", "ବାଛ"),
+        ("ବାଛିବାକୁ", "ବାଛ"),
+        ("ବାଛିଛି", "ବାଛ"),
+        ("ବାଛିଛନ୍ତି", "ବାଛ"),
+        ("ବାଛିଥାଏ", "ବାଛ"),
+        ("ବାଛିଥିଲେ", "ବାଛ"),
+        ("ପୋଛିଲା", "ପୋଛ"),
+        ("ପୁଛିଲା", "ପୁଛ"),
+        ("ଇଚ୍ଛିବା", "ଇଚ୍ଛ"),
+    ),
+)
+def test_a_verb_whose_root_ends_in_chha_still_reads_as_that_verb(word: str, root: str) -> None:
+    assert stem(word) == root
+    got = lemma(word)
+    assert (got.form, got.pos) == (root + "ିବା", "VERB")
+
+
+def test_the_achh_guard_changes_no_dictionary_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    import openodia.morph._engine as engine
+    from openodia.corpus.dictionary import get_dictionary
+
+    odia_run = re.compile(r"[\u0b00-\u0b7f]+")
+    tokens = sorted({token for value in get_dictionary().values() for token in odia_run.findall(_nfc(value))})
+    guarded = [(stem(token), lemma(token)) for token in tokens]
+    monkeypatch.setattr(engine, "_SUPPLETIVE_PRESENT_STEM", "\0")
+    unguarded = [(stem(token), lemma(token)) for token in tokens]
+    assert [token for token, one, other in zip(tokens, guarded, unguarded, strict=True) if one != other] == []
