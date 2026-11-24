@@ -100,6 +100,40 @@ def test_candidates_are_well_formed_syllables() -> None:
             assert _well_formed_odia(word), word
 
 
+_W_VOWEL_WORDS = {
+    "wa": "ୱା",
+    "waa": "ୱା",
+    "Wa": "ୱା",
+    "WAAAA": "ୱା",
+    "wawa": "ୱାୱା",
+    "waawaa": "ୱାୱା",
+    "wii": "ୱି",
+    "Wiii": "ୱି",
+    "wuu": "ୱୁ",
+    "WUUU": "ୱୁ",
+    "wi": "ୱି",
+    "wu": "ୱୁ",
+}
+
+
+@pytest.mark.parametrize(("typed", "word"), _W_VOWEL_WORDS.items())
+def test_w_and_a_vowel_type_the_dictionary_word(typed: str, word: str) -> None:
+    assert roman.type_odia(typed) == word
+    assert roman.type_odia(typed, candidates=True) == [word]
+
+
+@pytest.mark.parametrize("typed", ["win", "wiin", "WIN"])
+def test_win_suggests_both_dictionary_spellings(typed: str) -> None:
+    assert roman.type_odia(typed, candidates=True) == ["ୱିନ୍", "ୱିଂ"]
+
+
+def test_the_changelog_names_every_w_input_the_segmenter_fix_changes() -> None:
+    changelog = (Path(__file__).resolve().parent.parent / "CHANGELOG.md").read_text(encoding="utf-8")
+    [line] = [line for line in changelog.splitlines() if line.startswith("- `syllable.split` and `syllable.count` treat `ୱ`")]
+    for typed in ("wa", "waa", "wawa", "wii", "wuu", "win"):
+        assert f"`{typed}`" in line, typed
+
+
 def test_fold_and_flap_rules_are_visible() -> None:
     assert roman.type_odia("dadha") == "ଦାଢ଼ା"
     assert roman.type_odia("kii") == "କି"
