@@ -81,6 +81,7 @@ The tools are available in Odia language. [Getting started](getting-started.md) 
 - [x] [Sentence segmenter](#sentence-segmenter)
 - [x] [Odia spell checker](#odia-spell-checker)
 - [x] [PII detection and masking](#pii-detection-and-masking)
+- [x] [Legacy font conversion](#legacy-fonts)
 - [x] [Stemmer and lemmatizer](#stemmer-and-lemmatizer)
 
 
@@ -387,7 +388,7 @@ openodia name --kind first --count 5
 # Extractive summary
 openodia summarize --file article.txt --threshold 3
 
-# Find or mask phone, email, Aadhaar, PAN, PIN code
+# Find or mask phone, email, URL, Aadhaar, PAN, PIN code, date
 openodia pii "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦" --mask
 
 # Stopword removal + corpus stats
@@ -525,9 +526,9 @@ openodia spell --suggest --top 1 "ନମସ୍କର"
 
 ### :material-shield-account: PII detection and masking
 
-- `openodia.pii` finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there.
+- `openodia.pii` finds and masks personal identifiers in Odia text with patterns and one checksum. It is offline and adds no dependency. It needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there. `DATE` needs a release newer than 0.2.0: on 0.2.0, `pii.detect(text, types=["DATE"])` raises `ValueError` and `openodia pii --type DATE` exits 2.
 - Odia digits (`୦`-`୯`) and ASCII digits are both recognised. Offsets in the result count characters of your original text. On the command line they count the text it read: `--file` drops a leading BOM and turns CRLF and a lone CR into LF. `-` (stdin) drops a leading BOM only and keeps any `\r`: a Linux or macOS pipe delivers `\r\n` unchanged, so offsets from `-` can differ from `--file` by one per line break.
-- Matches that overlap merge into one span typed by the longest match, so for every detected value no part of it stays visible; see the limits below. A tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`. `min_confidence` is applied before merging.
+- Matches that overlap merge into one span typed by the longest match, so for every detected value no part of it stays visible; see the limits below. A tie goes to the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`, `DATE`. `min_confidence` is applied before merging.
 - `openodia pii --json` puts the raw matched `text` in every entity, so it contains the PII. Use `--mask --json` for output that holds only the masked text.
 
 ```python
@@ -550,6 +551,7 @@ pii.detect(text, min_confidence=0.9)
 | `AADHAAR` | 12 digits starting 2-9, contiguous or grouped 4-4-4 by one space or `-`. 0.95 when the Verhoeff checksum passes, 0.5 when it fails | 0.95 / 0.5 |
 | `PAN` | `AAAPA1234A`: uppercase, fourth letter one of `PCHFATBLJG` | 0.95 |
 | `PINCODE` | 6 digits, first 1-9, directly after `PIN`, `Pincode`, `PIN code` or `ପିନ` | 0.8 |
+| `DATE` | A real calendar day from 1900 to 2099. Named: `D Month YYYY` or `Month D, YYYY` with an English or Odia month name (`15 January 2024`, `15th Jan. 2024`, `May 4, 2024`, `୧୫ ଜାନୁଆରୀ ୨୦୨୪`), confidence 0.85. Digits only, day-month-year with `/`, `-` or `.` (`15/01/2024`, `5.1.2024`), confidence 0.7. `31/02/2024`, month 13, years outside that range and a date split by a line break are not found | 0.85 / 0.7 |
 
 The wider local-part class can mask more than the address: leading delimiters can be swallowed, so `key=val@host.com`, `?q=a@b.com`, `path/to/a@c.com` and `price$5@x.com` lose their prefix, `` `a@b.com` ``, `'a@b.com'` and `**a@b.com**` swallow only the leading delimiter, `ssh://git@host.com` loses `//` (`ssh://git@host` has no top-level domain and stays unchanged), and `www.x.com/a@b.com` becomes `<EMAIL>` instead of `<URL>`; nothing leaks.
 
@@ -557,11 +559,11 @@ Confidence ranks how specific a pattern is; it is not a probability.
 
 ??? warning "What it does not catch"
     - **Names**, nicknames and addresses. A masked text can still identify a person, so this is not anonymisation.
-    - Dates of birth, amounts, bank account and card numbers, landline numbers, passport and voter IDs.
+    - Dates outside the `DATE` shapes, such as `15 January` with no year or `01/13/2024` month first, amounts, bank account and card numbers, landline numbers, passport and voter IDs.
     - Lowercase PAN, Aadhaar written with other separators or split by line breaks, and a PIN code with no `PIN` or `ପିନ` before it.
     - Aadhaar numbers starting with 0 or 1, which UIDAI does not issue.
     - A bare domain with no `http(s)://` or `www.`, an email whose local part is over 64 characters (see the `EMAIL` row), and digits of other scripts such as Devanagari.
-    - **False positives**: a 10-digit number starting 6-9 (an order or account number) is reported as `PHONE` even if nobody owns it, a 12-digit number starting 2-9 as `AADHAAR` at confidence 0.5, and a PAN-shaped code as `PAN`. Filter with `types` and `min_confidence`.
+    - **False positives**: a 10-digit number starting 6-9 (an order or account number) is reported as `PHONE` even if nobody owns it, a 12-digit number starting 2-9 as `AADHAAR` at confidence 0.5, and a PAN-shaped code as `PAN`, and a real calendar date that is not personal (including `1.2.2024`) as `DATE`. Filter with `types` and `min_confidence`.
     - A bare `91` before a mobile number is taken as its country code only when a space or `-` follows it.
 
 - `mask` repeats detection and replacement until nothing changes, at most 10 passes, because masking a value can expose one that was glued to it, such as a PAN written right before a URL. With the default `<TYPE>` tags, masking its own output therefore changes nothing, unless the input chains more than 10 glued values. Past that, the text `mask` returns can still contain raw PII, so do not rely on it for input like that. A custom `placeholder` receives entities from the later passes too, with offsets into the partly masked text, and one that returns PII-shaped text, for example one that keeps the last four digits, can keep the loop running to its limit.
@@ -907,6 +909,19 @@ wf.get_summary(threshold=3.0) # higher the threshold lesser the summary text
     2. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Found --> Return result from Cache
     3. English text --> Check in Offline dictionary --> Not Found --> Check in Cache --> Not Found --> Hit Google Translate API --> Update the Cache --> Return result
 
+
+### :material-format-font: Legacy fonts
+
+`openodia.legacy` needs a release newer than 0.2.0: `import openodia.legacy` fails on 0.2.0. `legacy.decode` reads the bytes of text typed in an 8-bit Odia font as keystroke characters: cp1252 for each defined byte, while 0x81, 0x8D, 0x8F, 0x90 and 0x9D, which that codec leaves undefined, stay as those code points. `legacy.to_unicode(text, font="ORTTSarala")` converts those keystrokes to NFC Unicode Odia, so ଡ଼ is consonant plus nukta. `SUPPORTED_FONTS` is `("ORTTSarala",)`.
+
+```python
+from openodia import legacy
+
+legacy.decode(b"JX\xcf\x85")  # 'JXÏ…'
+legacy.to_unicode(legacy.decode(b"JX\xcf\xdeA"), font="ORTTSarala")  # 'ଓଡ଼ିଆ'
+```
+
+After the glyph table, `to_unicode` rebuilds each syllable in Unicode order: reph, base consonant, subjoined forms in the order typed, vowel sign, then nasal or visarga. A reph, vowel sign, nasal or visarga typed before a subjoined form gives the same output as typed after it (`ÒLÕÔÍ` and `ÒLÔÍÕ` both give `କ୍ୟ୍ରେଂ`). A reph typed in a syllable with no base consonant stays where it was typed. The left matra `Ò`, typed before the consonant, joins its right half `ß`, `×` or `Ð` into ୈ, ୌ or ୋ wherever that half is typed in the syllable (`ÒLàÔß` and `ÒLÔßà` both give `ର୍କ୍ୟୈ`). Only the first right half joins it, and a later one stays as typed (`ÒLÐß` gives `କୋß`). A second `Ò` in the same syllable gives େ after the joined sign (`ÒLÒÐ` gives `କୋେ`). A second reph in the same syllable is dropped (`Làà` gives `ର୍କ`). Nasals and visarga keep the order typed (`LÓÕ` gives `କଃଂ`). A nukta, `Ï` or a Unicode `଼`, goes right after the consonant typed last before it in the same syllable, ahead of any halant or zero-width joiner, also when a vowel sign, nasal, visarga or reph is typed in between (`XÐÏ` and `XÏÐ` both give `ଡ଼ା`). In a syllable with no consonant, a nukta goes ahead of the vowel signs. `ú` typed after କ, ସ or ପ puts a half ta before that consonant (`DLúf` gives `ଉତ୍କଳ`). A run of numeric separators all convert (`1Ð2Ð3` gives `୧|୨|୩`). The ORTTSarala glyph table and the `ú` half-ta rule come from the OdiaWikimedia ORTT-Sarala converter, https://github.com/OdiaWikimedia/Converter.
 
 ## :bug: Known Issues
 

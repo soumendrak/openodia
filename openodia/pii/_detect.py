@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections.abc import Callable, Iterable
 from typing import NamedTuple
 
 from openodia.numbers import odia_to_ascii
+from openodia.pii._date import find_dates
 from openodia.pii._entity import PII_TYPES, PIIEntity, PIIType
 from openodia.pii._verhoeff import is_valid
 
@@ -42,7 +44,7 @@ _DETECTORS: tuple[tuple[PIIType, re.Pattern[str], int, Callable[[str], float]], 
     ("PHONE", _PHONE, 0, _fixed(0.9)),
     ("PINCODE", _PINCODE, 1, _fixed(0.8)),
 )
-_RANK = {kind: rank for rank, (kind, *_) in enumerate(_DETECTORS)}
+_RANK: dict[PIIType, int] = {kind: rank for rank, kind in enumerate((*(kind for kind, *_ in _DETECTORS), "DATE"))}
 
 
 class _Candidate(NamedTuple):
@@ -60,7 +62,7 @@ def _collapse(group: list[_Candidate]) -> _Candidate:
 def _merge(candidates: Iterable[_Candidate]) -> list[_Candidate]:
     """Join overlapping candidates into one span each, typed by the longest member.
 
-    Equal lengths go to the earlier type in :data:`_DETECTORS`. One sorted pass, so linear in the
+    Equal lengths go to the earlier type in :data:`_RANK`. One sorted pass, so linear in the
     number of candidates.
     """
     merged: list[_Candidate] = []
@@ -92,6 +94,76 @@ def _validate_min_confidence(value: float) -> None:
         raise ValueError(f"min_confidence must be a number between 0 and 1, got {value!r}")
 
 
+def _candidates(text: str, wanted: frozenset[str], min_confidence: float) -> Iterable[_Candidate]:
+    if "DATE" in wanted:
+        for start, end, confidence in find_dates(text):
+            if confidence >= min_confidence:
+                yield _Candidate(start, end, "DATE", confidence)
+    for kind, pattern, group, confidence_of in _DETECTORS:
+        if kind not in wanted:
+            continue
+        for match in pattern.finditer(text):
+            start, end = match.span(group)
+            confidence = confidence_of(text[start:end])
+            if confidence >= min_confidence:
+                yield _Candidate(start, end, kind, confidence)
+
+
+_LETTERS_THAT_COMPOSE_WITH_THE_PREVIOUS = (("\u1161", "\u1175"), ("\u11a8", "\u11c2"), ("\U00016d67", "\U00016d67"))
+
+
+def _attaches_to_previous(char: str) -> bool:
+    if unicodedata.category(char) in {"Mn", "Mc", "Me"}:
+        return True
+    return any(low <= char <= high for low, high in _LETTERS_THAT_COMPOSE_WITH_THE_PREVIOUS)
+
+
+def _mark_runs(text: str) -> Iterable[tuple[int, int]]:
+    start = 0
+    while start < len(text):
+        end = start + 1
+        while end < len(text) and _attaches_to_previous(text[end]):
+            end += 1
+        yield start, end
+        start = end
+
+
+def _nfc_ends(chunk: str, nfc_chunk: str, origin: int) -> list[int]:
+    ends: list[int] = []
+    taken = 0
+    for length in range(1, len(nfc_chunk) + 1):
+        target = nfc_chunk[:length]
+        end = taken + 1
+        while end <= len(chunk) and unicodedata.normalize("NFC", chunk[:end]) != target:
+            end += 1
+        if end > len(chunk):
+            ends.extend([origin + len(chunk)] * (len(nfc_chunk) - len(ends)))
+            return ends
+        ends.append(origin + end)
+        taken = end
+    return ends
+
+
+_LONGEST_EXACT_RUN = 32
+
+
+def _nfc_bounds(text: str) -> tuple[str, list[int] | None]:
+    if unicodedata.is_normalized("NFC", text):
+        return text, None
+    bounds = [0]
+
+    def parts() -> Iterable[str]:
+        for start, end in _mark_runs(text):
+            nfc_chunk = unicodedata.normalize("NFC", text[start:end])
+            if end - start > _LONGEST_EXACT_RUN:
+                bounds.extend([end] * len(nfc_chunk))
+            else:
+                bounds.extend(_nfc_ends(text[start:end], nfc_chunk, start))
+            yield nfc_chunk
+
+    return "".join(parts()), bounds
+
+
 def detect(text: str, types: Iterable[str] | None = None, min_confidence: float = 0.0) -> list[PIIEntity]:
     """Find PII spans in ``text``, sorted by position and never overlapping.
 
@@ -99,7 +171,7 @@ def detect(text: str, types: Iterable[str] | None = None, min_confidence: float 
     ``PII_TYPES``. ``min_confidence`` (0 to 1) drops weaker matches first. Matches that
     overlap are merged into one entity spanning all of them, so for every detected value no
     part of it is left visible; see the limits below. Its type and confidence come from the
-    longest match; on a tie the earlier of EMAIL, URL, AADHAAR, PAN, PHONE, PINCODE wins.
+    longest match; on a tie the earlier of EMAIL, URL, AADHAAR, PAN, PHONE, PINCODE, DATE wins.
 
     Limits: an email local part over 64 characters is not found, and one with punctuation keeps
     its earlier part visible; one that starts with non-ASCII letters keeps those letters visible.
@@ -112,14 +184,12 @@ def detect(text: str, types: Iterable[str] | None = None, min_confidence: float 
         raise TypeError(f"text must be str, got {type(text).__name__}")
     wanted = validated_types(types)
     _validate_min_confidence(min_confidence)
-    ascii_text = odia_to_ascii(text)
-    candidates = []
-    for kind, pattern, group, confidence_of in _DETECTORS:
-        if kind not in wanted:
-            continue
-        for match in pattern.finditer(ascii_text):
-            start, end = match.span(group)
-            confidence = confidence_of(ascii_text[start:end])
-            if confidence >= min_confidence:
-                candidates.append(_Candidate(start, end, kind, confidence))
-    return [PIIEntity(c.kind, text[c.start : c.end], c.start, c.end, c.confidence) for c in _merge(candidates)]
+    nfc_text, bounds = _nfc_bounds(text)
+    candidates = list(_candidates(odia_to_ascii(nfc_text), wanted, min_confidence))
+    if bounds is not None:
+        candidates = [found._replace(start=bounds[found.start], end=bounds[found.end]) for found in candidates]
+        candidates.extend(_candidates(odia_to_ascii(text), wanted, min_confidence))
+    return [
+        PIIEntity(found.kind, text[found.start : found.end], found.start, found.end, found.confidence)
+        for found in _merge(candidates)
+    ]

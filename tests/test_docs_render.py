@@ -32,6 +32,18 @@ def rendered_text(page: Path) -> str:
     return html.unescape(TAGS.sub("\n", page.read_text(encoding="utf-8")))
 
 
+def test_legacy_api_page_lists_decode_and_to_unicode(site: Path) -> None:
+    page = site / "api" / "legacy" / "index.html"
+    for name in ("decode", "to_unicode"):
+        assert f'id="openodia.legacy.{name}"' in page.read_text(encoding="utf-8")
+    text = " ".join(rendered_text(page).split())
+    assert "0x81, 0x8D, 0x8F, 0x90 and 0x9D" in text
+    assert "openodia.legacy needs a release newer than 0.2.0: import openodia.legacy fails on 0.2.0." in text
+    assert "to_unicode ( text : str , font : str ) -> str" in text
+    assert "TypeError text is not str . ValueError font is not in SUPPORTED_FONTS ." in text
+    assert "Convert keystrokes typed in a legacy 8-bit Odia font to NFC Unicode Odia." in text
+
+
 def test_api_pages_were_built(site: Path) -> None:
     assert len(list((site / "api").glob("*/index.html"))) >= 10
 

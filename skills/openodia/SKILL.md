@@ -1,6 +1,6 @@
 ---
 name: openodia
-description: Process Odia (ଓଡ଼ିଆ) text with the openodia command-line tool. Use when a task needs to tokenize, normalize, clean, translate, detect the language of, summarize, remove stopwords from, count words or n-grams in, generate names from, spell-check, find and mask phone, email, Aadhaar, PAN and PIN code in, or stem and lemmatize Odia text, and you want machine-readable output.
+description: Process Odia (ଓଡ଼ିଆ) text with the openodia command-line tool. Use when a task needs to tokenize, normalize, clean, translate, detect the language of, summarize, remove stopwords from, count words or n-grams in, generate names from, spell-check, find and mask phone, email, URL, Aadhaar, PAN, PIN code and calendar dates in, or stem and lemmatize Odia text, and you want machine-readable output.
 ---
 
 # openodia
@@ -15,7 +15,7 @@ Rules:
 - Add `--json` and parse stdout as one JSON document. Errors go to stderr and stdout stays empty. `--json` on every subcommand needs a release newer than 0.1.14; PyPI 0.1.14 has it on `detect-language` only.
 - Exit codes: 0 success, 1 runtime error (`openodia: error: ...` on stderr), 2 usage error.
 - `spell` is an offline dictionary check. `spell --json` corrects text (`{"text": string}`); `--suggest` returns `{"suggestions": [string]}` for one word; `--check` returns `{"correct": boolean}`. `--check` drops one trailing LF or CRLF from stdin or `--file`. It needs a release newer than 0.2.0: `openodia spell` exits 2 on 0.2.0, and `import openodia.spell` fails on 0.2.0.
-- `pii` is rule-based and finds only phone, email, URL, Aadhaar, PAN and PIN code; it does not find names or addresses. `pii` needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there. Each entity's `text` is the raw value, so use `pii --mask --json` when the output must not contain PII.
+- `pii` is rule-based and finds only phone, email, URL, Aadhaar, PAN, PIN code and calendar dates; it does not find names or addresses. `pii` needs a release newer than 0.1.14: `openodia pii` exits 2 on 0.1.14 and `import openodia.pii` fails there. `DATE` needs a release newer than 0.2.0: on 0.2.0, `pii.detect(text, types=["DATE"])` raises `ValueError` and `openodia pii --type DATE` exits 2. Each entity's `text` is the raw value, so use `pii --mask --json` when the output must not contain PII.
 - `translate` works offline only for English to Odia dictionary hits; other pairs need the network and can be rate limited.
 - Stemming and lemmatization are not subcommands. `from openodia import morph`, then `morph.stem(word)` for the noun stem or verb root and `morph.lemma(word)` for the citation form, part of speech, and features. `openodia.morph` needs a release newer than 0.2.0: `from openodia import morph` fails on 0.2.0.
 

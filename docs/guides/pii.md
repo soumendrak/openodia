@@ -1,14 +1,14 @@
 # Find and mask personal identifiers
 
-`pii` finds Indian mobile numbers, email addresses, URLs, Aadhaar numbers, PAN codes, and PIN codes. It reads Odia digits and ASCII digits, and it runs offline. It does not find names, street addresses, dates, or amounts, so masked text can still identify a person.
+`pii` finds Indian mobile numbers, email addresses, URLs, Aadhaar numbers, PAN codes, PIN codes, and calendar dates. It reads Odia digits and ASCII digits, and it runs offline. It does not find names, street addresses, or amounts, so masked text can still identify a person.
 
-`pii` needs a release newer than 0.1.14. On PyPI 0.1.14, `import openodia.pii` fails and `openodia pii` exits with code 2. From a source checkout, `uv run python` can import it.
+`pii` needs a release newer than 0.1.14. On PyPI 0.1.14, `import openodia.pii` fails and `openodia pii` exits with code 2. `DATE` needs a release newer than 0.2.0: on 0.2.0, `pii.detect(text, types=["DATE"])` raises `ValueError` and `openodia pii --type DATE` exits 2. From a source checkout, `uv run python` can import it.
 
 Every example on this page is run by the test suite.
 
 ## Find matches
 
-`detect` returns one `PIIEntity` per match, in order. `start` and `end` are character offsets into the text you passed.
+`detect` returns one `PIIEntity` per match, in order. `start` and `end` are character offsets into the text you passed. Text that is not in NFC is also searched in its NFC form, and each match is mapped back to offsets in the text you passed, so a PAN followed by a decomposed accented letter is found. In text that is not in NFC, a match found in the NFC form whose last letter carries 32 or more combining marks also covers those marks.
 
 ```pycon
 >>> from openodia import pii
@@ -17,6 +17,8 @@ Every example on this page is run by the test suite.
 >>> text = "ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ଓ a@b.com"
 >>> pii.detect(text)
 [PIIEntity(type='PHONE', text='୯୮୭୬୫୪୩୨୧୦', start=7, end=17, confidence=0.9), PIIEntity(type='EMAIL', text='a@b.com', start=20, end=27, confidence=0.95)]
+>>> pii.detect("ABCPE1234Fe\u0301")
+[PIIEntity(type='PAN', text='ABCPE1234F', start=0, end=10, confidence=0.95)]
 ```
 
 A 10-digit number that starts with 6, 7, 8, or 9 is a `PHONE`, including an order number that happens to have that shape. A PIN code is reported only after `PIN`, `Pincode`, or `ପିନ`.
@@ -25,6 +27,19 @@ A 10-digit number that starts with 6, 7, 8, or 9 is a `PHONE`, including an orde
 >>> pii.detect("PIN 751001")
 [PIIEntity(type='PINCODE', text='751001', start=4, end=10, confidence=0.8)]
 >>> pii.detect("751001")
+[]
+```
+
+## Find dates
+
+A `DATE` is a real calendar day from 1900 to 2099, day before month. A date with a month name in English or Odia has confidence 0.85. A date written only in digits, separated by `/`, `-` or `.`, has confidence 0.7, so `min_confidence=0.8` keeps only named dates. `31/02/2024`, a month of 13 and a date split by a line break are not found.
+
+```pycon
+>>> [entity.text for entity in pii.detect("ଜନ୍ମ ୧୫ ଜାନୁଆରୀ ୨୦୨୪, born May 4, 2024")]
+['୧୫ ଜାନୁଆରୀ ୨୦୨୪', 'May 4, 2024']
+>>> pii.mask("15/01/2024 ଓ 15 January 2024", min_confidence=0.8)
+'15/01/2024 ଓ <DATE>'
+>>> pii.detect("31/02/2024")
 []
 ```
 
@@ -41,7 +56,7 @@ A 10-digit number that starts with 6, 7, 8, or 9 is a `PHONE`, including an orde
 'ମୋ ଫୋନ ୯୮୭୬୫୪୩୨୧୦ ଓ <EMAIL>'
 ```
 
-`types` is a list of `PHONE`, `EMAIL`, `URL`, `AADHAAR`, `PAN`, and `PINCODE`. A bare string raises `TypeError`.
+`types` is a list of `PHONE`, `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PINCODE`, and `DATE`. A bare string raises `TypeError`.
 
 ```pycon
 >>> pii.detect(text, types="EMAIL")
@@ -65,7 +80,7 @@ An Aadhaar-shaped number that passes the Verhoeff checksum has confidence 0.95. 
 
 ## Limits
 
-Overlapping matches become one span. The type is the longest match. When the lengths are equal, the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, and `PINCODE` wins, so `mask` does not leave part of a detected value visible.
+Overlapping matches become one span. The type is the longest match. When the lengths are equal, the earlier of `EMAIL`, `URL`, `AADHAAR`, `PAN`, `PHONE`, `PINCODE`, and `DATE` wins, so `mask` does not leave part of a detected value visible.
 
 `mask` repeats until the text stops changing, and it stops after 10 passes. After more than 10 glued values, the text it returns can still contain a raw value.
 
