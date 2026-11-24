@@ -1,3 +1,4 @@
+import ast
 import random
 import re
 import string
@@ -127,11 +128,80 @@ def test_win_suggests_both_dictionary_spellings(typed: str) -> None:
     assert roman.type_odia(typed, candidates=True) == ["ୱିନ୍", "ୱିଂ"]
 
 
-def test_the_changelog_names_every_w_input_the_segmenter_fix_changes() -> None:
+_PRE_FIX_OUTPUT = {
+    "wa": "ୱ",
+    "waa": "ୱଅ",
+    "wawa": "ୱୱ",
+    "wii": "ୱିଇ",
+    "wuu": "ୱୁଉ",
+    "win": ["ୱିନ୍"],
+}
+_UNCHANGED_NEAR_MISSES = {
+    "wi": "ୱି",
+    "wu": "ୱୁ",
+    "we": "ୱେ",
+    "wo": "ୱୋ",
+    "wee": "ୱେଏ",
+    "woo": "ୱୋଓ",
+    "wia": "ୱିଅ",
+    "awa": "ଅୱ",
+    "swa": "ସ୍ୱ",
+    "wun": ["ୱୁନ୍"],
+    "wen": ["ୱେନ୍"],
+    "wan": ["ୱାନ୍", "ୱନ୍"],
+}
+_W_CLASS = (
+    "the inputs that read as `wa`, `wawa` or `win`, or as `wi` or `wu` with the vowel repeated, now type a dictionary word"
+)
+_W_SCOPE = "Across all lowercase inputs of 1 to 3 letters and every `w` input of up to 4 letters in lower, upper or title case, no other output changes."
+
+
+def _w_changelog_line() -> str:
     changelog = (Path(__file__).resolve().parent.parent / "CHANGELOG.md").read_text(encoding="utf-8")
     [line] = [line for line in changelog.splitlines() if line.startswith("- `syllable.split` and `syllable.count` treat `ୱ`")]
-    for typed in ("wa", "waa", "wawa", "wii", "wuu", "win"):
-        assert f"`{typed}`" in line, typed
+    return line
+
+
+def _typed(text: str) -> str | list[str]:
+    return roman.type_odia(text, candidates=True) if text == "win" else roman.type_odia(text)
+
+
+def _changelog_pairs(line: str) -> dict[str, tuple[str, str]]:
+    def value(text: str) -> str:
+        return ast.literal_eval(text) if text.startswith("[") else text
+
+    pairs: dict[str, tuple[str, str]] = {}
+    for first, second, new, old_first, old_second in re.findall(
+        r"`(\w+)` and `(\w+)` give `([^`]+)` \(they gave `([^`]+)` and `([^`]+)`\)", line
+    ):
+        pairs[first] = (value(new), value(old_first))
+        pairs[second] = (value(new), value(old_second))
+    for typed, new, old in re.findall(r"`(\w+)`(?: with `candidates=True`)? gives `([^`]+)` \(it gave `([^`]+)`\)", line):
+        pairs[typed] = (value(new), value(old))
+    return pairs
+
+
+def test_each_changelog_type_odia_example_gives_its_stated_new_output_and_its_stated_old_one_was_the_pre_fix_output() -> None:
+    pairs = _changelog_pairs(_w_changelog_line())
+    assert set(pairs) == set(_PRE_FIX_OUTPUT)
+    for typed, (new, old) in pairs.items():
+        assert new == _typed(typed), typed
+        assert old == _PRE_FIX_OUTPUT[typed], typed
+        assert new != old, typed
+
+
+def test_the_changelog_states_the_changed_w_class_and_its_scope() -> None:
+    line = _w_changelog_line()
+    assert _W_CLASS in line
+    assert line.endswith(_W_SCOPE)
+    for typed, word in {"wa": "ୱା", "WaAa": "ୱା", "wawa": "ୱାୱା", "wii": "ୱି", "WUU": "ୱୁ"}.items():
+        assert roman.type_odia(typed) == word, typed
+    assert roman.type_odia("wIIn", candidates=True) == ["ୱିନ୍", "ୱିଂ"]
+
+
+@pytest.mark.parametrize(("typed", "output"), _UNCHANGED_NEAR_MISSES.items())
+def test_w_inputs_outside_the_changelog_class_keep_their_pre_fix_output(typed: str, output: str | list[str]) -> None:
+    assert (roman.type_odia(typed, candidates=True) if isinstance(output, list) else roman.type_odia(typed)) == output
 
 
 def test_fold_and_flap_rules_are_visible() -> None:
