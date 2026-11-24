@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from openodia import roman
+from openodia import roman, syllable
 from openodia.corpus.dictionary import get_dictionary
 from openodia.syllable import count as akshara_count
 
@@ -151,9 +151,23 @@ _UNCHANGED_NEAR_MISSES = {
     "wan": ["ୱାନ୍", "ୱନ୍"],
 }
 _W_CLASS = (
+    "ignoring case, and reading a run of one vowel (`aa`, `iii`) as that vowel, "
     "the inputs that read as `wa`, `wawa` or `win`, or as `wi` or `wu` with the vowel repeated, now type a dictionary word"
 )
 _W_SCOPE = "Across all lowercase inputs of 1 to 3 letters and every `w` input of up to 4 letters in lower, upper or title case, no other output changes."
+_W_LINE_OUTLINE = (
+    "- `syllable.split` and `syllable.count` treat `ୱ` (U+0B71) as a consonant, so <split> (two aksharas) and <split>. "
+    "It used to split `ୱ` from its vowel sign or halant and not count it. "
+    f"`roman.type_odia` follows: {_W_CLASS}. "
+    "<pair>, <pair>, <pair>, <pair>, and <pair>; <already>. "
+    f"{_W_SCOPE}"
+)
+_PRE_FIX_SPLIT = {"ୱେବ": (["ୱ", "େ", "ବ"], 1), "ସ୍ୱର": (["ସ୍", "ୱ", "ର"], 2)}
+_SPLIT_EXAMPLE = re.compile(r"`(\S+)` is `(\[[^`]+\])`")
+_PAIR_EXAMPLE = re.compile(
+    r"`\w+` and `\w+` give `[^`]+` \(they gave `[^`]+` and `[^`]+`\)|`\w+`(?: with `candidates=True`)? gives `[^`]+` \(it gave `[^`]+`\)"
+)
+_ALREADY_EXAMPLE = re.compile(r"`(\w+)` and `(\w+)` already gave `([^`]+)` and `([^`]+)`")
 
 
 def _w_changelog_line() -> str:
@@ -190,17 +204,31 @@ def test_each_changelog_type_odia_example_gives_its_stated_new_output_and_its_st
         assert new != old, typed
 
 
-def test_the_changelog_states_the_changed_w_class_and_its_scope() -> None:
+def test_the_changelog_w_line_states_its_class_and_scope_word_for_word_and_every_other_example_matches_live_output() -> None:
     line = _w_changelog_line()
     assert _W_CLASS in line
     assert line.endswith(_W_SCOPE)
+    outline = _ALREADY_EXAMPLE.sub("<already>", _PAIR_EXAMPLE.sub("<pair>", _SPLIT_EXAMPLE.sub("<split>", line)))
+    assert outline == _W_LINE_OUTLINE
+
+    splits = {text: ast.literal_eval(parts) for text, parts in _SPLIT_EXAMPLE.findall(line)}
+    assert set(splits) == set(_PRE_FIX_SPLIT)
+    for text, parts in splits.items():
+        assert syllable.split(text) == parts, text
+        assert syllable.count(text) == 2, text
+        assert (parts, 2) != _PRE_FIX_SPLIT[text], text
+
+    [(first, second, first_output, second_output)] = _ALREADY_EXAMPLE.findall(line)
+    for typed, output in ((first, first_output), (second, second_output)):
+        assert roman.type_odia(typed) == output == _UNCHANGED_NEAR_MISSES[typed], typed
+
     for typed, word in {"wa": "ୱା", "WaAa": "ୱା", "wawa": "ୱାୱା", "wii": "ୱି", "WUU": "ୱୁ"}.items():
         assert roman.type_odia(typed) == word, typed
     assert roman.type_odia("wIIn", candidates=True) == ["ୱିନ୍", "ୱିଂ"]
 
 
 @pytest.mark.parametrize(("typed", "output"), _UNCHANGED_NEAR_MISSES.items())
-def test_w_inputs_outside_the_changelog_class_keep_their_pre_fix_output(typed: str, output: str | list[str]) -> None:
+def test_inputs_outside_the_changelog_class_keep_their_pre_fix_output(typed: str, output: str | list[str]) -> None:
     assert (roman.type_odia(typed, candidates=True) if isinstance(output, list) else roman.type_odia(typed)) == output
 
 
