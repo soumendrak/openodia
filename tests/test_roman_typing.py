@@ -136,6 +136,7 @@ _PRE_FIX_OUTPUT = {
     "wuu": "ୱୁଉ",
     "win": ["ୱିନ୍"],
 }
+_PRE_FIX_SPLIT = {"ୱେବ": (["ୱ", "େ", "ବ"], 1), "ସ୍ୱର": (["ସ୍", "ୱ", "ର"], 2)}
 _UNCHANGED_NEAR_MISSES = {
     "wi": "ୱି",
     "wu": "ୱୁ",
@@ -162,12 +163,15 @@ _W_LINE_OUTLINE = (
     "<pair>, <pair>, <pair>, <pair>, and <pair>; <already>. "
     f"{_W_SCOPE}"
 )
-_PRE_FIX_SPLIT = {"ୱେବ": (["ୱ", "େ", "ବ"], 1), "ସ୍ୱର": (["ସ୍", "ୱ", "ର"], 2)}
-_SPLIT_EXAMPLE = re.compile(r"`(\S+)` is `(\[[^`]+\])`")
+_COUNT_WORDS = {"one": 1, "two": 2, "three": 3, "four": 4}
+_SPLIT_EXAMPLE = re.compile(r"`(?P<text>\S+)` is `(?P<parts>\[[^`]+\])`(?: \((?P<count>\w+) aksharas\))?")
 _PAIR_EXAMPLE = re.compile(
-    r"`\w+` and `\w+` give `[^`]+` \(they gave `[^`]+` and `[^`]+`\)|`\w+`(?: with `candidates=True`)? gives `[^`]+` \(it gave `[^`]+`\)"
+    r"`(?P<typed>\w+)`(?: and `(?P<second>\w+)`)?(?P<candidates> with `candidates=True`)? (?P<verb>gives?) `(?P<new>[^`]+)` "
+    r"\((?P<pronoun>it|they) gave `(?P<old>[^`]+)`(?: and `(?P<second_old>[^`]+)`)?\)"
 )
 _ALREADY_EXAMPLE = re.compile(r"`(\w+)` and `(\w+)` already gave `([^`]+)` and `([^`]+)`")
+_CLASS_READINGS = re.compile(r"read as `(\w+)`, `(\w+)` or `(\w+)`, or as `(\w+)` or `(\w+)` with the vowel repeated")
+_W_VOWEL_RUN = re.compile(r"([aeiou])\1*")
 
 
 def _w_changelog_line() -> str:
@@ -176,60 +180,103 @@ def _w_changelog_line() -> str:
     return line
 
 
-def _typed(text: str) -> str | list[str]:
-    return roman.type_odia(text, candidates=True) if text == "win" else roman.type_odia(text)
+def _stated(text: str) -> str | list[str]:
+    return ast.literal_eval(text) if text.startswith("[") else text
 
 
-def _changelog_pairs(line: str) -> dict[str, tuple[str, str]]:
-    def value(text: str) -> str:
-        return ast.literal_eval(text) if text.startswith("[") else text
-
-    pairs: dict[str, tuple[str, str]] = {}
-    for first, second, new, old_first, old_second in re.findall(
-        r"`(\w+)` and `(\w+)` give `([^`]+)` \(they gave `([^`]+)` and `([^`]+)`\)", line
-    ):
-        pairs[first] = (value(new), value(old_first))
-        pairs[second] = (value(new), value(old_second))
-    for typed, new, old in re.findall(r"`(\w+)`(?: with `candidates=True`)? gives `([^`]+)` \(it gave `([^`]+)`\)", line):
-        pairs[typed] = (value(new), value(old))
+def _changelog_pairs() -> dict[str, tuple[bool, str | list[str], str | list[str]]]:
+    pairs: dict[str, tuple[bool, str | list[str], str | list[str]]] = {}
+    for match in _PAIR_EXAMPLE.finditer(_w_changelog_line()):
+        candidates = match["candidates"] is not None
+        pairs[match["typed"]] = (candidates, _stated(match["new"]), _stated(match["old"]))
+        if match["second"] is not None:
+            pairs[match["second"]] = (candidates, _stated(match["new"]), _stated(match["second_old"]))
     return pairs
 
 
-def test_each_changelog_type_odia_example_gives_its_stated_new_output_and_its_stated_old_one_was_the_pre_fix_output() -> None:
-    pairs = _changelog_pairs(_w_changelog_line())
+def _class_readings() -> list[str]:
+    match = _CLASS_READINGS.search(_w_changelog_line())
+    assert match is not None
+    *plain, short_i, short_u = match.groups()
+    return [*plain, short_i + short_i[-1], short_u + short_u[-1]]
+
+
+def _odia_words() -> set[str]:
+    return {token for value in get_dictionary().values() for token in _ODIA_RUN.findall(unicodedata.normalize("NFC", value))}
+
+
+def test_the_changelog_w_line_is_its_pinned_wording_around_the_examples() -> None:
+    line = _w_changelog_line()
+    split = _SPLIT_EXAMPLE.sub(lambda match: "<split>" + (f" ({match['count']} aksharas)" if match["count"] else ""), line)
+    outline = _ALREADY_EXAMPLE.sub("<already>", _PAIR_EXAMPLE.sub("<pair>", split))
+    assert outline == _W_LINE_OUTLINE
+
+
+def test_each_changelog_type_odia_example_agrees_in_number_with_its_inputs() -> None:
+    for match in _PAIR_EXAMPLE.finditer(_w_changelog_line()):
+        one = match["second"] is None
+        assert (match["verb"], match["pronoun"], match["second_old"] is None) == (
+            ("gives", "it", True) if one else ("give", "they", False)
+        ), match[0]
+
+
+def test_each_changelog_type_odia_example_gives_its_stated_new_output_in_its_stated_call_mode() -> None:
+    for typed, (candidates, new, _old) in _changelog_pairs().items():
+        assert roman.type_odia(typed, candidates=candidates) == new, typed
+
+
+def test_each_changelog_type_odia_example_states_the_pinned_pre_fix_output_as_its_old_one() -> None:
+    pairs = _changelog_pairs()
     assert set(pairs) == set(_PRE_FIX_OUTPUT)
-    for typed, (new, old) in pairs.items():
-        assert new == _typed(typed), typed
+    for typed, (_candidates, new, old) in pairs.items():
         assert old == _PRE_FIX_OUTPUT[typed], typed
         assert new != old, typed
 
 
-def test_the_changelog_w_line_states_its_class_and_scope_word_for_word_and_every_other_example_matches_live_output() -> None:
-    line = _w_changelog_line()
-    assert _W_CLASS in line
-    assert line.endswith(_W_SCOPE)
-    outline = _ALREADY_EXAMPLE.sub("<already>", _PAIR_EXAMPLE.sub("<pair>", _SPLIT_EXAMPLE.sub("<split>", line)))
-    assert outline == _W_LINE_OUTLINE
+def test_each_changelog_split_example_matches_live_split_and_its_stated_count() -> None:
+    examples = list(_SPLIT_EXAMPLE.finditer(_w_changelog_line()))
+    assert {match["text"] for match in examples} == set(_PRE_FIX_SPLIT)
+    for match in examples:
+        parts = ast.literal_eval(match["parts"])
+        assert syllable.split(match["text"]) == parts, match["text"]
+        assert syllable.count(match["text"]) == len(parts), match["text"]
+        if match["count"] is not None:
+            assert syllable.count(match["text"]) == _COUNT_WORDS[match["count"]], match["text"]
 
-    splits = {text: ast.literal_eval(parts) for text, parts in _SPLIT_EXAMPLE.findall(line)}
-    assert set(splits) == set(_PRE_FIX_SPLIT)
-    for text, parts in splits.items():
-        assert syllable.split(text) == parts, text
-        assert syllable.count(text) == 2, text
-        assert (parts, 2) != _PRE_FIX_SPLIT[text], text
 
-    [(first, second, first_output, second_output)] = _ALREADY_EXAMPLE.findall(line)
+def test_the_changelog_old_split_rule_gives_the_pinned_pre_fix_split_and_count() -> None:
+    for match in _SPLIT_EXAMPLE.finditer(_w_changelog_line()):
+        parts = ast.literal_eval(match["parts"])
+        old_parts = [piece for part in parts for piece in re.split("(ୱ)", part) if piece]
+        old_count = sum("ୱ" not in piece and unicodedata.category(piece[0]) == "Lo" for piece in old_parts)
+        assert (old_parts, old_count) == _PRE_FIX_SPLIT[match["text"]], match["text"]
+
+
+def test_the_changelog_already_gave_example_matches_live_and_pinned_pre_fix_output() -> None:
+    [(first, second, first_output, second_output)] = _ALREADY_EXAMPLE.findall(_w_changelog_line())
     for typed, output in ((first, first_output), (second, second_output)):
         assert roman.type_odia(typed) == output == _UNCHANGED_NEAR_MISSES[typed], typed
 
-    for typed, word in {"wa": "ୱା", "WaAa": "ୱା", "wawa": "ୱାୱା", "wii": "ୱି", "WUU": "ୱୁ"}.items():
-        assert roman.type_odia(typed) == word, typed
-    assert roman.type_odia("wIIn", candidates=True) == ["ୱିନ୍", "ୱିଂ"]
+
+def test_case_and_vowel_runs_do_not_change_what_a_changelog_class_reading_types() -> None:
+    for reading in _class_readings():
+        expected = roman.type_odia(reading, candidates=True)
+        for run in (1, 2, 3):
+            stretched = _W_VOWEL_RUN.sub(lambda vowels, run=run: vowels[0] * run, reading)
+            mixed = "".join(letter.upper() if index % 2 else letter for index, letter in enumerate(stretched))
+            for spelling in (stretched, stretched.upper(), stretched.title(), mixed):
+                assert roman.type_odia(spelling, candidates=True) == expected, spelling
+
+
+def test_every_changelog_class_reading_types_only_dictionary_words() -> None:
+    words = _odia_words()
+    for reading in _class_readings():
+        assert set(roman.type_odia(reading, candidates=True)) <= words, reading
 
 
 @pytest.mark.parametrize(("typed", "output"), _UNCHANGED_NEAR_MISSES.items())
 def test_inputs_outside_the_changelog_class_keep_their_pre_fix_output(typed: str, output: str | list[str]) -> None:
-    assert (roman.type_odia(typed, candidates=True) if isinstance(output, list) else roman.type_odia(typed)) == output
+    assert roman.type_odia(typed, candidates=isinstance(output, list)) == output
 
 
 def test_fold_and_flap_rules_are_visible() -> None:
