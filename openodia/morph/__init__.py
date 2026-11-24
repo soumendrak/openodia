@@ -23,7 +23,9 @@ list is the root plus ିବା after a consonant, ବା after the listed େ r
 (ହୋଇଥିଲା) and the conjunctive ହୋଇ are the verb ହେ, with infinitive ହେବା. Suppletive pasts (କଲା,
 ଗଲା, ଦେଲା, ନେଲା, ହେଲା, ଥିଲା, with first person ଲି and ଲୁ such as ଦେଲି and ଥିଲୁ), the infinitives ଯିବା, ଥିବା and ଚାହିଁବା,
 the future forms ଯିବ, ଯିବି, ଯିବେ, ଥିବ, ଥିବି and ଥିବେ, and the presents
-ଦିଏ, ଦିଅନ୍ତି, ନିଏ, ନିଅନ୍ତି, ହୁଏ, ହୁଅନ୍ତି and ଚାହାନ୍ତି are a dictionary, not a cut.
+ଅଛି, ଅଛନ୍ତି, ଦିଏ, ଦିଅନ୍ତି, ନିଏ, ନିଅନ୍ତି, ହୁଏ, ହୁଅନ୍ତି and ଚାହାନ୍ତି are a dictionary, not a cut.
+ଅଛନ୍ତି is the plural of ଅଛି, so both are ଥା with infinitive ଥିବା. No verb is read
+off the present stem ଅଛ, so a progressive compound such as କରୁଅଛନ୍ତି stays unknown, like କରୁଅଛି.
 A vowel-final root takes present plural ଆନ୍ତି (ଖାଆନ୍ତି is ଖା, ଧୋଆନ୍ତି is ଧୋ).
 ଚାହ has the nasal stem ଚାହିଁ-: a candrabindu right after the vowel sign
 that follows ଚାହ belongs to the stem, so every ending reads the same with

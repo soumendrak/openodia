@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import json
 import re
 import subprocess
@@ -612,3 +613,108 @@ def test_repeated_definite_genitive_stack_peels_without_backtracking() -> None:
     )
     result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True, timeout=10)
     assert result.stdout.strip() == "True NounFeatures(number='singular', case='genitive', definite=True)"
+
+
+def test_achhanti_is_the_plural_of_achhi() -> None:
+    assert stem("ଅଛନ୍ତି") == stem("ଅଛି") == "ଥା"
+    assert lemma("ଅଛନ୍ତି") == Lemma("ଥିବା", "VERB", FiniteVerb("present", "progressive", 3, "plural"))
+
+
+_IRREGULAR_PRESENT_PAIRS = (("ଅଛି", "ଅଛନ୍ତି"), ("ଦିଏ", "ଦିଅନ୍ତି"), ("ନିଏ", "ନିଅନ୍ତି"), ("ହୁଏ", "ହୁଅନ୍ତି"), ("ଚାହେଁ", "ଚାହାନ୍ତି"))
+
+
+@pytest.mark.parametrize(("singular", "plural"), _IRREGULAR_PRESENT_PAIRS)
+def test_an_irregular_present_and_its_plural_differ_only_in_number(singular: str, plural: str) -> None:
+    one, many = lemma(singular), lemma(plural)
+    assert stem(plural) == stem(singular)
+    assert isinstance(one.features, FiniteVerb)
+    assert (one.features.person, one.features.number) == (3, "singular")
+    assert many == dataclasses.replace(one, features=dataclasses.replace(one.features, number="plural"))
+
+
+def test_every_listed_finite_singular_has_a_listed_plural_or_shares_the_infinitive_spelling() -> None:
+    from openodia.morph._engine import _IRREGULAR
+
+    listed = set(_IRREGULAR.values())
+    for word, (root, features) in _IRREGULAR.items():
+        if not isinstance(features, FiniteVerb) or features.number != "singular":
+            continue
+        if (root, dataclasses.replace(features, number="plural")) in listed:
+            continue
+        assert (features.tense, features.person, word[-1]) == ("future", 1, "ି"), word
+        assert _IRREGULAR[word[:-1] + "ା"] == (root, NonfiniteVerb("infinitive")), word
+
+
+@pytest.mark.parametrize("word", ("କରୁଅଛି", "କରୁଅଛନ୍ତି", "ଯାଉଅଛନ୍ତି", "ଆସୁଅଛନ୍ତି", "ଅଛିବା", "ଅଛିଲା"))
+def test_no_verb_is_read_off_the_present_stem_achh(word: str) -> None:
+    assert lemma(word) == Lemma(word, "UNKNOWN", UnknownFeatures())
+    assert stem(word) == word
+
+
+def _changelog() -> str:
+    return (Path(__file__).resolve().parent.parent / "CHANGELOG.md").read_text(encoding="utf-8")
+
+
+def _docstring() -> str:
+    return " ".join((morph.__doc__ or "").split())
+
+
+_PRESENTS = {
+    "CHANGELOG": (_changelog, re.compile(r"The presents ((?:`\S+`, )+`\S+` and `\S+`) are dictionary entries")),
+    "docstring": (_docstring, re.compile(r"the presents ((?:\S+, )+\S+ and \S+) are a dictionary, not a cut")),
+}
+
+
+_ACHH_SENTENCE = {
+    "CHANGELOG": (
+        _changelog,
+        re.compile(
+            r"`(?P<plural>\S+)` is the plural of `(?P<singular>\S+)`: `stem\(\"(?P<stem_input>\S+)\"\)` is `(?P<root>\S+)` "
+            r"and `lemma\(\"(?P<lemma_input>\S+)\"\)\.form` is `(?P<form>\S+)`\. No verb is read off the present stem "
+            r"`(?P<achh>\S+)`, so `(?P<compound>\S+)` stays `UNKNOWN`, like `(?P<compound_singular>\S+)`\."
+        ),
+    ),
+    "docstring": (
+        _docstring,
+        re.compile(
+            r"(?P<plural>\S+) is the plural of (?P<singular>\S+), so both are (?P<root>\S+) with infinitive (?P<form>\S+)\. "
+            r"No verb is read off the present stem (?P<achh>\S+), so a progressive compound such as (?P<compound>\S+) "
+            r"stays unknown, like (?P<compound_singular>\S+)\."
+        ),
+    ),
+}
+
+
+@pytest.mark.parametrize("source", _ACHH_SENTENCE)
+def test_the_achhanti_sentence_matches_live_stem_and_lemma(source: str) -> None:
+    read, sentence = _ACHH_SENTENCE[source]
+    [match] = list(sentence.finditer(read()))
+    plural, singular, achh = match["plural"], match["singular"], match["achh"]
+    assert (plural, singular) == (achh + "ନ୍ତି", achh + "ି")
+    named_inputs = {key: value for key, value in match.groupdict().items() if key.endswith("_input")}
+    assert all(value == plural for value in named_inputs.values())
+    assert stem(plural) == stem(singular) == match["root"]
+    assert lemma(plural).form == lemma(singular).form == match["form"]
+    compound, compound_singular = match["compound"], match["compound_singular"]
+    assert compound.endswith(plural) and compound_singular == compound[: -len(plural)] + singular
+    for word in (compound, compound_singular):
+        assert lemma(word).pos == "UNKNOWN", word
+
+
+@pytest.mark.parametrize("source", _PRESENTS)
+def test_the_presents_named_as_dictionary_entries_are_exactly_the_listed_presents(source: str) -> None:
+    from openodia.morph._engine import _IRREGULAR
+
+    read, sentence = _PRESENTS[source]
+    [match] = list(sentence.finditer(read()))
+    named = re.findall(r"[^\s`,]+", match[1].replace(" and ", ", "))
+    listed = {
+        word
+        for word, (_root, features) in _IRREGULAR.items()
+        if isinstance(features, FiniteVerb) and features.tense == "present"
+    }
+    assert len(named) == len(set(named))
+    assert set(named) == listed
+    for word in named:
+        got = lemma(word)
+        assert got.pos == "VERB" and isinstance(got.features, FiniteVerb) and got.features.tense == "present", word

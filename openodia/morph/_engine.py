@@ -224,6 +224,7 @@ _NOUNS = frozenset(_nfc(word) for word in "ଘର ଫୁଲ ବହି ପୁର�
 _HUMANS = frozenset(_nfc(word) for word in ("ଲୋକ", "ବାଳକ", "ମଣିଷ", "ଛାତ୍ର"))
 _INFINITIVE_OVERRIDE = {_nfc("ଯା"): "ଯିବା", _nfc("ଥା"): "ଥିବା", _nfc("ଚାହ"): _nfc("ଚାହିଁବା")}
 _CONJUNCTIVE_ROOTS = {_nfc("ହୋ"): _nfc("ହେ")}
+_SUPPLETIVE_PRESENT_STEM = _nfc("ଅଛ")
 _NASAL_ROOTS = tuple(root for root, form in _INFINITIVE_OVERRIDE.items() if form.startswith(root + "ିଁ"))
 
 
@@ -266,6 +267,7 @@ _IRREGULAR: dict[str, tuple[str, FiniteVerb | NonfiniteVerb]] = {
     _nfc("ଥିଲା"): _past("ଥା", 3, "singular"),
     _nfc("ଥିଲେ"): _past("ଥା", 3, "plural"),
     _nfc("ଅଛି"): (_nfc("ଥା"), FiniteVerb("present", "progressive", 3, "singular")),
+    _nfc("ଅଛନ୍ତି"): (_nfc("ଥା"), FiniteVerb("present", "progressive", 3, "plural")),
     _nfc("ଚାହାନ୍ତି"): (_nfc("ଚାହ"), FiniteVerb("present", "simple", 3, "plural")),
     _nfc("ଦିଏ"): (_nfc("ଦେ"), FiniteVerb("present", "simple", 3, "singular")),
     _nfc("ଦିଅନ୍ତି"): (_nfc("ଦେ"), FiniteVerb("present", "simple", 3, "plural")),
@@ -353,6 +355,8 @@ def _candidate(word: str, tail: _Row) -> str | None:
     ):
         return None
     if isinstance(tail, _Verbal) and _known_nominal(remainder) and remainder not in _VERBS:
+        return None
+    if isinstance(tail, _Verbal) and remainder.endswith(_SUPPLETIVE_PRESENT_STEM):
         return None
     return remainder
 
