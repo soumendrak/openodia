@@ -35,6 +35,7 @@ _CONSONANTS: frozenset[str] = frozenset(
         chr(0x0B5C),  # ଡ଼
         chr(0x0B5D),  # ଢ଼
         chr(0x0B5F),  # ୟ
+        chr(0x0B71),
     ]
 )
 

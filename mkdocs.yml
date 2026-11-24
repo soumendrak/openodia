@@ -156,6 +156,7 @@ nav:
       - api/corpus.md
       - api/roman.md
       - api/legacy.md
+      - api/morph.md
       - api/indic.md
       - api/pii.md
       - api/spell.md
