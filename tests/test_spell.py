@@ -1,6 +1,7 @@
 """Odia spell checking: dictionary lookup, suggestions, and in-place correction."""
 
 import json
+import random
 import re
 import sys
 import unicodedata
@@ -76,7 +77,7 @@ def test_suggest_finds_a_swap_combined_with_an_insertion() -> None:
 def test_suggest_returns_the_requested_number_of_candidates() -> None:
     from openodia import spell
 
-    assert spell.suggest("ନମସ୍କର", top_k=5) == ["ନମସ୍କାର", "ଚମତ୍କାର", "ତୁମର", "ନରମ", "ମଟର"]
+    assert spell.suggest("ନମସ୍କର", top_k=5) == ["ନମସ୍କାର", "ନମ୍ବର", "ଚମତ୍କାର", "ନରମ", "ନର୍କର"]
 
 
 def test_suggest_of_a_dictionary_word_with_top_k_zero_is_empty() -> None:
@@ -88,7 +89,63 @@ def test_suggest_of_a_dictionary_word_with_top_k_zero_is_empty() -> None:
 def test_equal_distance_and_frequency_break_ties_by_code_point() -> None:
     from openodia import spell
 
-    assert spell.suggest("ତସ", top_k=40)[7] == "ତଳ"
+    ranked = spell.suggest("ତସ", top_k=40)
+    assert ranked.index("ଏସ") + 1 == ranked.index("ତର")
+
+
+@pytest.mark.parametrize(
+    ("typo", "word"),
+    (
+        ("ବୀଚ୍ଛେଦ", "ବିଚ୍ଛେଦ"),
+        ("ବାତୀଲ୍", "ବାତିଲ୍"),
+        ("ଦୀନଟି", "ଦିନଟି"),
+        ("ଉନନତ", "ଉନ୍ନତ"),
+        ("ସଂକେ", "ସଂକେତ"),
+        ("ବ୍ୟନର", "ବ୍ୟାନର"),
+        ("ସସ୍ତ", "ସମସ୍ତ"),
+    ),
+)
+def test_a_word_a_few_letters_away_beats_a_more_common_word_further_away(typo: str, word: str) -> None:
+    from openodia import spell
+
+    assert spell.suggest(typo, top_k=1) == [word]
+    assert spell.correct_text(typo) == word
+
+
+@pytest.mark.parametrize(
+    ("typo", "word"),
+    (
+        ("ଶ୍ୱିଗଲିଙ୍ଗ୍", "ସ୍ୱିଗଲିଙ୍ଗ୍"),
+        ("ୱୋଲଟୀ", "ୱୋଲଟି"),
+        ("ୱାଶେଲ", "ୱାସେଲ"),
+        ("ୟେୱନ", "ୟେୱନ୍"),
+        ("ୱାବୀଟ୍", "ୱାବିଟ୍"),
+        ("ୱିଶିସ୍", "ୱିସିସ୍"),
+        ("ଶେମୱେର୍", "ସେମୱେର୍"),
+    ),
+)
+def test_a_one_letter_typo_in_a_wa_word_gets_that_word_first(typo: str, word: str) -> None:
+    from openodia import spell
+
+    assert spell.suggest(typo, top_k=1) == [word]
+    assert spell.correct_text(typo) == word
+
+
+def test_frequency_still_outweighs_one_extra_letter_of_distance() -> None:
+    from openodia import spell
+
+    ranked = spell.suggest("ତସ", top_k=40)
+    assert ranked[0] == "ଆସ"
+    assert ranked.index("ଘାସ") < ranked.index("ହସ")
+
+
+def test_a_smaller_top_k_is_a_prefix_of_a_larger_one() -> None:
+    from openodia import spell
+
+    for typo in ("ତସ", "ନମସ୍କର", "ବିସ୍ୱ"):
+        ranked = spell.suggest(typo, top_k=60)
+        for top_k in range(1, 61):
+            assert spell.suggest(typo, top_k=top_k) == ranked[:top_k]
 
 
 def test_is_correct_normalizes_to_nfc() -> None:
@@ -197,6 +254,43 @@ def test_suggestion_accuracy_on_one_hundred_typos() -> None:
         top5 += word in suggestions
     assert top1 >= 70
     assert top5 >= 90
+
+
+def _dictionary_tokens() -> set[str]:
+    tokens: set[str] = set()
+    for value in get_dictionary().values():
+        tokens.update(re.findall(r"[\u0b00-\u0b7f]+", unicodedata.normalize("NFC", value)))
+    return tokens
+
+
+def _one_letter_typo(word: str) -> str:
+    if "ଶ" in word:
+        return word.replace("ଶ", "ସ", 1)
+    if "ସ" in word:
+        return word.replace("ସ", "ଶ", 1)
+    if "ି" in word:
+        return word.replace("ି", "ୀ", 1)
+    return word[:-1]
+
+
+def test_suggestion_accuracy_on_seeded_wa_and_control_typos() -> None:
+    from openodia import spell
+
+    tokens = _dictionary_tokens()
+    sampler = random.Random(309)
+    wa_words = sampler.sample(sorted(token for token in tokens if "ୱ" in token and len(token) >= 4), 300)
+    other_words = sampler.sample(sorted(token for token in tokens if "ୱ" not in token and len(token) >= 4), 150)
+    wa = [(typo, word) for word in wa_words if (typo := _one_letter_typo(word)) not in tokens]
+    control = [
+        (typo, word) for word in other_words if (typo := word.replace("ି", "ୀ", 1) if "ି" in word else word[:-1]) not in tokens
+    ]
+    assert (len(wa), len(control)) == (287, 141)
+    wa_suggestions = [(word, spell.suggest(typo)) for typo, word in wa]
+    control_suggestions = [(word, spell.suggest(typo)) for typo, word in control]
+    assert sum(found[:1] == [word] for word, found in wa_suggestions) >= 218
+    assert sum(word in found for word, found in wa_suggestions) >= 266
+    assert sum(found[:1] == [word] for word, found in control_suggestions) >= 95
+    assert sum(word in found for word, found in control_suggestions) >= 122
 
 
 def test_cli_corrects_suggests_and_checks(capsys: pytest.CaptureFixture[str]) -> None:

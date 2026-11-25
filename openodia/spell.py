@@ -4,8 +4,14 @@ A word is correct when its NFC form is a dictionary word or a bundled stopword.
 Suggestions are other dictionary words within Damerau-Levenshtein distance 2
 over aksharas (insertion, deletion, substitution, or transposition of two
 adjacent aksharas, including a transposition combined with another edit),
-closest distance first and, for a tie, the word that appears more often in the
-dictionary. ``correct_text`` replaces
+closest akshara distance first. Words at the same akshara distance are ordered
+by a score: the Damerau-Levenshtein distance over NFC code points minus 0.75
+times the natural log of how often the word appears in the dictionary, lowest
+first, then by code point. One letter of distance weighs the same as appearing
+e**(4/3), about 3.8, times as often, so a word one letter further away ranks ahead
+only when it appears more than 3.8 times as often. For ``ବୀଚ୍ଛେଦ``, ``ବିଚ୍ଛେଦ``
+(one letter away, seen 11 times in the dictionary) ranks ahead of ``ଉଚ୍ଛେଦ``
+(two letters away, seen 15 times). ``correct_text`` replaces
 each unknown Odia word with its first suggestion and leaves whitespace, punctuation,
 digits and non-Odia text as written. It does not join or split words. A word with
 no candidate within distance 2 is left as written.
@@ -27,6 +33,7 @@ Examples:
 
 from __future__ import annotations
 
+import math
 import re
 import unicodedata
 from functools import lru_cache
@@ -36,6 +43,7 @@ from openodia.corpus.dictionary import get_dictionary
 from openodia.syllable import split
 
 _MAX_DISTANCE = 2
+_FREQUENCY_WEIGHT = 0.75
 _WORD = re.compile(r"[\u0b00-\u0b63\u0b71\u200c\u200d]+")
 _Entry = tuple[str, tuple[int, ...], frozenset[int]]
 
@@ -136,21 +144,36 @@ def _too_far(chars: frozenset[int], present: frozenset[int]) -> bool:
     return len(chars - present) > _MAX_DISTANCE or len(present - chars) > _MAX_DISTANCE
 
 
-def _matches(token: str) -> list[str]:
+def _letter_distance(left: str, right: str) -> int:
+    return _within(tuple(map(ord, left)), tuple(map(ord, right)), len(left) + len(right))
+
+
+def _matches(token: str, top_k: int) -> list[str]:
     vocab, buckets = _catalog()
     units = _encode(token, vocab)
     present = frozenset(code for code in units if code >= 0)
     frequencies = _frequencies()
-    ranked: list[tuple[int, int, str]] = []
+    by_distance: dict[int, list[str]] = {}
     for size in range(max(0, len(units) - _MAX_DISTANCE), len(units) + _MAX_DISTANCE + 1):
         for candidate, candidate_units, chars in buckets.get(size, ()):
             if _too_far(chars, present):
                 continue
             distance = _within(units, candidate_units, _MAX_DISTANCE)
             if distance <= _MAX_DISTANCE:
-                ranked.append((distance, -frequencies[candidate], candidate))
-    ranked.sort()
-    return [item[2] for item in ranked]
+                by_distance.setdefault(distance, []).append(candidate)
+    ranked: list[str] = []
+    for distance in sorted(by_distance):
+        if len(ranked) >= top_k:
+            break
+        group = by_distance[distance]
+        group.sort(
+            key=lambda candidate: (
+                _letter_distance(token, candidate) - _FREQUENCY_WEIGHT * math.log(frequencies[candidate]),
+                candidate,
+            )
+        )
+        ranked.extend(group)
+    return ranked[:top_k]
 
 
 def is_correct(word: str) -> bool:
@@ -175,7 +198,7 @@ def suggest(word: str, top_k: int = 5) -> list[str]:
         return []
     if token in _frequencies():
         return [token]
-    return _matches(token)[:top_k]
+    return _matches(token, top_k)
 
 
 def correct_text(text: str) -> str:
