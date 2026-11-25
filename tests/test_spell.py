@@ -154,6 +154,14 @@ def test_a_vowel_sign_that_decomposes_still_counts_as_one_letter() -> None:
     assert spell.suggest("ବୌକା", top_k=3) == ["ମକା", "ବୋକା", "ଫିକା"]
 
 
+def test_a_compatibility_character_counts_as_the_one_character_typed() -> None:
+    from openodia import spell
+
+    assert spell.suggest("କନ୍ତୁ…") == ["କରନ୍ତୁ", "କିନ୍ତୁ", "କର", "କରିବା", "କରେ"]
+    assert spell.suggest("କନ୍ତୁ½") == ["କରନ୍ତୁ", "କିନ୍ତୁ", "କର", "କରିବା", "କରେ"]
+    assert spell.suggest("ଚରﬁ") == ["ଚରଣ", "ଚରମ", "କର", "ଘର", "ରଖ"]
+
+
 def test_a_smaller_top_k_is_a_prefix_of_a_larger_one() -> None:
     from openodia import spell
 
