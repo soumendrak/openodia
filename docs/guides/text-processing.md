@@ -146,7 +146,7 @@ True
 
 ## Check spelling
 
-`spell` looks words up in the offline dictionary. `suggest` returns the closest dictionary words (akshara edit distance at most 2). `correct_text` replaces each unknown Odia word and leaves spaces and punctuation where they were. It needs a release newer than 0.2.0: `import openodia.spell` fails on 0.2.0.
+`spell` looks words up in the offline dictionary. `suggest` returns the closest dictionary words (akshara edit distance at most 2). Among words at the same akshara distance, each letter closer counts as much as appearing about 3.8 times as often in the dictionary, so `ବୀଚ୍ଛେଦ` gives `ବିଚ୍ଛେଦ` before the more frequent `ଉଚ୍ଛେଦ`. Letters are NFC code points, so a vowel sign such as `ୈ` is one letter and `ଭାବୈଲା` gives `ଭାବିଲା` first. `correct_text` replaces each unknown Odia word and leaves spaces and punctuation where they were. It needs a release newer than 0.2.0: `import openodia.spell` fails on 0.2.0.
 
 ```pycon
 >>> from openodia import spell
