@@ -144,6 +144,7 @@ def test_one_letter_weighs_as_much_as_appearing_about_three_point_eight_times_as
 
     assert spell.suggest("ସପୀଂଗ") == ["ସପିଂଗ", "ସଜାଗ", "ସଙ୍କଗ", "ସମୟ", "ସପିଂ"]
     assert spell.suggest("ଆଠି", top_k=3) == ["ଆଖି", "ଆସ", "ଆତ୍ମ"]
+    assert spell.suggest("ଯୋସତା") == ["ଯୋତା", "ଯୋଗ୍ୟତା", "ଯୋଜନା", "ଜୋତା", "ଯୋଗ୍ୟ"]
 
 
 def test_a_vowel_sign_that_decomposes_still_counts_as_one_letter() -> None:
@@ -152,6 +153,13 @@ def test_a_vowel_sign_that_decomposes_still_counts_as_one_letter() -> None:
     assert spell.suggest("ଭାବୈଲା", top_k=1) == ["ଭାବିଲା"]
     assert spell.correct_text("ଭାବୈଲା") == "ଭାବିଲା"
     assert spell.suggest("ବୌକା", top_k=3) == ["ମକା", "ବୋକା", "ଫିକା"]
+
+
+def test_decomposed_input_is_ranked_as_its_nfc_form() -> None:
+    from openodia import spell
+
+    assert spell.suggest(unicodedata.normalize("NFD", "ଭାବୈଲା"), top_k=1) == ["ଭାବିଲା"]
+    assert spell.suggest(unicodedata.normalize("NFD", "କୋଣ")) == ["କୋଣ"]
 
 
 def test_a_compatibility_character_counts_as_the_one_character_typed() -> None:
