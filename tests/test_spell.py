@@ -139,6 +139,21 @@ def test_frequency_still_outweighs_one_extra_letter_of_distance() -> None:
     assert ranked.index("ଘାସ") < ranked.index("ହସ")
 
 
+def test_one_letter_weighs_as_much_as_appearing_about_three_point_eight_times_as_often() -> None:
+    from openodia import spell
+
+    assert spell.suggest("ସପୀଂଗ") == ["ସପିଂଗ", "ସଜାଗ", "ସଙ୍କଗ", "ସମୟ", "ସପିଂ"]
+    assert spell.suggest("ଆଠି", top_k=3) == ["ଆଖି", "ଆସ", "ଆତ୍ମ"]
+
+
+def test_a_vowel_sign_that_decomposes_still_counts_as_one_letter() -> None:
+    from openodia import spell
+
+    assert spell.suggest("ଭାବୈଲା", top_k=1) == ["ଭାବିଲା"]
+    assert spell.correct_text("ଭାବୈଲା") == "ଭାବିଲା"
+    assert spell.suggest("ବୌକା", top_k=3) == ["ମକା", "ବୋକା", "ଫିକା"]
+
+
 def test_a_smaller_top_k_is_a_prefix_of_a_larger_one() -> None:
     from openodia import spell
 
@@ -166,6 +181,13 @@ def test_two_inserted_aksharas_stay_inside_the_distance_window() -> None:
     from openodia import spell
 
     assert "ନମସ୍କାର" in spell.suggest("ସ୍କାର", top_k=100_000)
+
+
+def test_three_inserted_aksharas_fall_outside_the_distance_window() -> None:
+    from openodia import spell
+
+    assert spell.suggest("ନମସ୍କାରଅଅଅ") == []
+    assert spell.correct_text("ନମସ୍କାରଅଅଅ") == "ନମସ୍କାରଅଅଅ"
 
 
 def test_two_deleted_aksharas_stay_inside_the_distance_window() -> None:

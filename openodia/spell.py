@@ -11,7 +11,9 @@ first, then by code point. One letter of distance weighs the same as appearing
 e**(4/3), about 3.8, times as often, so a word one letter further away ranks ahead
 only when it appears more than 3.8 times as often. For ``ବୀଚ୍ଛେଦ``, ``ବିଚ୍ଛେଦ``
 (one letter away, seen 11 times in the dictionary) ranks ahead of ``ଉଚ୍ଛେଦ``
-(two letters away, seen 15 times). ``correct_text`` replaces
+(two letters away, seen 15 times). A vowel sign such as ``ୈ`` or ``ୌ`` is one NFC
+code point, so it counts as one letter: ``ଭାବୈଲା`` gives ``ଭାବିଲା`` first.
+``correct_text`` replaces
 each unknown Odia word with its first suggestion and leaves whitespace, punctuation,
 digits and non-Odia text as written. It does not join or split words. A word with
 no candidate within distance 2 is left as written.
